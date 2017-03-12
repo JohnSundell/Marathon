@@ -111,6 +111,9 @@ class MarathonTests: XCTestCase {
         try run(with: ["run", scriptFile.path])
 
         XCTAssertNotNil(try? folder.subfolder(named: "addedFromScript"))
+
+        // List should now include cache data for the script
+        try XCTAssertTrue(run(with: ["list"]).contains(scriptFile.path))
     }
 
     func testRunningScriptWithNewDependency() throws {

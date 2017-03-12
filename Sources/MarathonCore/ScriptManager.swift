@@ -115,7 +115,17 @@ internal final class ScriptManager {
 
     private func makeManagedScriptPathList() -> [String] {
         return folder.subfolders.flatMap { scriptFolder in
-            return try? scriptFolder.moveToAndPerform(command: "OriginalFile")
+            guard let path = try? scriptFolder.moveToAndPerform(command: "readlink OriginalFile") else {
+                return nil
+            }
+
+            // Take the opportunity to clean up cache data no longer needed
+            guard !path.isEmpty else {
+                try? scriptFolder.delete()
+                return nil
+            }
+
+            return path
         }
     }
 }
