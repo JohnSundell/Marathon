@@ -14,7 +14,7 @@ $ marathon create helloWorld "import Foundation; print(\"Hello world\")"
 🏃‍♀️ Run scripts
 ```
 $ marathon run helloWorld
-> Hello world 
+> Hello world
 ```
 
 📦 Hassle free dependency management. Simply add a package...
@@ -65,7 +65,7 @@ Using the Swift Package Manager:
 ```
 $ git clone git@github.com:JohnSundell/Marathon.git
 $ cd Marathon
-$ swift build -c release
+$ swift build -c release -Xswiftc -static-stdlib
 $ cp -f .build/release/Marathon /usr/local/bin/marathon
 ```
 
