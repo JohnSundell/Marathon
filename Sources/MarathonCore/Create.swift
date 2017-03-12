@@ -43,8 +43,10 @@ internal final class CreateTask: Task, Executable {
             throw Error.missingName
         }
 
-        let contents = arguments.element(at: 1)?.data(using: .utf8) ?? Data()
-        let file = try perform(folder.createFile(named: name, contents: contents), orThrow: Error.failedToCreateFile(name))
+        let script = arguments.element(at: 1) ?? "import Foundation\n\n"
+        let file = try perform(folder.createFile(named: name, contents: script.data(using: .utf8)!),
+                               orThrow: Error.failedToCreateFile(name))
+
         var output = "🐣  Created script \(name)"
 
         if !argumentsContainNoOpenFlag {
