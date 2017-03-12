@@ -17,12 +17,12 @@ $ marathon run helloWorld
 > Hello world 
 ```
 
-📦 Add dependencies...
+📦 Hassle free dependency management. Simply add a package...
 ```
 $ marathon add git@github.com:JohnSundell/Files.git
 ```
 
-...and use them without any additional work
+...and use it without any additional work
 ```swift
 import Files
 
@@ -31,7 +31,7 @@ for file in try Folder(path: "MyFolder").files {
 }
 ```
 
-🚀 Hassle free dependency management. Just a simple call to update all of them
+🚀 Update all of your scripting dependencies with a single call
 ```
 $ marathon update
 ```
