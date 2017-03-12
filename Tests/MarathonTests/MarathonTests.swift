@@ -239,6 +239,22 @@ class MarathonTests: XCTestCase {
         XCTAssertNotNil(try? scriptFile.read())
     }
 
+    func testRemovingScriptCacheDataForDeletedScript() throws {
+        let scriptFile = try folder.createFile(named: "script.swift")
+        try scriptFile.write(string: "import Foundation")
+
+        try run(with: ["run", scriptFile.path])
+
+        let scriptsFolder = try folder.subfolder(named: "Scripts")
+        XCTAssertEqual(scriptsFolder.subfolders.count, 1)
+
+        // Delete the script before running 'remove'
+        try scriptFile.delete()
+
+        try run(with: ["remove", scriptFile.path])
+        XCTAssertEqual(scriptsFolder.subfolders.count, 0)
+    }
+
     // MARK: - Updating packages
 
     func testUpdatingPackages() throws {

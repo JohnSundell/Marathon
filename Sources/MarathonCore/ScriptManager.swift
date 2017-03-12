@@ -59,7 +59,7 @@ internal final class ScriptManager {
 
     func script(at path: String) throws -> Script {
         let file = try perform(File(path: path), orThrow: Error.scriptNotFound(path))
-        let identifier = scriptIdentifier(from: file)
+        let identifier = scriptIdentifier(from: file.path)
         let name = identifier.components(separatedBy: "-").last!.capitalized
         let folder = try createFolderIfNeededForScript(withIdentifier: identifier, file: file)
         let script = Script(name: name, folder: folder)
@@ -79,8 +79,7 @@ internal final class ScriptManager {
     }
 
     func removeDataForScript(at path: String) throws {
-        let file = try perform(File(path: path), orThrow: Error.scriptNotFound(path))
-        let identifier = scriptIdentifier(from: file)
+        let identifier = scriptIdentifier(from: path)
 
         guard let folder = folderForScript(withIdentifier: identifier) else {
             return
@@ -91,8 +90,8 @@ internal final class ScriptManager {
 
     // MARK: - Private
 
-    private func scriptIdentifier(from file: File) -> String {
-        let pathExcludingExtension = file.parent!.path + file.nameExcludingExtension
+    private func scriptIdentifier(from path: String) -> String {
+        let pathExcludingExtension = path.components(separatedBy: ".swift").first!
         return pathExcludingExtension.replacingOccurrences(of: "/", with: "-")
     }
 
