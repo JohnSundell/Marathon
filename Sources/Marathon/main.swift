@@ -7,7 +7,11 @@
 import MarathonCore
 
 do {
-    try print(Marathon.run())
+    let outcome = try Marathon.run()
+
+    if !outcome.isEmpty {
+        print(outcome)
+    }
 } catch {
     print("\(error)")
 }

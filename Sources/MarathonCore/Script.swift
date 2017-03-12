@@ -40,6 +40,8 @@ internal final class Script {
     let folder: Folder
     var marathonFile: File? { return resolveMarathonfile() }
 
+    private var copyLoopDispatchQueue: DispatchQueue?
+
     // MARK: - Init
 
     init(name: String, folder: Folder) {
@@ -59,15 +61,25 @@ internal final class Script {
         return try executionFolder.moveToAndPerform(command: command)
     }
 
-    func edit(arguments: [String], open: Bool) throws -> String {
+    func edit(arguments: [String], open: Bool) throws {
         do {
             let path = try editingPath(from: arguments)
 
             if open {
-                try Process().launchBash(withCommand: "open \(path)")
-            }
+                let relativePath = path.replacingOccurrences(of: folder.path, with: "")
+                print("✏️  Opening \(relativePath)")
 
-            return path.replacingOccurrences(of: folder.path, with: "")
+                try Process().launchBash(withCommand: "open \(path)")
+
+                if path.hasSuffix(".xcodeproj/") {
+                    print("\nℹ️  Marathon will keep running, in order to commit any changes you make in Xcode back to the original script file")
+                    print("   Press any key once you're done")
+
+                    startCopyLoop()
+                    _ = FileHandle.standardInput.availableData
+                    try copyChangesToSymlinkedFile()
+                }
+            }
         } catch {
             throw Error.editingFailed(name)
         }
@@ -89,7 +101,7 @@ internal final class Script {
     }
 
     private func expandSymlink() throws -> String {
-        return try folder.moveToAndPerform(command: "readlink Sources/main.swift")
+        return try folder.moveToAndPerform(command: "readlink OriginalFile")
     }
 
     private func resolveMarathonfile() -> File? {
@@ -99,5 +111,27 @@ internal final class Script {
         } catch {
             return nil
         }
+    }
+
+    private func startCopyLoop() {
+        let dispatchQueue: DispatchQueue
+
+        if let existingQueue = copyLoopDispatchQueue {
+            dispatchQueue = existingQueue
+        } else {
+            let newQueue = DispatchQueue(label: "com.marathon.fileCopyLoop")
+            copyLoopDispatchQueue = newQueue
+            dispatchQueue = newQueue
+        }
+
+        dispatchQueue.asyncAfter(deadline: .now() + .seconds(3)) { [weak self] in
+            try? self?.copyChangesToSymlinkedFile()
+            self?.startCopyLoop()
+        }
+    }
+
+    private func copyChangesToSymlinkedFile() throws {
+        let data = try folder.file(atPath: "Sources/main.swift").read()
+        try File(path: expandSymlink()).write(data: data)
     }
 }

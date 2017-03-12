@@ -47,13 +47,12 @@ internal final class CreateTask: Task, Executable {
         let file = try perform(folder.createFile(named: name, contents: script.data(using: .utf8)!),
                                orThrow: Error.failedToCreateFile(name))
 
-        var output = "🐣  Created script \(name)"
+        print("🐣  Created script \(name)")
 
         if !argumentsContainNoOpenFlag {
-            let editingPath = try scriptManager.script(at: file.path).edit(arguments: arguments, open: true)
-            output.append("\n✏️  Opening \(editingPath)")
+            try scriptManager.script(at: file.path).edit(arguments: arguments, open: true)
         }
 
-        return output
+        return ""
     }
 }

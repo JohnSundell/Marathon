@@ -41,7 +41,7 @@ internal final class EditTask: Task, Executable {
         }
 
         let script = try scriptManager.script(at: path)
-        let editingPath = try script.edit(arguments: arguments, open: !argumentsContainNoOpenFlag)
-        return "✏️  Opening \(editingPath)"
+        try script.edit(arguments: arguments, open: !argumentsContainNoOpenFlag)
+        return ""
     }
 }

@@ -167,6 +167,10 @@ internal final class PackageManager {
             return try symlinkPackages(to: folder)
         }
 
+        guard (try? folder.subfolder(named: "Packages")) == nil else {
+            return
+        }
+
         try folder.createSymlink(to: packagesFolder.path, at: "Packages")
     }
 

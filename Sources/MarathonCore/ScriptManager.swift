@@ -97,17 +97,17 @@ internal final class ScriptManager {
     }
 
     private func createFolderIfNeededForScript(withIdentifier identifier: String, file: File) throws -> Folder {
-        if let existingFolder = folderForScript(withIdentifier: identifier) {
-            return existingFolder
+        let scriptFolder = try folder.createSubfolderIfNeeded(withName: identifier)
+        try packageManager.symlinkPackages(to: scriptFolder)
+
+        if (try? scriptFolder.file(named: "OriginalFile")) == nil {
+            try scriptFolder.createSymlink(to: file.path, at: "OriginalFile")
         }
 
-        let newFolder = try folder.createSubfolder(named: identifier)
-        try packageManager.symlinkPackages(to: newFolder)
+        let sourcesFolder = try scriptFolder.createSubfolderIfNeeded(withName: "Sources")
+        try sourcesFolder.createFile(named: "main.swift", contents: file.read())
 
-        let sourcesFolder = try newFolder.createSubfolder(named: "Sources")
-        try sourcesFolder.createSymlink(to: file.path, at: "main.swift")
-
-        return newFolder
+        return scriptFolder
     }
 
     private func folderForScript(withIdentifier identifier: String) -> Folder? {
@@ -116,7 +116,7 @@ internal final class ScriptManager {
 
     private func makeManagedScriptPathList() -> [String] {
         return folder.subfolders.flatMap { scriptFolder in
-            return try? scriptFolder.moveToAndPerform(command: "readlink Sources/main.swift")
+            return try? scriptFolder.moveToAndPerform(command: "OriginalFile")
         }
     }
 }
