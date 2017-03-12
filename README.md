@@ -36,12 +36,12 @@ for file in try Folder(path: "MyFolder").files {
 $ marathon update
 ```
 
-⚒ Edit your scripts using Xcode...
+⚒ Edit, run & debug your scripts using Xcode...
 ```
 $ marathon edit helloWorld
 ```
 
-...or in your favorite text editor:
+...or in your favorite text editor
 ```
 $ marathon edit helloWorld -no-xcode
 ```
