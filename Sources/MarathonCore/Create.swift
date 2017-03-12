@@ -51,7 +51,7 @@ internal final class CreateTask: Task, Executable {
 
         if !argumentsContainNoOpenFlag {
             let editingPath = try scriptManager.script(at: file.path).edit(arguments: arguments, open: true)
-            output.append("✏️  Opening \(editingPath)")
+            output.append("\n✏️  Opening \(editingPath)")
         }
 
         return output
