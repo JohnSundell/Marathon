@@ -51,3 +51,20 @@ $ marathon edit helloWorld -no-xcode
 $ echo "git@github.com:JohnSundell/Files.git" > Marathonfile
 $ marathon run mySharedScript
 ```
+
+## Installing
+
+Using Make:
+```
+$ git clone git@github.com:JohnSundell/Marathon.git
+$ cd Marathon
+$ make
+```
+
+Using the Swift Package Manager:
+```
+$ git clone git@github.com:JohnSundell/Marathon.git
+$ cd Marathon
+$ swift build -c release
+$ cp -f .build/release/Marathon /usr/local/bin/marathon
+```
