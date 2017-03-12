@@ -79,3 +79,10 @@ git@github.com:JohnSundell/Files.git
 git@github.com:JohnSundell/Unbox.git
 git@github.com:JohnSundell/Wrap.git
 ```
+
+## Help, feedback or suggestions?
+
+- Run `$ marathon help` to display help for the tool itself or for any specific command.
+- [Open an issue](https://github.com/JohnSundell/Marathon/issues/new) if you need help, if you found a bug, or if you want to discuss a feature request.
+- [Open a PR](https://github.com/JohnSundell/Marathon/pull/new/master) if you want to make some change to Marathon.
+- Contact [@johnsundell on Twitter](https://twitter.com/johnsundell) for discussions, news & announcements about Marathon.
