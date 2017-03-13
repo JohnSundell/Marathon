@@ -69,6 +69,10 @@ $ swift build -c release -Xswiftc -static-stdlib
 $ cp -f .build/release/Marathon /usr/local/bin/marathon
 ```
 
+## Examples
+
+Check out [this repository](https://github.com/JohnSundell/Marathon-Examples) for a few example Swift scripts that you can run using Marathon.
+
 ## Using a Marathonfile
 
 To easily be able to define depenencies for a script in a declarative way, you can create a `Marathonfile` in the same folder as your script. This file is simply a *new line separated list* of URLs pointing to packages that should be installed before running the script. By doing this you can ensure that the required dependencies will be installed when sharing your script with team members, friends or the wider community.
