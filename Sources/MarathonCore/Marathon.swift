@@ -20,7 +20,7 @@ public final class Marathon {
 
     // MARK: - API
 
-    public static func run(with arguments: [String] = processArguments(), folderPath: String = "~/.marathon") throws -> String {
+    public static func run(with arguments: [String] = CommandLine.arguments, folderPath: String = "~/.marathon") throws -> String {
         let command = try Command(arguments: arguments)
 
         let setupError = Error.couldNotPerformSetup(folderPath)
@@ -35,10 +35,4 @@ public final class Marathon {
         let task = command.makeTaskClosure(executionFolder, Array(arguments.dropFirst(2)), scriptManager, packageManager)
         return try task.execute()
     }
-}
-
-// MARK: - Utilities
-
-private func processArguments() -> [String] {
-    return ProcessInfo.processInfo.arguments
 }
