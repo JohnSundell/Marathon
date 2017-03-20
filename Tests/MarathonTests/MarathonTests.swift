@@ -188,12 +188,24 @@ class MarathonTests: XCTestCase {
         assert(try run(with: ["create"]), throwsError: CreateError.missingName)
     }
 
-    func testCreatingScript() throws {
+    func testCreatingScriptWithName() throws {
         try run(with: ["create", "script", "-no-open"])
 
         let scriptFile = try File(path: FileSystem().currentFolder.path + "script.swift")
+
+        // Delete the file since we're creating it in the current working folder
         try scriptFile.delete()
     }
+
+    func testCreatingScriptWithPath() throws {
+        let scriptFolder = try folder.createSubfolder(named: "testScript")
+        let scriptPath = scriptFolder.path + "script.swift"
+
+        try run(with: ["create", scriptPath, "-no-open"])
+        try XCTAssertFalse(scriptFolder.file(named: "script.swift").read().isEmpty)
+    }
+
+    // MARK: - Editing scripts
 
     func testEditingScriptWithoutPathThrows() {
         assert(try run(with: ["edit"]), throwsError: EditError.missingPath)

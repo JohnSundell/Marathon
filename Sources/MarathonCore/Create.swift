@@ -5,6 +5,7 @@
  */
 
 import Foundation
+import Files
 
 // MARK: - Error
 
@@ -39,15 +40,20 @@ internal final class CreateTask: Task, Executable {
     private typealias Error = CreateError
 
     func execute() throws -> String {
-        guard let name = firstArgumentAsScriptPath else {
+        guard let path = firstArgumentAsScriptPath else {
             throw Error.missingName
         }
 
         let script = arguments.element(at: 1) ?? "import Foundation\n\n"
-        let file = try perform(folder.createFile(named: name, contents: script.data(using: .utf8)!),
-                               orThrow: Error.failedToCreateFile(name))
 
-        print("🐣  Created script \(name)")
+        guard let data = script.data(using: .utf8) else {
+            throw Error.failedToCreateFile(path)
+        }
+
+        let file = try perform(FileSystem().createFile(at: path, contents: data),
+                               orThrow: Error.failedToCreateFile(path))
+
+        print("🐣  Created script at \(path)")
 
         if !argumentsContainNoOpenFlag {
             try scriptManager.script(at: file.path).edit(arguments: arguments, open: true)
