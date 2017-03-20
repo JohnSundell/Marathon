@@ -22,17 +22,17 @@ public final class Marathon {
 
     public static func run(with arguments: [String] = CommandLine.arguments, folderPath: String = "~/.marathon") throws -> String {
         let command = try Command(arguments: arguments)
+        let fileSystem = FileSystem()
 
         let setupError = Error.couldNotPerformSetup(folderPath)
-        let rootFolder = try perform(FileSystem().createFolderIfNeeded(at: folderPath), orThrow: setupError)
+        let rootFolder = try perform(fileSystem.createFolderIfNeeded(at: folderPath), orThrow: setupError)
         let packageFolder = try perform(rootFolder.createSubfolderIfNeeded(withName: "Packages"), orThrow: setupError)
         let scriptFolder = try perform(rootFolder.createSubfolderIfNeeded(withName: "Scripts"), orThrow: setupError)
 
         let packageManager = try perform(PackageManager(folder: packageFolder), orThrow: setupError)
         let scriptManager = ScriptManager(folder: scriptFolder, packageManager: packageManager)
 
-        let executionFolder = try Folder(path: "")
-        let task = command.makeTaskClosure(executionFolder, Array(arguments.dropFirst(2)), scriptManager, packageManager)
+        let task = command.makeTaskClosure(fileSystem.currentFolder, Array(arguments.dropFirst(2)), scriptManager, packageManager)
         return try task.execute()
     }
 }
