@@ -49,15 +49,15 @@ extension Command {
     var description: String {
         switch self {
         case .create:
-            return "Create a new script in the folder you're currently in and open it it"
+            return "Create new script at a given path and open it it"
         case .edit:
-            return "Edit a script"
+            return "Edit a script at a given path"
         case .remove:
-            return "Remove a package or the cache data for a script"
+            return "Remove a package or the cache data for a script at a given path"
         case .run:
-            return "Run a script"
+            return "Run a script at a given path"
         case .add:
-            return "Add a package to be able to use it from your scripts"
+            return "Add a package from a given URL to be able to use it from your scripts"
         case .list:
             return "List all packages and cached script data"
         case .update:
@@ -70,7 +70,7 @@ extension Command {
     var usageText: String {
         switch self {
         case .create:
-            return "<script-name> [<script-content>] [-no-xcode] [-no-open]"
+            return "<script-path> [<script-content>] [-no-xcode] [-no-open]"
         case .edit:
             return "<path-to-script> [-no-xcode] [-no-open]"
         case .remove:
