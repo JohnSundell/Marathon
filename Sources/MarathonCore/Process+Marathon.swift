@@ -23,11 +23,13 @@ public extension Process {
         standardError = errorPipe
 
         launch()
+
+        let output = outputPipe.read() ?? ""
+        let error = errorPipe.read()
+
         waitUntilExit()
 
-        let output = outputPipe.output ?? ""
-
-        if let error = errorPipe.output {
+        if let error = error {
             if !error.isEmpty {
                 throw Error(message: error, output: output)
             }
@@ -38,7 +40,7 @@ public extension Process {
 }
 
 private extension Pipe {
-    var output: String? {
+    func read() -> String? {
         let data = fileHandleForReading.readDataToEndOfFile()
 
         guard let output = String(data: data, encoding: .utf8) else {

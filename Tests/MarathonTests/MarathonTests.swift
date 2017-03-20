@@ -182,6 +182,13 @@ class MarathonTests: XCTestCase {
         try XCTAssertEqual(output, Folder(path: "").path)
     }
 
+    func testScriptWithLargeAmountOfOutput() throws {
+        let script = "for _ in 0..<99999 { print(\"Hello\") }"
+        let scriptFile = try folder.createFile(named: "script.swift")
+        try scriptFile.write(string: script)
+        try run(with: ["run", scriptFile.path])
+    }
+
     // MARK: - Creating scripts
 
     func testCreatingScriptWithoutNameThrows() {
