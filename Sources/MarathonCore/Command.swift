@@ -49,7 +49,7 @@ extension Command {
     var description: String {
         switch self {
         case .create:
-            return "Create new script at a given path and open it it"
+            return "Create new script at a given path and open it"
         case .edit:
             return "Edit a script at a given path"
         case .remove:
