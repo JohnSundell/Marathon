@@ -53,7 +53,7 @@ internal final class HelpTask: Task, Executable {
         case .create, .edit:
             return "The script will be opened for editing in Xcode by default\n" +
                    "To open the source file directly (without an Xcode project), pass the '-no-xcode' flag\n" +
-                   "To not open the script at all, pass the 'no-open' flag"
+                   "To not open the script at all, pass the '-no-open' flag"
         case .remove:
             return "You can use this command to clean up data for scripts or packages no longer needed. To list them, use 'marathon list'"
         case .run:
