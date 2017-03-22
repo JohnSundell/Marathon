@@ -74,7 +74,7 @@ extension Command {
         case .edit:
             return "<path-to-script> [-no-xcode] [-no-open]"
         case .remove:
-            return "<name-of-package-or-path-to-script>"
+            return "<name-of-package-or-path-to-script> [-all-script-data]"
         case .run:
             return "<path-to-script> [<script-arguments...>]"
         case .add:

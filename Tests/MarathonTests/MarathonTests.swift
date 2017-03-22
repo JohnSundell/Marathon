@@ -277,6 +277,28 @@ class MarathonTests: XCTestCase {
         XCTAssertEqual(scriptsFolder.subfolders.count, 0)
     }
 
+    func testRemovingAllScriptData() throws {
+        var scriptFiles: [File] = []
+
+        for i in 0..<3 {
+            let scriptFile = try folder.createFile(named: "script_\(i).swift")
+            try scriptFile.write(string: "import Foundation")
+            try run(with: ["run", scriptFile.path])
+            scriptFiles.append(scriptFile)
+        }
+
+        let scriptsFolder = try folder.subfolder(named: "Scripts")
+        XCTAssertEqual(scriptsFolder.subfolders.count, scriptFiles.count)
+
+        // Delete the script before running 'remove'
+        for scriptFile in scriptFiles {
+            try scriptFile.delete()
+        }
+
+        try run(with: ["remove", "-all-script-data"])
+        XCTAssertEqual(scriptsFolder.subfolders.count, 0)
+    }
+
     // MARK: - Updating packages
 
     func testUpdatingPackages() throws {
