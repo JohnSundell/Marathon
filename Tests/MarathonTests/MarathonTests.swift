@@ -64,7 +64,7 @@ class MarathonTests: XCTestCase {
         let gitCommand = "git init && git add . && git commit -a -m \"Commit\" && git tag 0.1.0"
         try packageFolder.moveToAndPerform(command: gitCommand)
 
-        try run(with: ["add", packageFolder.path])
+        try run(with: ["add", "TestPackage"])
         XCTAssertNotNil(try? folder.subfolder(named: "Packages").file(named: "TestPackage").read())
 
         let generatedFolder = try folder.subfolder(atPath: "Packages/Generated")
@@ -86,6 +86,34 @@ class MarathonTests: XCTestCase {
 
         // List should no longer include the package
         try XCTAssertFalse(run(with: ["list"]).contains(packageFolder.path))
+    }
+
+    func testAddingLocalPackageWithDependency() throws {
+        let packageFolder = try folder.createSubfolder(named: "TestPackage")
+        try packageFolder.moveToAndPerform(command: "swift package init")
+
+        let packageDescription = "import PackageDescription\n" +
+                                 "let package = Package(name: \"TestPackage\",\n" +
+                                 "dependencies: [.Package(url: \"https://github.com/johnsundell/files.git\", majorVersion: 1)])"
+
+        let packageFile = try packageFolder.file(named: "Package.swift")
+        try packageFile.write(string: packageDescription)
+
+        let gitCommand = "git init && git add . && git commit -a -m \"Commit\" && git tag 0.1.0"
+        try packageFolder.moveToAndPerform(command: gitCommand)
+
+        try run(with: ["add", "TestPackage"])
+        XCTAssertNotNil(try? folder.subfolder(named: "Packages").file(named: "TestPackage").read())
+
+        let generatedFolder = try folder.subfolder(atPath: "Packages/Generated")
+
+        let generatedPackageFile = try generatedFolder.file(named: "Package.swift")
+        try XCTAssertTrue(generatedPackageFile.readAsString().contains(packageFolder.path))
+
+        let packageNames = try generatedFolder.subfolder(named: "Packages").subfolders.names
+        XCTAssertEqual(packageNames.count, 2)
+        XCTAssertTrue(packageNames.contains("TestPackage-0.1.0"))
+        XCTAssertTrue(packageNames.contains { $0.hasPrefix("Files-1") })
     }
 
     func testAddingAlreadyAddedPackageThrows() throws {
