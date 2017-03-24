@@ -126,8 +126,17 @@ internal final class PackageManager {
                 continue
             }
 
-            guard let url = URL(string: urlString) else {
+            guard var url = URL(string: urlString) else {
                 throw Error.failedToReadMarathonFile(file)
+            }
+
+            if !url.isRemote {
+                if !urlString.hasPrefix("/") && !urlString.hasPrefix("~") {
+                    let folder = try perform(file.parent!.subfolder(atPath: urlString),
+                                             orThrow: Error.failedToReadMarathonFile(file))
+
+                    url = URL(string: folder.path)!
+                }
             }
 
             try addPackage(at: url, throwIfAlreadyAdded: false)

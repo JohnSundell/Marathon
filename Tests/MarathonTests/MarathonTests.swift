@@ -388,6 +388,24 @@ class MarathonTests: XCTestCase {
         XCTAssertEqual(packagesFolder.subfolders.count, 2)
     }
 
+    func testAddingLocalPackageUsingRelativePathInMarathonFile() throws {
+        let packageFolder = try folder.createSubfolder(named: "TestPackage")
+        try packageFolder.moveToAndPerform(command: "swift package init")
+
+        let gitCommand = "git init && git add . && git commit -a -m \"Commit\" && git tag 0.1.0"
+        try packageFolder.moveToAndPerform(command: gitCommand)
+
+        let scriptFolder = try folder.createSubfolder(named: "TestScript")
+
+        let scriptFile = try scriptFolder.createFile(named: "script.swift")
+        try scriptFile.write(string: "import TestPackage")
+
+        let marathonFile = try scriptFolder.createFile(named: "Marathonfile")
+        try marathonFile.write(string: "../TestPackage")
+
+        try run(with: ["run", "TestScript/script"])
+    }
+
     func testIncorrectlyFormattedMarathonfileThrows() throws {
         let script = "import Foundation"
         let scriptFile = try folder.createFile(named: "script.swift")
