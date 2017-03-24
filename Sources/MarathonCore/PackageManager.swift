@@ -13,6 +13,7 @@ import Unbox
 
 public enum PackageManagerError {
     case failedToResolveLatestVersion(URL)
+    case failedToResolveName(URL)
     case packageAlreadyAdded(String)
     case failedToSavePackageFile(String, Folder)
     case failedToReadPackageFile(String)
@@ -27,6 +28,8 @@ extension PackageManagerError: PrintableError {
         switch self {
         case .failedToResolveLatestVersion(let url):
             return "Could not resolve the latest version for package at '\(url)'"
+        case .failedToResolveName(let url):
+            return "Could not resolve the name of package at '\(url)'"
         case .packageAlreadyAdded(let name):
             return "A package named '\(name)' has already been added"
         case .failedToSavePackageFile(let name, _):
@@ -54,6 +57,8 @@ extension PackageManagerError: PrintableError {
             }
 
             return hint
+        case .failedToResolveName(_):
+            return "Make sure that the package you're trying to add is reachable, and has a Package.swift file"
         case .packageAlreadyAdded(let name):
             return "Did you mean to update it? If so, run 'marathon update'\n" +
                    "You can also remove the existing package using 'marathon remove \(name)', and then run 'add' again"
@@ -83,6 +88,7 @@ internal final class PackageManager {
 
     private let folder: Folder
     private let generatedFolder: Folder
+    private let temporaryFolder: Folder
     private var masterPackageName: String { return "MARATHON_PACKAGES" }
 
     // MARK: - Init
@@ -90,12 +96,13 @@ internal final class PackageManager {
     init(folder: Folder) throws {
         self.folder = folder
         self.generatedFolder = try folder.createSubfolderIfNeeded(withName: "Generated")
+        self.temporaryFolder = try folder.createSubfolderIfNeeded(withName: "Temp")
     }
 
     // MARK: - API
 
     @discardableResult func addPackage(at url: URL, throwIfAlreadyAdded: Bool = true) throws -> Package {
-        let name = nameForPackage(at: url)
+        let name = try nameOfPackage(at: url)
 
         if throwIfAlreadyAdded {
             guard (try? folder.file(named: name)) == nil else {
@@ -104,7 +111,7 @@ internal final class PackageManager {
         }
 
         let latestVersion = try latestMajorVersionForPackage(at: url)
-        let package = Package(name: name, url: url, majorVersion: latestVersion)
+        let package = Package(name: name, url: absoluteRepositoryURL(from: url), majorVersion: latestVersion)
         try save(package: package)
         try updatePackages()
         return package
@@ -202,7 +209,7 @@ internal final class PackageManager {
     private func latestMajorVersionForRemotePackage(at url: URL) throws -> Int {
         let command = "git ls-remote --tags \(url.absoluteString)"
         let tags = try perform(Process().launchBash(withCommand: command),
-                                  orThrow: Error.failedToResolveLatestVersion(url))
+                               orThrow: Error.failedToResolveLatestVersion(url))
 
         guard let latestTag = tags.components(separatedBy: "\n").last else {
             throw Error.failedToResolveLatestVersion(url)
@@ -222,7 +229,7 @@ internal final class PackageManager {
     private func lastestMajorVersionForLocalPackage(at url: URL) throws -> Int {
         let command = "cd \(url.absoluteString) && git tag"
         let tags = try perform(Process().launchBash(withCommand: command),
-                                  orThrow: Error.failedToResolveLatestVersion(url))
+                               orThrow: Error.failedToResolveLatestVersion(url))
 
         guard let latestTag = tags.components(separatedBy: "\n").last else {
             throw Error.failedToResolveLatestVersion(url)
@@ -235,23 +242,62 @@ internal final class PackageManager {
         return majorVersion
     }
 
-    private func nameForPackage(at url: URL) -> String {
-        let urlComponents = url.absoluteString.components(separatedBy: "/")
-        let lastComponent = urlComponents.last!
+    private func nameOfPackage(at url: URL) throws -> String {
+        do {
+            if url.isRemote {
+                return try nameOfRemotePackage(at: url)
+            }
+            
+            let folder = try Folder(path: url.absoluteString)
+            return try nameOfPackage(in: folder)
+        } catch {
+            throw Error.failedToResolveName(url)
+        }
+    }
 
-        if url.isRemote {
-            return lastComponent.components(separatedBy: ".git").first!
+    private func nameOfPackage(in folder: Folder) throws -> String {
+        let packageFile = try folder.file(named: "Package.swift")
+        var packageDescription = try packageFile.readAsString()
+
+        guard let nameStartRange = packageDescription.range(of: "name:") else {
+            throw Error.failedToReadPackageFile(packageFile.nameExcludingExtension)
         }
 
-        guard !lastComponent.isEmpty else {
-            return urlComponents[urlComponents.count - 2]
+        packageDescription = packageDescription.substring(from: nameStartRange.upperBound)
+
+        guard let delimiterRange = packageDescription.range(of: ",") ?? packageDescription.range(of: ")") else {
+            throw Error.failedToReadPackageFile(packageFile.nameExcludingExtension)
         }
 
-        return lastComponent
+        packageDescription = packageDescription.substring(to: delimiterRange.lowerBound)
+        packageDescription = packageDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        return packageDescription.replacingOccurrences(of: "\"", with: "")
+    }
+
+    private func nameOfRemotePackage(at url: URL) throws -> String {
+        if let existingClone = try? temporaryFolder.subfolder(named: "Clone") {
+            try existingClone.delete()
+        }
+
+        try temporaryFolder.moveToAndPerform(command: "git clone \(url.absoluteString) Clone -q")
+        let clone = try temporaryFolder.subfolder(named: "Clone")
+        let name = try nameOfPackage(in: clone)
+        try clone.delete()
+
+        return name
     }
 
     private func majorVersion(from string: String) -> Int? {
         return string.components(separatedBy: ".").first.flatMap({ Int($0) })
+    }
+
+    private func absoluteRepositoryURL(from url: URL) -> URL {
+        guard !url.isRemote else {
+            return url
+        }
+
+        let path = try! Folder(path: url.absoluteString).path
+        return URL(string: path)!
     }
 
     private func save(package: Package) throws {
@@ -276,9 +322,8 @@ internal final class PackageManager {
                           "    dependencies: [\n"
 
         for (index, file) in folder.files.enumerated() {
-            let name = file.nameExcludingExtension
             let package = try perform(unbox(data: file.read()) as Package,
-                                      orThrow: Error.failedToReadPackageFile(name))
+                                      orThrow: Error.failedToReadPackageFile(file.name))
 
             if index > 0 {
                 description += ",\n"
