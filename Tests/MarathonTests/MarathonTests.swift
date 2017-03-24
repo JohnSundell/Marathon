@@ -16,6 +16,7 @@ class MarathonTests: XCTestCase {
     override func setUp() {
         super.setUp()
         folder = createFolder()
+        FileManager.default.changeCurrentDirectoryPath(folder.path)
     }
 
     override func tearDown() {
