@@ -88,6 +88,12 @@ internal final class ScriptManager {
         try perform(folder.delete(), orThrow: Error.failedToRemoveScriptFolder(folder))
     }
 
+    func removeAllScriptData() throws {
+        for path in managedScriptPaths {
+            try removeDataForScript(at: path)
+        }
+    }
+
     // MARK: - Private
 
     private func scriptIdentifier(from path: String) -> String {
