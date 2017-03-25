@@ -35,6 +35,6 @@ extension Task {
     }
 
     var argumentsContainNoOpenFlag: Bool {
-        return arguments.contains("-no-open")
+        return arguments.contains("--no-open")
     }
 }

@@ -88,7 +88,7 @@ internal final class Script {
     // MARK: - Private
 
     private func editingPath(from arguments: [String]) throws -> String {
-        guard !arguments.contains("-no-xcode") else {
+        guard !arguments.contains("--no-xcode") else {
             return try expandSymlink()
         }
 
