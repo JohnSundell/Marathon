@@ -225,7 +225,7 @@ class MarathonTests: XCTestCase {
     }
 
     func testCreatingScriptWithName() throws {
-        try run(with: ["create", "script", "-no-open"])
+        try run(with: ["create", "script", "--no-open"])
 
         let scriptFile = try File(path: FileSystem().currentFolder.path + "script.swift")
 
@@ -237,7 +237,7 @@ class MarathonTests: XCTestCase {
         let scriptFolder = try folder.createSubfolder(named: "testScript")
         let scriptPath = scriptFolder.path + "script.swift"
 
-        try run(with: ["create", scriptPath, "-no-open"])
+        try run(with: ["create", scriptPath, "--no-open"])
         try XCTAssertFalse(scriptFolder.file(named: "script.swift").read().isEmpty)
     }
 
@@ -252,7 +252,7 @@ class MarathonTests: XCTestCase {
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: script)
 
-        try run(with: ["edit", scriptFile.path, "-no-open"])
+        try run(with: ["edit", scriptFile.path, "--no-open"])
 
         let scriptFolders = try folder.subfolder(named: "Scripts").subfolders
         XCTAssertEqual(scriptFolders.count, 1)
@@ -264,7 +264,7 @@ class MarathonTests: XCTestCase {
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: script)
 
-        try run(with: ["edit", scriptFile.path, "-no-xcode", "-no-open"])
+        try run(with: ["edit", scriptFile.path, "--no-xcode", "--no-open"])
 
         let scriptFolders = try folder.subfolder(named: "Scripts").subfolders
         XCTAssertEqual(scriptFolders.count, 1)
@@ -324,7 +324,7 @@ class MarathonTests: XCTestCase {
             try scriptFile.delete()
         }
 
-        try run(with: ["remove", "-all-script-data"])
+        try run(with: ["remove", "--all-script-data"])
         XCTAssertEqual(scriptsFolder.subfolders.count, 0)
     }
 
