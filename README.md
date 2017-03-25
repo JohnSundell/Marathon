@@ -43,7 +43,7 @@ $ marathon edit helloWorld
 
 ...or in your favorite text editor
 ```
-$ marathon edit helloWorld -no-xcode
+$ marathon edit helloWorld --no-xcode
 ```
 
 👪 Share your scripts with your team and automatically install their dependencies:
