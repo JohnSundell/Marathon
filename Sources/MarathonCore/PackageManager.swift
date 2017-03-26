@@ -121,6 +121,10 @@ internal final class PackageManager {
         let fileContent = try perform(file.readAsString().components(separatedBy: .newlines),
                                       orThrow: Error.failedToReadMarathonFile(file))
 
+        let existingPackageURLs = Set(makePackageList().map { package in
+            return package.url
+        })
+
         for urlString in fileContent {
             guard !urlString.isEmpty else {
                 continue
@@ -128,6 +132,10 @@ internal final class PackageManager {
 
             guard var url = URL(string: urlString) else {
                 throw Error.failedToReadMarathonFile(file)
+            }
+
+            guard !existingPackageURLs.contains(url) else {
+                continue
             }
 
             if !url.isRemote {
