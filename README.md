@@ -75,7 +75,7 @@ Check out [this repository](https://github.com/JohnSundell/Marathon-Examples) fo
 
 ## Using a Marathonfile
 
-To easily be able to define depenencies for a script in a declarative way, you can create a `Marathonfile` in the same folder as your script. This file is simply a *new line separated list* of URLs pointing to packages that should be installed before running the script. By doing this you can ensure that the required dependencies will be installed when sharing your script with team members, friends or the wider community.
+To easily define dependencies for a script in a declarative way, you can create a `Marathonfile` in the same folder as your script. This file is simply a *new line separated list* of URLs pointing to packages that should be installed before running the script. By doing this you can ensure that the required dependencies will be installed when sharing your script with team members, friends or the wider community.
 
 Here is an example of a `Marathonfile`:
 ```
