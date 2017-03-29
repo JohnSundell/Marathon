@@ -196,6 +196,14 @@ class MarathonTests: XCTestCase {
         assert(try run(with: ["run", scriptFile.path]), throwsError: expectedError)
     }
 
+    func testRunningScriptWithCompileErrorWhenNoSuchModuleThrows() throws {
+        let scriptFile = try folder.createFile(named: "script.swift")
+        try scriptFile.write(string: "import Files")
+
+        let expectedError = RunError.failedToCompileScript(["1:8: no such module 'Files'"], "Files")
+        assert(try run(with: ["run", scriptFile.path]), throwsError: expectedError)
+    }
+
     func testRunningScriptWithRuntimeErrorThrows() throws {
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: "fatalError(\"Script failed\")")
