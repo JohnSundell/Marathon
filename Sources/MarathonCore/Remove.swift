@@ -36,9 +36,20 @@ internal final class RemoveTask: Task, Executable {
     private typealias Error = RemoveError
 
     func execute() throws -> String {
-        if arguments.contains("--all-script-data") {
-            try scriptManager.removeAllScriptData()
-            return "🗑  Removed all script data"
+        if arguments.contains("--all-script-data") || arguments.contains("--all-packages") {
+            var deletedObjects: [String] = []
+
+            if arguments.contains("--all-script-data") {
+                try scriptManager.removeAllScriptData()
+                deletedObjects.append("all script data")
+            }
+
+            if arguments.contains("--all-packages") {
+                try packageManager.removeAllPackages()
+                deletedObjects.append("all packages")
+            }
+
+            return "🗑  Removed \(deletedObjects.joined(separator: " and "))"
         }
 
         guard let identifier = arguments.first else {

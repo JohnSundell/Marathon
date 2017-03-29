@@ -164,6 +164,12 @@ internal final class PackageManager {
         return package
     }
 
+    func removeAllPackages() throws {
+        for package in addedPackages {
+            _ = try removePackage(named: package.name)
+        }
+    }
+
     func makePackageDescription(for script: Script) throws -> String {
         guard let masterDescription = try? generatedFolder.file(named: "Package.swift").readAsString() else {
             try updatePackages()

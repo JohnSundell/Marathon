@@ -89,6 +89,22 @@ class MarathonTests: XCTestCase {
         try XCTAssertFalse(run(with: ["list"]).contains(packageFolder.path))
     }
 
+    func testRemovingAllPackages() throws {
+        try run(with: ["add", "git@github.com:JohnSundell/Files.git"])
+        try run(with: ["add", "git@github.com:JohnSundell/Wrap.git"])
+        try run(with: ["add", "git@github.com:JohnSundell/Unbox.git"])
+
+        let generatedFolder = try folder.subfolder(atPath: "Packages/Generated")
+        let packagesFolder = try generatedFolder.subfolder(named: "Packages")
+        XCTAssertEqual(packagesFolder.subfolders.count, 3)
+        try XCTAssertEqual(folder.subfolder(named: "Packages").files.count, 3)
+
+        // Remove tht all packages
+        try run(with: ["remove", "--all-packages"])
+        XCTAssertEqual(packagesFolder.subfolders.count, 0)
+        try XCTAssertEqual(folder.subfolder(named: "Packages").files.count, 0)
+    }
+
     func testAddingLocalPackageWithDependency() throws {
         let packageFolder = try folder.createSubfolder(named: "TestPackage")
         try packageFolder.moveToAndPerform(command: "swift package init")
