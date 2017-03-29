@@ -7,13 +7,27 @@
 import Foundation
 import Unbox
 
-internal struct Package {
-    let name: String
-    let url: URL
-    var majorVersion: Int
+public struct Package {
+    public let name: String
+    public let url: URL
+    public var majorVersion: Int
 }
 
-extension Package {
+extension Package: Equatable {
+    public static func ==(lhs: Package, rhs: Package) -> Bool {
+        return lhs.url == rhs.url && lhs.majorVersion == rhs.majorVersion
+    }
+}
+
+extension Package: Unboxable {
+    public init(unboxer: Unboxer) throws {
+        name = try unboxer.unbox(key: "name")
+        url = try unboxer.unbox(key: "url")
+        majorVersion = try unboxer.unbox(key: "majorVersion")
+    }
+}
+
+internal extension Package {
     var dependencyString: String {
         return ".Package(url: \"\(url.absoluteString)\", majorVersion: \(majorVersion))"
     }
@@ -24,19 +38,5 @@ extension Package {
         }
 
         return "\(name)-"
-    }
-}
-
-extension Package: Equatable {
-    static func ==(lhs: Package, rhs: Package) -> Bool {
-        return lhs.url == rhs.url && lhs.majorVersion == rhs.majorVersion
-    }
-}
-
-extension Package: Unboxable {
-    init(unboxer: Unboxer) throws {
-        name = try unboxer.unbox(key: "name")
-        url = try unboxer.unbox(key: "url")
-        majorVersion = try unboxer.unbox(key: "majorVersion")
     }
 }

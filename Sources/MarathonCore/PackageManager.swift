@@ -205,47 +205,52 @@ internal final class PackageManager {
     // MARK: - Private
 
     private func latestMajorVersionForPackage(at url: URL) throws -> Int {
+        let command: String
+
         if url.isForRemoteRepository {
-            return try latestMajorVersionForRemotePackage(at: url)
+            command = "git ls-remote --tags \(url.absoluteString)"
+        } else {
+            command = "cd \(url.absoluteString) && git tag"
         }
 
-        return try lastestMajorVersionForLocalPackage(at: url)
-    }
+        let error = Error.failedToResolveLatestVersion(url)
+        let commandOutput = try perform(Process().launchBash(withCommand: command), orThrow: error)
+        let ignoredVersionTerms = ["alpha", "a", "beta", "b", "pre", "prerelease"]
+        var latestVersion: Int?
 
-    private func latestMajorVersionForRemotePackage(at url: URL) throws -> Int {
-        let command = "git ls-remote --tags \(url.absoluteString)"
-        let tags = try perform(Process().launchBash(withCommand: command),
-                               orThrow: Error.failedToResolveLatestVersion(url))
+        try commandOutput.components(separatedBy: "\n").forEach { line in
+            guard let versionString = line.components(separatedBy: "refs/tags/").last else {
+                throw error
+            }
 
-        guard let latestTag = tags.components(separatedBy: "\n").last else {
-            throw Error.failedToResolveLatestVersion(url)
+            for term in ignoredVersionTerms {
+                if versionString.lowercased().contains(term) {
+                    return
+                }
+            }
+
+            guard let majorVersionString = versionString.components(separatedBy: ".").first else {
+                throw error
+            }
+
+            guard let majorVersion = majorVersion(from: majorVersionString) else {
+                throw error
+            }
+
+            if let currentLatestVersion = latestVersion {
+                if majorVersion > currentLatestVersion {
+                    latestVersion = majorVersion
+                }
+            } else {
+                latestVersion = majorVersion
+            }
         }
 
-        guard let versionString = latestTag.components(separatedBy: "refs/tags/").last else {
-            throw Error.failedToResolveLatestVersion(url)
+        guard let version = latestVersion else {
+            throw error
         }
 
-        guard let majorVersion = majorVersion(from: versionString) else {
-            throw Error.failedToResolveLatestVersion(url)
-        }
-
-        return majorVersion
-    }
-
-    private func lastestMajorVersionForLocalPackage(at url: URL) throws -> Int {
-        let command = "cd \(url.absoluteString) && git tag"
-        let tags = try perform(Process().launchBash(withCommand: command),
-                               orThrow: Error.failedToResolveLatestVersion(url))
-
-        guard let latestTag = tags.components(separatedBy: "\n").last else {
-            throw Error.failedToResolveLatestVersion(url)
-        }
-
-        guard let majorVersion = majorVersion(from: latestTag) else {
-            throw Error.failedToResolveLatestVersion(url)
-        }
-
-        return majorVersion
+        return version
     }
 
     private func nameOfPackage(at url: URL) throws -> String {
@@ -294,7 +299,18 @@ internal final class PackageManager {
     }
 
     private func majorVersion(from string: String) -> Int? {
-        return string.components(separatedBy: ".").first.flatMap({ Int($0) })
+        guard var firstComponent = string.components(separatedBy: ".").first else {
+            return nil
+        }
+
+        var number = Int(firstComponent)
+
+        while number == nil && firstComponent.characters.count > 0 {
+            firstComponent.remove(at: firstComponent.startIndex)
+            number = Int(firstComponent)
+        }
+
+        return number
     }
 
     private func absoluteRepositoryURL(from url: URL) -> URL {

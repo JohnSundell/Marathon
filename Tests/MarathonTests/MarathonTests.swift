@@ -7,6 +7,7 @@
 import XCTest
 import MarathonCore
 import Files
+import Unbox
 
 class MarathonTests: XCTestCase {
     fileprivate var folder: Folder!
@@ -114,6 +115,32 @@ class MarathonTests: XCTestCase {
         XCTAssertEqual(packageNames.count, 2)
         XCTAssertTrue(packageNames.contains { $0.hasPrefix("TestPackage-") })
         XCTAssertTrue(packageNames.contains { $0.hasPrefix("Files.git-") })
+    }
+
+    func testAddingLocalPackageWithUnsortedVersionsContainingLetters() throws {
+        let packageFolder = try folder.createSubfolder(named: "TestPackage")
+        try packageFolder.moveToAndPerform(command: "swift package init")
+
+        let gitInitCommand = "git init && git add . && git commit -a -m \"Commit\" && git tag 0.1.0"
+        try packageFolder.moveToAndPerform(command: gitInitCommand)
+
+        // Here we tag a future version first, to make sure Marathon is able to order the versions correctly
+        try packageFolder.moveToAndPerform(command: "git tag 1.0.0")
+
+        // Tag a few versions with a "v" prefix
+        try packageFolder.moveToAndPerform(command: "git tag v0.2.0")
+        try packageFolder.moveToAndPerform(command: "git tag v0.3.0")
+
+        // Also tag a few alpha & beta versions, which should be ignored
+        try packageFolder.moveToAndPerform(command: "git tag 2.0.0-alpha")
+        try packageFolder.moveToAndPerform(command: "git tag 2.0.0a")
+        try packageFolder.moveToAndPerform(command: "git tag 2.0.0-beta")
+        try packageFolder.moveToAndPerform(command: "git tag 2.0.0b")
+
+        try run(with: ["add", "TestPackage"])
+        let packageData = try folder.subfolder(named: "Packages").file(named: "TestPackage").read()
+        let package = try unbox(data: packageData) as Package
+        XCTAssertEqual(package.majorVersion, 1)
     }
 
     func testAddingAlreadyAddedPackageThrows() throws {
