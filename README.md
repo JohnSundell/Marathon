@@ -69,6 +69,16 @@ $ swift build -c release -Xswiftc -static-stdlib
 $ cp -f .build/release/Marathon /usr/local/bin/marathon
 ```
 
+To update Marathon, simply repeat any of the above two series of commands, except cloning the repo.
+
+## Requirements
+
+Marathon requires the following to be installed on your system:
+
+- Swift 3.1 or later (bundled with Xcode 8.3 or later)
+- Git
+- Xcode (if you want to edit scripts using it)
+
 ## Examples
 
 Check out [this repository](https://github.com/JohnSundell/Marathon-Examples) for a few example Swift scripts that you can run using Marathon.
