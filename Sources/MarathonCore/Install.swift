@@ -46,7 +46,7 @@ internal class InstallTask: Task, Executable {
             return "✋  Installation cancelled"
         }
 
-        return "🛠  \(script.name) installed at \(installPath)"
+        return "💻  \(script.name) installed at \(installPath)"
     }
 
     private func makeInstallPath(for script: Script) -> String {

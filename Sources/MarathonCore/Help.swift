@@ -120,7 +120,7 @@ private extension Command {
         case .run:
             return "🏃‍♀️"
         case .install:
-            return "🛠"
+            return "💻"
         case .add:
             return "📦"
         case .list:
