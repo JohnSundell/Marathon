@@ -95,7 +95,7 @@ class MarathonTests: XCTestCase {
         try run(with: ["add", "git@github.com:JohnSundell/Unbox.git"])
 
         let generatedFolder = try folder.subfolder(atPath: "Packages/Generated")
-        let packagesFolder = try generatedFolder.subfolder(named: "Packages")
+        let packagesFolder = try generatedFolder.subfolder(named: ".build/checkouts")
         XCTAssertEqual(packagesFolder.subfolders.count, 3)
         try XCTAssertEqual(folder.subfolder(named: "Packages").files.count, 3)
 
