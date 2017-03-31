@@ -151,7 +151,7 @@ internal final class PackageManager {
         }
     }
 
-    func removePackage(named name: String) throws -> Package {
+    @discardableResult func removePackage(named name: String) throws -> Package {
         let packageFile = try perform(folder.file(named: name),
                                       orThrow: Error.unknownPackageForRemoval(name))
 
@@ -166,7 +166,7 @@ internal final class PackageManager {
 
     func removeAllPackages() throws {
         for package in addedPackages {
-            _ = try removePackage(named: package.name)
+            try removePackage(named: package.name)
         }
     }
 
