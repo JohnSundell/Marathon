@@ -46,6 +46,13 @@ $ marathon edit helloWorld
 $ marathon edit helloWorld --no-xcode
 ```
 
+💻 Install scripts as binaries and run them independently from anywhere
+```
+$ marathon install helloWorld
+$ helloWorld
+> Hello world
+```
+
 👪 Share your scripts with your team and automatically install their dependencies:
 ```
 $ echo "git@github.com:JohnSundell/Files.git" > Marathonfile
