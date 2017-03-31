@@ -152,26 +152,14 @@ internal final class PackageManager {
     }
 
     func removePackage(named name: String) throws -> Package {
-        let packageFile = try perform(folder.file(named: name), orThrow: Error.unknownPackageForRemoval(name))
+        let packageFile = try perform(folder.file(named: name),
+                                      orThrow: Error.unknownPackageForRemoval(name))
+
         let package = try perform(unbox(data: packageFile.read()) as Package,
                                   orThrow: Error.failedToReadPackageFile(name))
 
-        do {
-            let packageFolderPrefix = package.folderPrefix.lowercased()
-
-            for packageFolder in try generatedFolder.subfolder(atPath: ".build/checkouts").subfolders {
-                guard packageFolder.name.lowercased().hasPrefix(packageFolderPrefix) else {
-                    continue
-                }
-
-                try packageFolder.delete()
-                break
-            }
-
-            try packageFile.delete()
-        } catch {
-            throw Error.failedToRemovePackage(name, folder)
-        }
+        try perform(packageFile.delete(), orThrow: Error.failedToRemovePackage(name, folder))
+        try updatePackages()
 
         return package
     }
