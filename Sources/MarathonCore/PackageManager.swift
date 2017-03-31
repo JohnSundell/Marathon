@@ -52,7 +52,7 @@ extension PackageManagerError: PrintableError {
         case .failedToResolveLatestVersion(let url):
             var hint = "Make sure that the package you're trying to add is reachable, and has at least one tagged release"
 
-            if !url.isRemote {
+            if !url.isForRemoteRepository {
                 hint += "\nYou can make a release by using 'git tag <version>' in your package's repository"
             }
 
@@ -138,7 +138,7 @@ internal final class PackageManager {
                 continue
             }
 
-            if !url.isRemote {
+            if !url.isForRemoteRepository {
                 if !urlString.hasPrefix("/") && !urlString.hasPrefix("~") {
                     let folder = try perform(file.parent!.subfolder(atPath: urlString),
                                              orThrow: Error.failedToReadMarathonFile(file))
@@ -157,9 +157,9 @@ internal final class PackageManager {
                                   orThrow: Error.failedToReadPackageFile(name))
 
         do {
-            let packageFolderPrefix = (name + "-\(package.majorVersion)").lowercased()
+            let packageFolderPrefix = package.folderPrefix.lowercased()
 
-            for packageFolder in try generatedFolder.subfolder(named: "Packages").subfolders {
+            for packageFolder in try generatedFolder.subfolder(atPath: ".build/checkouts").subfolders {
                 guard packageFolder.name.lowercased().hasPrefix(packageFolderPrefix) else {
                     continue
                 }
@@ -186,16 +186,17 @@ internal final class PackageManager {
     }
 
     func symlinkPackages(to folder: Folder) throws {
-        guard let packagesFolder = try? generatedFolder.subfolder(named: "Packages") else {
+        guard let packagesFolder = try? generatedFolder.subfolder(atPath: ".build/checkouts") else {
             try updatePackages()
             return try symlinkPackages(to: folder)
         }
 
-        guard (try? folder.subfolder(named: "Packages")) == nil else {
+        guard (try? folder.subfolder(atPath: ".build/checkouts")) == nil else {
             return
         }
 
-        try folder.createSymlink(to: packagesFolder.path, at: "Packages")
+        let buildFolder = try folder.createSubfolderIfNeeded(withName: ".build")
+        try buildFolder.createSymlink(to: packagesFolder.path, at: "checkouts")
     }
 
     func updateAllPackagesToLatestMajorVersion() throws {
@@ -216,7 +217,7 @@ internal final class PackageManager {
     // MARK: - Private
 
     private func latestMajorVersionForPackage(at url: URL) throws -> Int {
-        if url.isRemote {
+        if url.isForRemoteRepository {
             return try latestMajorVersionForRemotePackage(at: url)
         }
 
@@ -261,7 +262,7 @@ internal final class PackageManager {
 
     private func nameOfPackage(at url: URL) throws -> String {
         do {
-            if url.isRemote {
+            if url.isForRemoteRepository {
                 return try nameOfRemotePackage(at: url)
             }
             
@@ -309,7 +310,7 @@ internal final class PackageManager {
     }
 
     private func absoluteRepositoryURL(from url: URL) -> URL {
-        guard !url.isRemote else {
+        guard !url.isForRemoteRepository else {
             return url
         }
 
@@ -359,13 +360,5 @@ internal final class PackageManager {
         return folder.files.flatMap { file in
             return try? unbox(data: file.read())
         }
-    }
-}
-
-// MARK: - Utilities
-
-private extension URL {
-    var isRemote: Bool {
-        return absoluteString.hasSuffix(".git")
     }
 }

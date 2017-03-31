@@ -41,9 +41,9 @@ class MarathonTests: XCTestCase {
         let packageFile = try generatedFolder.file(named: "Package.swift")
         try XCTAssertTrue(packageFile.readAsString().contains("git@github.com:JohnSundell/Files.git"))
 
-        let packagesFolder = try generatedFolder.subfolder(named: "Packages")
+        let packagesFolder = try generatedFolder.subfolder(named: ".build/checkouts")
         XCTAssertEqual(packagesFolder.subfolders.count, 1)
-        XCTAssertTrue(packagesFolder.subfolders.first!.name.hasPrefix("Files"))
+        XCTAssertEqual(packagesFolder.subfolders.first?.name.hasPrefix("Files.git"), true)
 
         // List should now include the package
         try XCTAssertTrue(run(with: ["list"]).contains("git@github.com:JohnSundell/Files.git"))
@@ -72,9 +72,9 @@ class MarathonTests: XCTestCase {
         let packageFile = try generatedFolder.file(named: "Package.swift")
         try XCTAssertTrue(packageFile.readAsString().contains(packageFolder.path))
 
-        let packagesFolder = try generatedFolder.subfolder(named: "Packages")
+        let packagesFolder = try generatedFolder.subfolder(atPath: ".build/checkouts")
         XCTAssertEqual(packagesFolder.subfolders.count, 1)
-        XCTAssertEqual(packagesFolder.subfolders.first!.name, "TestPackage-0.1.0")
+        XCTAssertEqual(packagesFolder.subfolders.first?.name.hasPrefix("TestPackage-"), true)
 
         // List should now include the package
         try XCTAssertTrue(run(with: ["list"]).contains(packageFolder.path))
@@ -94,7 +94,7 @@ class MarathonTests: XCTestCase {
 
         let packageDescription = "import PackageDescription\n" +
                                  "let package = Package(name: \"TestPackage\",\n" +
-                                 "dependencies: [.Package(url: \"https://github.com/johnsundell/files.git\", majorVersion: 1)])"
+                                 "dependencies: [.Package(url: \"https://github.com/johnsundell/Files.git\", majorVersion: 1)])"
 
         let packageFile = try packageFolder.file(named: "Package.swift")
         try packageFile.write(string: packageDescription)
@@ -110,10 +110,10 @@ class MarathonTests: XCTestCase {
         let generatedPackageFile = try generatedFolder.file(named: "Package.swift")
         try XCTAssertTrue(generatedPackageFile.readAsString().contains(packageFolder.path))
 
-        let packageNames = try generatedFolder.subfolder(named: "Packages").subfolders.names
+        let packageNames = try generatedFolder.subfolder(atPath: ".build/checkouts").subfolders.names
         XCTAssertEqual(packageNames.count, 2)
-        XCTAssertTrue(packageNames.contains("TestPackage-0.1.0"))
-        XCTAssertTrue(packageNames.contains { $0.hasPrefix("Files-1") })
+        XCTAssertTrue(packageNames.contains { $0.hasPrefix("TestPackage-") })
+        XCTAssertTrue(packageNames.contains { $0.hasPrefix("Files.git-") })
     }
 
     func testAddingAlreadyAddedPackageThrows() throws {
@@ -343,21 +343,27 @@ class MarathonTests: XCTestCase {
         try run(with: ["add", packageFolder.path])
         XCTAssertNotNil(try? folder.subfolder(named: "Packages").file(named: "TestPackage").read())
 
-        let packagesFolder = try folder.subfolder(atPath: "Packages/Generated/Packages")
+        let packagesFolder = try folder.subfolder(atPath: "Packages/Generated/.build/checkouts")
+        let checkedOutFolder = packagesFolder.subfolders.first
+        XCTAssertNotNil(checkedOutFolder)
+
         XCTAssertEqual(packagesFolder.subfolders.count, 1)
-        XCTAssertEqual(packagesFolder.subfolders.first!.name, "TestPackage-0.1.0")
+        XCTAssertEqual(checkedOutFolder?.name.hasPrefix("TestPackage-"), true)
+        XCTAssertEqual(try checkedOutFolder?.moveToAndPerform(command: "git tag").contains("0.1.0"), true)
 
         // Bump to a new minor version and update
         try packageFolder.moveToAndPerform(command: "git tag 0.2.0")
         try run(with: ["update"])
         XCTAssertEqual(packagesFolder.subfolders.count, 1)
-        XCTAssertEqual(packagesFolder.subfolders.first!.name, "TestPackage-0.2.0")
+        XCTAssertEqual(checkedOutFolder?.name.hasPrefix("TestPackage-"), true)
+        XCTAssertEqual(try checkedOutFolder?.moveToAndPerform(command: "git tag").contains("0.2.0"), true)
 
         // Bump to a new major version and update
         try packageFolder.moveToAndPerform(command: "git tag 1.0.0")
         try run(with: ["update"])
         XCTAssertEqual(packagesFolder.subfolders.count, 1)
-        XCTAssertEqual(packagesFolder.subfolders.first!.name, "TestPackage-1.0.0")
+        XCTAssertEqual(checkedOutFolder?.name.hasPrefix("TestPackage-"), true)
+        XCTAssertEqual(try checkedOutFolder?.moveToAndPerform(command: "git tag").contains("1.0.0"), true)
     }
 
     // MARK: - Using a Marathonfile
@@ -384,7 +390,7 @@ class MarathonTests: XCTestCase {
 
         try run(with: ["run", scriptFile.path])
 
-        let packagesFolder = try folder.subfolder(atPath: "Packages/Generated/Packages")
+        let packagesFolder = try folder.subfolder(atPath: "Packages/Generated/.build/checkouts")
         XCTAssertEqual(packagesFolder.subfolders.count, 2)
     }
 

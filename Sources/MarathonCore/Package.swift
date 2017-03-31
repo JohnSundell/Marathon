@@ -17,6 +17,14 @@ extension Package {
     var dependencyString: String {
         return ".Package(url: \"\(url.absoluteString)\", majorVersion: \(majorVersion))"
     }
+
+    var folderPrefix: String {
+        if url.isForRemoteRepository {
+            return "\(name).git-"
+        }
+
+        return "\(name)-"
+    }
 }
 
 extension Package: Equatable {
