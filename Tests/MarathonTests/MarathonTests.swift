@@ -99,7 +99,7 @@ class MarathonTests: XCTestCase {
         XCTAssertEqual(packagesFolder.subfolders.count, 3)
         try XCTAssertEqual(folder.subfolder(named: "Packages").files.count, 3)
 
-        // Remove tht all packages
+        // Remove all packages
         try run(with: ["remove", "--all-packages"])
         XCTAssertEqual(packagesFolder.subfolders.count, 0)
         try XCTAssertEqual(folder.subfolder(named: "Packages").files.count, 0)
