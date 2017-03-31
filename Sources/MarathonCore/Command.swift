@@ -33,6 +33,7 @@ internal enum Command: String {
     case edit
     case remove
     case run
+    case install
     case add
     case list
     case update
@@ -43,7 +44,7 @@ extension Command {
     private typealias Error = CommandError
 
     static var all: [Command] {
-        return [.create, .edit, .remove, .run, .add, .list, .update, .help]
+        return [.create, .edit, .remove, .run, .install, .add, .list, .update, .help]
     }
 
     var description: String {
@@ -56,6 +57,8 @@ extension Command {
             return "Remove a package or the cache data for a script at a given path"
         case .run:
             return "Run a script at a given path"
+        case .install:
+            return "Install a script at a given path as a binary"
         case .add:
             return "Add a package from a given URL to be able to use it from your scripts"
         case .list:
@@ -77,6 +80,8 @@ extension Command {
             return "<name-of-package-or-path-to-script> [--all-script-data]"
         case .run:
             return "<path-to-script> [<script-arguments...>]"
+        case .install:
+            return "<script-path> [<install-path>] [--force]"
         case .add:
             return "<url-or-path-to-package>"
         case .list:
@@ -100,6 +105,8 @@ extension Command {
             return RemoveTask.init
         case .run:
             return RunTask.init
+        case .install:
+            return InstallTask.init
         case .list:
             return ListTask.init
         case .update:

@@ -11,6 +11,8 @@ import Files
 
 public enum ScriptError {
     case editingFailed(String)
+    case buildFailed([String])
+    case installFailed(String)
 }
 
 extension ScriptError: PrintableError {
@@ -18,6 +20,10 @@ extension ScriptError: PrintableError {
         switch self {
         case .editingFailed(let name):
             return "Failed to open script '\(name)' for editing"
+        case .buildFailed(_):
+            return "Failed to compile script"
+        case .installFailed(_):
+            return "Failed to install script"
         }
     }
 
@@ -25,6 +31,15 @@ extension ScriptError: PrintableError {
         switch self {
         case .editingFailed(_):
             return "Make sure that it exists and that its file is readable"
+        case .buildFailed(let errors):
+            guard !errors.isEmpty else {
+                return nil
+            }
+
+            let separator = "\n- "
+            return "The following error(s) occured:" + separator + errors.joined(separator: separator)
+        case .installFailed(let path):
+            return "Make sure that you have write permissions to the path '\(path)' and that all parent folders exist"
         }
     }
 }
@@ -51,14 +66,50 @@ internal final class Script {
 
     // MARK: - API
 
-    func build() throws {
-        try folder.moveToAndPerform(command: "swift build")
+    func build(withArguments arguments: [String] = []) throws {
+        do {
+            let command = "swift build " + arguments.joined(separator: " ")
+            try folder.moveToAndPerform(command: command)
+        } catch {
+            throw formatBuildError(error as! Process.Error)
+        }
     }
 
     func run(in executionFolder: Folder, with arguments: [String]) throws -> String {
         let scriptPath = folder.path + ".build/debug/" + name
         let command = scriptPath + " " + arguments.joined(separator: " ")
         return try executionFolder.moveToAndPerform(command: command)
+    }
+
+    func install(at path: String, confirmBeforeOverwriting: Bool) throws -> Bool {
+        try build(withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
+
+        do {
+            var pathComponents = path.components(separatedBy: "/")
+            let installName = pathComponents.removeLast()
+            let parentFolder = try Folder(path: pathComponents.joined(separator: "/"))
+            let path = "\(parentFolder.path)\(installName)"
+
+            if confirmBeforeOverwriting {
+                if (try? parentFolder.file(named: installName)) != nil {
+                    print("⚠️  A binary already exists at \(path)")
+                    print("❓  Are you sure you want to overwrite it? (Type 'Y' to confirm)")
+
+                    let input = readLine()?.lowercased()
+
+                    guard input == "y" else {
+                        return false
+                    }
+                }
+            }
+
+            let buildFolder = try folder.subfolder(atPath: ".build/release")
+            try buildFolder.moveToAndPerform(command: "cp -f \(name) \(path)")
+
+            return true
+        } catch {
+            throw Error.installFailed(path)
+        }
     }
 
     func edit(arguments: [String], open: Bool) throws {
@@ -133,5 +184,21 @@ internal final class Script {
     private func copyChangesToSymlinkedFile() throws {
         let data = try folder.file(atPath: "Sources/main.swift").read()
         try File(path: expandSymlink()).write(data: data)
+    }
+
+    private func formatBuildError(_ error: Process.Error) -> Error {
+        var messages = [String]()
+
+        for outputComponent in error.output.components(separatedBy: "\n") {
+            let lineComponents = outputComponent.components(separatedBy: folder.path + "Sources/main.swift:")
+
+            guard lineComponents.count > 1 else {
+                continue
+            }
+
+            messages.append(lineComponents.last!.replacingOccurrences(of: " error:", with: ""))
+        }
+
+        return Error.buildFailed(messages)
     }
 }

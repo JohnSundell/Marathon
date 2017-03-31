@@ -59,6 +59,10 @@ internal final class HelpTask: Task, Executable {
                    "To remove all packages, pass the '--all-script-data' flag"
         case .run:
             return "The script will be compiled and run, and any output generated will be returned"
+        case .install:
+            return "The script will be compiled, and the resulting binary copied to the install path\n" +
+                   "The default install path is '/usr/local/bin/<lowercased-name-of-script>'\n" +
+                   "Marathon will ask before overwriting any existing binary, unless the '--force' flag is passed"
         case .add:
             return "You can also use a 'Marathonfile' to automatically add packages. See https://github.com/johnsundell/marathon for more information"
         case .list:
@@ -115,6 +119,8 @@ private extension Command {
             return "🗑"
         case .run:
             return "🏃‍♀️"
+        case .install:
+            return "🛠"
         case .add:
             return "📦"
         case .list:

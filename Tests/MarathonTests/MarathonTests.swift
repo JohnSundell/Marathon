@@ -192,7 +192,7 @@ class MarathonTests: XCTestCase {
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: "notAFunction()")
 
-        let expectedError = RunError.failedToCompileScript(["1:1: use of unresolved identifier 'notAFunction'"])
+        let expectedError = ScriptError.buildFailed(["1:1: use of unresolved identifier 'notAFunction'"])
         assert(try run(with: ["run", scriptFile.path]), throwsError: expectedError)
     }
 
@@ -243,6 +243,30 @@ class MarathonTests: XCTestCase {
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: script)
         try run(with: ["run", scriptFile.path])
+    }
+
+    // MARK: - Installing scripts
+
+    func testInstallingScript() throws {
+        try run(with: ["add", "git@github.com:JohnSundell/Files.git"])
+
+        let script = "import Files\n\n" +
+                     "print(FileSystem().currentFolder.path)"
+
+        let scriptFile = try folder.createFile(named: "script.swift")
+        try scriptFile.write(string: script)
+
+        try run(with: ["install", "script", "installed-script"])
+
+        // Run the installed binary
+        let output = try folder.moveToAndPerform(command: "./installed-script")
+        XCTAssertEqual(output, folder.path)
+
+        // Force a re-install
+        try scriptFile.write(string: "print(\"Re-installed\")")
+        try run(with: ["install", "script", "installed-script", "--force"])
+        let reInstalledOutput = try folder.moveToAndPerform(command: "./installed-script")
+        XCTAssertEqual(reInstalledOutput, "Re-installed")
     }
 
     // MARK: - Creating scripts
