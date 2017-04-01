@@ -20,12 +20,12 @@ extension RemoveError: PrintableError {
         }
     }
 
-    public var hint: String? {
+    public var hints: [String] {
         switch self {
         case .missingIdentifier:
-            return "When using 'remove', pass either:\n" +
+            return ["When using 'remove', pass either:\n" +
                    "- The name of a package to remove\n" +
-                   "- The path to a script to remove cache data for (including '.swift')"
+                   "- The path to a script to remove cache data for (including '.swift')"]
         }
     }
 }

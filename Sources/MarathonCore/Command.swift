@@ -21,8 +21,8 @@ public extension CommandError {
         }
     }
 
-    var hint: String? {
-        return "Type 'marathon help' for available commands"
+    var hints: [String] {
+        return ["Type 'marathon help' for available commands"]
     }
 }
 

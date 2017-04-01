@@ -20,10 +20,10 @@ extension InstallError: PrintableError {
         }
     }
 
-    public var hint: String? {
+    public var hints: [String] {
         switch self {
         case .missingPath:
-            return "Pass the path to a script file to install (for example 'marathon install script.swift')"
+            return ["Pass the path to a script file to install (for example 'marathon install script.swift')"]
         }
     }
 }

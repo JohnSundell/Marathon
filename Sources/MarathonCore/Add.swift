@@ -23,14 +23,14 @@ extension AddError: PrintableError {
         }
     }
 
-    public var hint: String? {
+    public var hints: [String] {
         switch self {
         case .missingIdentifier:
-            return "When using 'add', pass either:\n" +
+            return ["When using 'add', pass either:\n" +
                    "- The git URL of a remote package to add (for example 'marathon add git@github.com:JohnSundell/Files.git')\n" +
-                   "- The path of a local package to add (for example 'marathon add packages/myPackage')"
+                   "- The path of a local package to add (for example 'marathon add packages/myPackage')"]
         case .invalidURL(_):
-            return nil
+            return []
         }
     }
 }

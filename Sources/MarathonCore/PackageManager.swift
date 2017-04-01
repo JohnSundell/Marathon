@@ -47,7 +47,7 @@ extension PackageManagerError: PrintableError {
         }
     }
 
-    public var hint: String? {
+    public var hints: [String] {
         switch self {
         case .failedToResolveLatestVersion(let url):
             var hint = "Make sure that the package you're trying to add is reachable, and has at least one tagged release"
@@ -56,25 +56,25 @@ extension PackageManagerError: PrintableError {
                 hint += "\nYou can make a release by using 'git tag <version>' in your package's repository"
             }
 
-            return hint
+            return [hint]
         case .failedToResolveName(_):
-            return "Make sure that the package you're trying to add is reachable, and has a Package.swift file"
+            return ["Make sure that the package you're trying to add is reachable, and has a Package.swift file"]
         case .packageAlreadyAdded(let name):
-            return "Did you mean to update it? If so, run 'marathon update'\n" +
-                   "You can also remove the existing package using 'marathon remove \(name)', and then run 'add' again"
+            return ["Did you mean to update it? If so, run 'marathon update'\n" +
+                   "You can also remove the existing package using 'marathon remove \(name)', and then run 'add' again"]
         case .failedToSavePackageFile(_, let folder):
-            return "Make sure you have write permissions to the folder '\(folder.path)'"
+            return ["Make sure you have write permissions to the folder '\(folder.path)'"]
         case .failedToReadPackageFile(let name):
-            return "The file may have become corrupted. Try removing the package using 'marathon remove \(name)' and then add it back again"
+            return ["The file may have become corrupted. Try removing the package using 'marathon remove \(name)' and then add it back again"]
         case .failedToUpdatePackages(let folder):
-            return "Make sure you have write permissions to the folder '\(folder.path)'"
+            return ["Make sure you have write permissions to the folder '\(folder.path)'"]
         case .unknownPackageForRemoval(_):
-            return "Did you mean to remove the cache data for a script? If so, add '.swift' to its path\n" +
-                   "To list all added packages run 'marathon list'"
+            return ["Did you mean to remove the cache data for a script? If so, add '.swift' to its path\n" +
+                   "To list all added packages run 'marathon list'"]
         case .failedToRemovePackage(_, let folder):
-            return "Make sure you have write permissions to the folder '\(folder.path)'"
+            return ["Make sure you have write permissions to the folder '\(folder.path)'"]
         case .failedToReadMarathonFile(_):
-            return "Ensure that the file is formatted according to the documentation at https://github.com/johnsundell/marathon"
+            return ["Ensure that the file is formatted according to the documentation at https://github.com/johnsundell/marathon"]
         }
     }
 }

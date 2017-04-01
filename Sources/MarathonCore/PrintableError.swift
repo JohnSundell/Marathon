@@ -8,26 +8,19 @@ import Foundation
 
 public protocol PrintableError: Error, Equatable, CustomStringConvertible {
     var message: String { get }
-    var hint: String? { get }
-    var nextAction: String? { get }
+    var hints: [String] { get }
 }
 
 public extension PrintableError {
     static func ==(lhs: Self, rhs: Self) -> Bool {
-        return lhs.message == rhs.message && lhs.hint == rhs.hint
+        return lhs.message == rhs.message && lhs.hints == rhs.hints
     }
-
-    var nextAction: String? { return nil }
 
     var description: String {
         var description = "💥  \(message)"
 
-        if let hint = hint {
-            description.append("\n" + hint.withIndentedNewLines(prefix: "👉  "))
-        }
-
-        if let nextAction = nextAction {
-            description.append("\n" + nextAction.withIndentedNewLines(prefix: "👉  "))
+        if !hints.isEmpty {
+            hints.forEach { description.append("\n" + $0.withIndentedNewLines(prefix: "👉  ")) }
         }
 
         return description

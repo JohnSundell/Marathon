@@ -27,13 +27,13 @@ extension ScriptManagerError: PrintableError {
         }
     }
 
-    public var hint: String? {
+    public var hints: [String] {
         switch self {
         case .scriptNotFound(_):
-            return "Please check that the path is valid and try again"
+            return ["Please check that the path is valid and try again"]
         case .failedToCreatePackageFile(let folder),
              .failedToRemoveScriptFolder(let folder):
-            return "Make sure you have write permissions to the folder '\(folder.path)'"
+            return ["Make sure you have write permissions to the folder '\(folder.path)'"]
         }
     }
 }
