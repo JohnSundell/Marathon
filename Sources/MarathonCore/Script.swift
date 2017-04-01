@@ -11,7 +11,7 @@ import Files
 
 public enum ScriptError {
     case editingFailed(String)
-    case buildFailed([String])
+    case buildFailed([String], missingPackage: String?)
     case installFailed(String)
 }
 
@@ -20,26 +20,30 @@ extension ScriptError: PrintableError {
         switch self {
         case .editingFailed(let name):
             return "Failed to open script '\(name)' for editing"
-        case .buildFailed(_):
+        case .buildFailed(_, _):
             return "Failed to compile script"
         case .installFailed(_):
             return "Failed to install script"
         }
     }
 
-    public var hint: String? {
+    public var hints: [String] {
         switch self {
         case .editingFailed(_):
-            return "Make sure that it exists and that its file is readable"
-        case .buildFailed(let errors):
+            return ["Make sure that it exists and that its file is readable"]
+        case .buildFailed(let errors, let missingPackage):
             guard !errors.isEmpty else {
-                return nil
+                return []
             }
 
             let separator = "\n- "
-            return "The following error(s) occured:" + separator + errors.joined(separator: separator)
+            var hints = ["The following error(s) occured:" + separator + errors.joined(separator: separator)]
+            if let missingPackage = missingPackage {
+                hints.append("You can add \(missingPackage) to Marathon using 'marathon add <url-to-\(missingPackage)>'")
+            }
+            return hints
         case .installFailed(let path):
-            return "Make sure that you have write permissions to the path '\(path)' and that all parent folders exist"
+            return ["Make sure that you have write permissions to the path '\(path)' and that all parent folders exist"]
         }
     }
 }
@@ -196,9 +200,17 @@ internal final class Script {
                 continue
             }
 
-            messages.append(lineComponents.last!.replacingOccurrences(of: " error:", with: ""))
+            let message = lineComponents.last!.replacingOccurrences(of: " error:", with: "")
+            messages.append(message)
+
+            if message.contains("no such module") {
+                if let range = message.range(of: "'[A-Za-z]+'", options: .regularExpression) {
+                    let missingPackage = message[range].replacingOccurrences(of: "'", with: "")
+                    return Error.buildFailed(messages, missingPackage: missingPackage)
+                }
+            }
         }
 
-        return Error.buildFailed(messages)
+        return Error.buildFailed(messages, missingPackage: nil)
     }
 }
