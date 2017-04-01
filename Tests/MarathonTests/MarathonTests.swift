@@ -188,20 +188,23 @@ class MarathonTests: XCTestCase {
         try run(with: ["run", scriptFile.path])
     }
 
-    func testRunningScriptWithCompileErrorThrows() throws {
+    func testRunningScriptWithBuildFailedErrorThrows() throws {
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: "notAFunction()")
 
-        let expectedError = ScriptError.buildFailed(["1:1: use of unresolved identifier 'notAFunction'"])
+        let expectedError = ScriptError.buildFailed(["1:1: use of unresolved identifier 'notAFunction'"], missingPackage: nil)
         assert(try run(with: ["run", scriptFile.path]), throwsError: expectedError)
     }
 
-    func testRunningScriptWithCompileErrorWhenNoSuchModuleThrows() throws {
+    func testRunningScriptWithBuildFailedErrorWhenNoSuchModuleThrows() throws {
         let scriptFile = try folder.createFile(named: "script.swift")
-        try scriptFile.write(string: "import Files")
+        let packageName = "Files"
+        try scriptFile.write(string: "import \(packageName)")
 
-        let expectedError = RunError.failedToCompileScript(["1:8: no such module 'Files'"], "Files")
+        let expectedError = ScriptError.buildFailed(["1:8: no such module '\(packageName)'"], missingPackage: packageName)
         assert(try run(with: ["run", scriptFile.path]), throwsError: expectedError)
+
+        XCTAssertTrue(expectedError.description.contains("You can add \(packageName) to Marathon using 'marathon add <url-to-\(packageName)>'"))
     }
 
     func testRunningScriptWithRuntimeErrorThrows() throws {
