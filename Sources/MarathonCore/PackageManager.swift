@@ -8,6 +8,7 @@ import Foundation
 import Files
 import Wrap
 import Unbox
+import ShellOut
 
 // MARK: - Error
 
@@ -220,7 +221,7 @@ internal final class PackageManager {
         }
 
         let error = Error.failedToResolveLatestVersion(url)
-        let commandOutput = try perform(Process().launchBash(withCommand: command), orThrow: error)
+        let commandOutput = try perform(shellOut(to: command), orThrow: error)
         let ignoredVersionTerms = ["alpha", "a", "beta", "b", "pre", "prerelease"]
         var latestVersion: Int?
 

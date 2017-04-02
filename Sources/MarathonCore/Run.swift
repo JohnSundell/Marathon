@@ -6,6 +6,7 @@
 
 import Foundation
 import Files
+import ShellOut
 
 // MARK: - Error
 
@@ -52,7 +53,7 @@ internal class RunTask: Task, Executable {
         do {
             return try script.run(in: folder, with: Array(arguments.dropFirst()))
         } catch {
-            throw Error.failedToRunScript((error as! Process.Error).message)
+            throw Error.failedToRunScript((error as! ShellOutError).message)
         }
     }
 }

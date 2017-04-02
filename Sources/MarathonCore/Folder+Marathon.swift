@@ -6,10 +6,11 @@
 
 import Foundation
 import Files
+import ShellOut
 
 public extension Folder {
     @discardableResult func moveToAndPerform(command: String) throws -> String {
-        return try Process().launchBash(withCommand: "cd \(path) && \(command)")
+        return try shellOut(to: "cd \(path) && \(command)")
     }
 }
 

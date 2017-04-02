@@ -6,6 +6,7 @@
 
 import Foundation
 import Files
+import ShellOut
 
 // MARK: - Error
 
@@ -77,7 +78,7 @@ internal final class Script {
             let command = "swift build --enable-prefetching " + arguments.joined(separator: " ")
             try folder.moveToAndPerform(command: command)
         } catch {
-            throw formatBuildError(error as! Process.Error)
+            throw formatBuildError(error as! ShellOutError)
         }
     }
 
@@ -126,7 +127,7 @@ internal final class Script {
                 let relativePath = path.replacingOccurrences(of: folder.path, with: "")
                 print("✏️  Opening \(relativePath)")
 
-                try Process().launchBash(withCommand: "open \(path)")
+                try shellOut(to: "open", arguments: [path])
 
                 if path.hasSuffix(".xcodeproj/") {
                     print("\nℹ️  Marathon will keep running, in order to commit any changes you make in Xcode back to the original script file")
@@ -192,7 +193,7 @@ internal final class Script {
         try File(path: expandSymlink()).write(data: data)
     }
 
-    private func formatBuildError(_ error: Process.Error) -> Error {
+    private func formatBuildError(_ error: ShellOutError) -> Error {
         var messages = [String]()
 
         for outputComponent in error.output.components(separatedBy: "\n") {
