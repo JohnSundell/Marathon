@@ -336,7 +336,7 @@ internal final class PackageManager {
     private func updatePackages() throws {
         do {
             try generateMasterPackageDescription()
-            try generatedFolder.moveToAndPerform(command: "swift package update")
+            try generatedFolder.moveToAndPerform(command: "swift package --enable-prefetching update")
             try generatedFolder.createSubfolderIfNeeded(withName: "Packages")
         } catch {
             throw Error.failedToUpdatePackages(folder)
