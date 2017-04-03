@@ -68,7 +68,7 @@ internal final class Script {
 
     func build(withArguments arguments: [String] = []) throws {
         do {
-            let command = "swift build " + arguments.joined(separator: " ")
+            let command = "swift build --enable-prefetching " + arguments.joined(separator: " ")
             try folder.moveToAndPerform(command: command)
         } catch {
             throw formatBuildError(error as! Process.Error)
