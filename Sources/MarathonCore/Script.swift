@@ -62,13 +62,15 @@ internal final class Script {
     let folder: Folder
     var marathonFile: File? { return resolveMarathonfile() }
 
+    private let print: Printer
     private var copyLoopDispatchQueue: DispatchQueue?
 
     // MARK: - Init
 
-    init(name: String, folder: Folder) {
+    init(name: String, folder: Folder, printer: @escaping Printer) {
         self.name = name
         self.folder = folder
+        self.print = printer
     }
 
     // MARK: - API

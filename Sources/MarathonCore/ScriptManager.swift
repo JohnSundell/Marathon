@@ -47,12 +47,14 @@ internal final class ScriptManager {
 
     private let folder: Folder
     private let packageManager: PackageManager
+    private let print: Printer
 
     // MARK: - Init
 
-    init(folder: Folder, packageManager: PackageManager) {
+    init(folder: Folder, packageManager: PackageManager, printer: @escaping Printer) {
         self.folder = folder
         self.packageManager = packageManager
+        self.print = printer
     }
 
     // MARK: - API
@@ -62,7 +64,7 @@ internal final class ScriptManager {
         let identifier = scriptIdentifier(from: file.path)
         let name = identifier.components(separatedBy: "-").last!.capitalized
         let folder = try createFolderIfNeededForScript(withIdentifier: identifier, file: file)
-        let script = Script(name: name, folder: folder)
+        let script = Script(name: name, folder: folder, printer: print)
 
         if let marathonFile = script.marathonFile {
             try packageManager.addPackages(fromMarathonFile: marathonFile)

@@ -20,7 +20,9 @@ public final class Marathon {
 
     // MARK: - API
 
-    public static func run(with arguments: [String] = CommandLine.arguments, folderPath: String = "~/.marathon") throws -> String {
+    public static func run(with arguments: [String] = CommandLine.arguments,
+                           folderPath: String = "~/.marathon",
+                           printer: @escaping Printer = { print($0) }) throws -> String {
         let command = try Command(arguments: arguments)
         let fileSystem = FileSystem()
 
@@ -30,9 +32,13 @@ public final class Marathon {
         let scriptFolder = try perform(rootFolder.createSubfolderIfNeeded(withName: "Scripts"), orThrow: setupError)
 
         let packageManager = try perform(PackageManager(folder: packageFolder), orThrow: setupError)
-        let scriptManager = ScriptManager(folder: scriptFolder, packageManager: packageManager)
+        let scriptManager = ScriptManager(folder: scriptFolder, packageManager: packageManager, printer: printer)
 
-        let task = command.makeTaskClosure(fileSystem.currentFolder, Array(arguments.dropFirst(2)), scriptManager, packageManager)
+        let task = command.makeTaskClosure(fileSystem.currentFolder,
+                                           Array(arguments.dropFirst(2)),
+                                           scriptManager, packageManager,
+                                           printer)
+
         return try task.execute()
     }
 }
