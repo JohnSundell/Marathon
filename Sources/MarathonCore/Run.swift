@@ -24,12 +24,12 @@ extension RunError: PrintableError {
         }
     }
 
-    public var hint: String? {
+    public var hints: [String] {
         switch self {
         case .missingPath:
-            return "Pass the path to a script file to run (for example 'marathon run script.swift')"
+            return ["Pass the path to a script file to run (for example 'marathon run script.swift')"]
         case .failedToRunScript(let message):
-            return message
+            return [message]
         }
     }
 }

@@ -24,12 +24,12 @@ extension CreateError: PrintableError {
         }
     }
 
-    public var hint: String? {
+    public var hints: [String] {
         switch self {
         case .missingName:
-            return "Pass the name of a script file to create (for example 'marathon create myScript')"
+            return ["Pass the name of a script file to create (for example 'marathon create myScript')"]
         case .failedToCreateFile:
-            return "Make sure you have write permissions to the current folder"
+            return ["Make sure you have write permissions to the current folder"]
         }
     }
 }

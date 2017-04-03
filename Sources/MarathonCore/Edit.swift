@@ -20,10 +20,10 @@ extension EditError: PrintableError {
         }
     }
 
-    public var hint: String? {
+    public var hints: [String] {
         switch self {
         case .missingPath:
-            return "Pass the name/path of a script file to edit (for example 'marathon edit myScript')"
+            return ["Pass the name/path of a script file to edit (for example 'marathon edit myScript')"]
         }
     }
 }
