@@ -90,14 +90,16 @@ internal final class PackageManager {
     private let folder: Folder
     private let generatedFolder: Folder
     private let temporaryFolder: Folder
+    private let print: Printer
     private var masterPackageName: String { return "MARATHON_PACKAGES" }
 
     // MARK: - Init
 
-    init(folder: Folder) throws {
+    init(folder: Folder, printer: @escaping Printer) throws {
         self.folder = folder
         self.generatedFolder = try folder.createSubfolderIfNeeded(withName: "Generated")
         self.temporaryFolder = try folder.createSubfolderIfNeeded(withName: "Temp")
+        self.print = printer
     }
 
     // MARK: - API
@@ -153,6 +155,8 @@ internal final class PackageManager {
     }
 
     @discardableResult func removePackage(named name: String) throws -> Package {
+        print("Removing \(name)...")
+
         let packageFile = try perform(folder.file(named: name),
                                       orThrow: Error.unknownPackageForRemoval(name))
 
@@ -297,6 +301,8 @@ internal final class PackageManager {
             try existingClone.delete()
         }
 
+        print("Cloning \(url.absoluteString)...")
+
         try temporaryFolder.moveToAndPerform(command: "git clone \(url.absoluteString) Clone -q")
         let clone = try temporaryFolder.subfolder(named: "Clone")
         let name = try nameOfPackage(in: clone)
@@ -335,6 +341,8 @@ internal final class PackageManager {
     }
 
     private func updatePackages() throws {
+        print("Updating packages...")
+
         do {
             try generateMasterPackageDescription()
             try generatedFolder.moveToAndPerform(command: "swift package --enable-prefetching update")

@@ -31,8 +31,9 @@ public final class Marathon {
         let packageFolder = try perform(rootFolder.createSubfolderIfNeeded(withName: "Packages"), orThrow: setupError)
         let scriptFolder = try perform(rootFolder.createSubfolderIfNeeded(withName: "Scripts"), orThrow: setupError)
 
-        let packageManager = try perform(PackageManager(folder: packageFolder), orThrow: setupError)
-        let scriptManager = ScriptManager(folder: scriptFolder, packageManager: packageManager, printer: printer)
+        let verbosePrinter = makeVerbosePrinter(from: printer, for: command)
+        let packageManager = try perform(PackageManager(folder: packageFolder, printer: verbosePrinter), orThrow: setupError)
+        let scriptManager = ScriptManager(folder: scriptFolder, packageManager: packageManager, printer: verbosePrinter)
 
         let task = command.makeTaskClosure(fileSystem.currentFolder,
                                            Array(arguments.dropFirst(2)),
@@ -40,5 +41,20 @@ public final class Marathon {
                                            printer)
 
         try task.execute()
+    }
+
+    // MARK: - Private
+
+    private static func makeVerbosePrinter(from printer: @escaping Printer, for command: Command) -> Printer {
+        guard command.allowsVerboseOutput else {
+            return { _ in }
+        }
+
+        var isFirstOutput = true
+
+        return { message in
+            printer(message.withIndentedNewLines(prefix: isFirstOutput ? "🏃  " : "   "))
+            isFirstOutput = false
+        }
     }
 }

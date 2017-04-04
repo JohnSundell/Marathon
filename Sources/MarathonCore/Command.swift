@@ -116,6 +116,10 @@ extension Command {
         }
     }
 
+    var allowsVerboseOutput: Bool {
+        return self != .run
+    }
+
     init(arguments: [String], index: Int = 1) throws {
         guard let commandString = arguments.element(at: index) else {
             self = .help
