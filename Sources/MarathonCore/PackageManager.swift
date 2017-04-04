@@ -154,7 +154,7 @@ internal final class PackageManager {
         }
     }
 
-    @discardableResult func removePackage(named name: String) throws -> Package {
+    @discardableResult func removePackage(named name: String, shouldUpdatePackages: Bool = true) throws -> Package {
         print("Removing \(name)...")
 
         let packageFile = try perform(folder.file(named: name),
@@ -164,7 +164,10 @@ internal final class PackageManager {
                                   orThrow: Error.failedToReadPackageFile(name))
 
         try perform(packageFile.delete(), orThrow: Error.failedToRemovePackage(name, folder))
-        try updatePackages()
+
+        if shouldUpdatePackages {
+            try updatePackages()
+        }
 
         return package
     }
@@ -173,6 +176,8 @@ internal final class PackageManager {
         for package in addedPackages {
             try removePackage(named: package.name)
         }
+
+        try updatePackages()
     }
 
     func makePackageDescription(for script: Script) throws -> String {
