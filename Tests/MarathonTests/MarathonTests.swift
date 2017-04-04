@@ -520,7 +520,10 @@ fileprivate extension MarathonTests {
     @discardableResult func run(with arguments: [String]) throws -> String {
         var arguments = arguments
         arguments.insert(folder.path, at: 0)
-        return try Marathon.run(with: arguments, folderPath: folder.path, printer: { _ in })
+
+        var output = ""
+        try Marathon.run(with: arguments, folderPath: folder.path, printer: { output.append($0) })
+        return output
     }
 }
 
