@@ -11,7 +11,7 @@ import Foundation
 internal final class HelpTask: Task, Executable {
     // MARK: - Executable
 
-    func execute() throws -> String {
+    func execute() throws {
         let command = try Command(arguments: arguments, index: 0)
         let title = makeTitle(for: command)
         let message = makeMessage(for: command)
@@ -35,7 +35,7 @@ internal final class HelpTask: Task, Executable {
             }
         }
 
-        return output
+        print(output)
     }
 
     // MARK: - Private

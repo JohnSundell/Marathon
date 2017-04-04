@@ -7,5 +7,5 @@
 import Foundation
 
 internal protocol Executable {
-    func execute() throws -> String
+    func execute() throws
 }

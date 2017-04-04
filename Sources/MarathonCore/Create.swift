@@ -39,7 +39,7 @@ extension CreateError: PrintableError {
 internal final class CreateTask: Task, Executable {
     private typealias Error = CreateError
 
-    func execute() throws -> String {
+    func execute() throws {
         guard let path = firstArgumentAsScriptPath else {
             throw Error.missingName
         }
@@ -58,7 +58,5 @@ internal final class CreateTask: Task, Executable {
         if !argumentsContainNoOpenFlag {
             try scriptManager.script(at: file.path).edit(arguments: arguments, open: true)
         }
-
-        return ""
     }
 }

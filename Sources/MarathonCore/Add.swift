@@ -42,7 +42,7 @@ internal final class AddTask: Task, Executable {
 
     // MARK: - Executable
 
-    func execute() throws -> String {
+    func execute() throws {
         guard let identifier = arguments.first else {
             throw Error.missingIdentifier
         }
@@ -52,6 +52,6 @@ internal final class AddTask: Task, Executable {
         }
 
         let package = try packageManager.addPackage(at: url)
-        return "📦  \(package.name) added"
+        print("📦  \(package.name) added")
     }
 }

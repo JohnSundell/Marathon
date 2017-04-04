@@ -42,7 +42,7 @@ internal class RunTask: Task, Executable {
 
     // MARK: - Executable
 
-    func execute() throws -> String {
+    func execute() throws {
         guard let path = firstArgumentAsScriptPath else {
             throw Error.missingPath
         }
@@ -51,7 +51,8 @@ internal class RunTask: Task, Executable {
         try script.build()
 
         do {
-            return try script.run(in: folder, with: Array(arguments.dropFirst()))
+            let output = try script.run(in: folder, with: Array(arguments.dropFirst()))
+            print(output)
         } catch {
             throw Error.failedToRunScript((error as! ShellOutError).message)
         }

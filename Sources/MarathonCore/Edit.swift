@@ -35,13 +35,12 @@ internal final class EditTask: Task, Executable {
 
     // MARK: - Executable
 
-    func execute() throws -> String {
+    func execute() throws {
         guard let path = firstArgumentAsScriptPath else {
             throw Error.missingPath
         }
 
         let script = try scriptManager.script(at: path)
         try script.edit(arguments: arguments, open: !argumentsContainNoOpenFlag)
-        return ""
     }
 }

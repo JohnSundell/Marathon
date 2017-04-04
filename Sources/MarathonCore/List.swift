@@ -7,7 +7,7 @@
 import Foundation
 
 internal final class ListTask: Task, Executable {
-    func execute() throws -> String {
+    func execute() throws {
         let packages = packageManager.addedPackages
         let scriptPaths = scriptManager.managedScriptPaths
 
@@ -44,6 +44,6 @@ internal final class ListTask: Task, Executable {
             output.append("👉  To remove either a package or the cached data for a script, use 'marathon remove'")
         }
 
-        return output
+        print(output)
     }
 }

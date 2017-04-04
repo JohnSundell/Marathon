@@ -33,7 +33,7 @@ extension InstallError: PrintableError {
 internal class InstallTask: Task, Executable {
     private typealias Error = InstallError
 
-    func execute() throws -> String {
+    func execute() throws {
         guard let path = firstArgumentAsScriptPath else {
             throw Error.missingPath
         }
@@ -43,10 +43,10 @@ internal class InstallTask: Task, Executable {
         let installed = try script.install(at: installPath, confirmBeforeOverwriting: !arguments.contains("--force"))
 
         guard installed else {
-            return "✋  Installation cancelled"
+            return print("✋  Installation cancelled")
         }
 
-        return "💻  \(path) installed at \(installPath)"
+        print("💻  \(path) installed at \(installPath)")
     }
 
     private func makeInstallPath(for script: Script) -> String {

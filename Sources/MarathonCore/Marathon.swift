@@ -22,7 +22,7 @@ public final class Marathon {
 
     public static func run(with arguments: [String] = CommandLine.arguments,
                            folderPath: String = "~/.marathon",
-                           printer: @escaping Printer = { print($0) }) throws -> String {
+                           printer: @escaping Printer = { print($0) }) throws {
         let command = try Command(arguments: arguments)
         let fileSystem = FileSystem()
 
@@ -39,6 +39,6 @@ public final class Marathon {
                                            scriptManager, packageManager,
                                            printer)
 
-        return try task.execute()
+        try task.execute()
     }
 }

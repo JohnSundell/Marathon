@@ -35,7 +35,7 @@ extension RemoveError: PrintableError {
 internal final class RemoveTask: Task, Executable {
     private typealias Error = RemoveError
 
-    func execute() throws -> String {
+    func execute() throws {
         if arguments.contains("--all-script-data") || arguments.contains("--all-packages") {
             var deletedObjects: [String] = []
 
@@ -49,7 +49,7 @@ internal final class RemoveTask: Task, Executable {
                 deletedObjects.append("all packages")
             }
 
-            return "🗑  Removed \(deletedObjects.joined(separator: " and "))"
+            return print("🗑  Removed \(deletedObjects.joined(separator: " and "))")
         }
 
         guard let identifier = arguments.first else {
@@ -58,10 +58,10 @@ internal final class RemoveTask: Task, Executable {
 
         if identifier.hasSuffix(".swift") {
             try scriptManager.removeDataForScript(at: identifier)
-            return "🗑  Removed cache data for script '\(identifier)'"
+            return print("🗑  Removed cache data for script '\(identifier)'")
         }
 
         let package = try packageManager.removePackage(named: identifier)
-        return "🗑  Removed package '\(package.name)'"
+        print("🗑  Removed package '\(package.name)'")
     }
 }
