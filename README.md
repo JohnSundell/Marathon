@@ -76,6 +76,7 @@ $ swift build -c release -Xswiftc -static-stdlib
 $ cp -f .build/release/Marathon /usr/local/bin/marathon
 ```
 
+If you encounter a permissions failure while installing, you may need to prepend `sudo` to the commands.
 To update Marathon, simply repeat any of the above two series of commands, except cloning the repo.
 
 ## Requirements
