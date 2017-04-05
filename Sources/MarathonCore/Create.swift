@@ -56,8 +56,6 @@ internal final class CreateTask: Task, Executable {
         let script = try scriptManager.makeScript(at: file.path)
         print("🐣  Created script at \(path)")
 
-        if !argumentsContainNoOpenFlag {
-            try script.edit(arguments: arguments, open: true)
-        }
+        try script.edit(arguments: arguments, open: !argumentsContainNoOpenFlag)
     }
 }
