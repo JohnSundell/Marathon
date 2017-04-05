@@ -317,6 +317,7 @@ class MarathonTests: XCTestCase {
 
         try run(with: ["create", scriptPath, "--no-open"])
         try XCTAssertFalse(scriptFolder.file(named: "script.swift").read().isEmpty)
+        try XCTAssertTrue(run(with: ["list"]).contains(scriptPath))
     }
 
     // MARK: - Editing scripts
