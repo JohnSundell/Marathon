@@ -59,12 +59,12 @@ internal final class ScriptManager {
 
     // MARK: - API
 
-    func script(at path: String) throws -> Script {
+    func script(at path: String, usingPrinter printer: @escaping Printer) throws -> Script {
         let file = try perform(File(path: path), orThrow: Error.scriptNotFound(path))
         let identifier = scriptIdentifier(from: file.path)
         let name = identifier.components(separatedBy: "-").last!.capitalized
         let folder = try createFolderIfNeededForScript(withIdentifier: identifier, file: file)
-        let script = Script(name: name, folder: folder, printer: print)
+        let script = Script(name: name, folder: folder, printer: printer)
 
         if let marathonFile = script.marathonFile {
             try packageManager.addPackages(fromMarathonFile: marathonFile)
