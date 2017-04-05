@@ -59,7 +59,7 @@ internal final class ScriptManager {
 
     // MARK: - API
 
-    func script(at path: String) throws -> Script {
+    func makeScript(at path: String) throws -> Script {
         let file = try perform(File(path: path), orThrow: Error.scriptNotFound(path))
         let identifier = scriptIdentifier(from: file.path)
         let name = identifier.components(separatedBy: "-").last!.capitalized

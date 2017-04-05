@@ -44,19 +44,20 @@ internal final class CreateTask: Task, Executable {
             throw Error.missingName
         }
 
-        let script = arguments.element(at: 1) ?? "import Foundation\n\n"
+        let content = arguments.element(at: 1) ?? "import Foundation\n\n"
 
-        guard let data = script.data(using: .utf8) else {
+        guard let data = content.data(using: .utf8) else {
             throw Error.failedToCreateFile(path)
         }
 
         let file = try perform(FileSystem().createFile(at: path, contents: data),
                                orThrow: Error.failedToCreateFile(path))
 
+        let script = try scriptManager.makeScript(at: file.path)
         print("🐣  Created script at \(path)")
 
         if !argumentsContainNoOpenFlag {
-            try scriptManager.script(at: file.path).edit(arguments: arguments, open: true)
+            try script.edit(arguments: arguments, open: true)
         }
     }
 }

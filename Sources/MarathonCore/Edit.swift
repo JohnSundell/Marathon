@@ -40,7 +40,10 @@ internal final class EditTask: Task, Executable {
             throw Error.missingPath
         }
 
-        let script = try scriptManager.script(at: path)
-        try script.edit(arguments: arguments, open: !argumentsContainNoOpenFlag)
+        let script = try scriptManager.makeScript(at: path)
+
+        if !argumentsContainNoOpenFlag {
+            try script.edit(arguments: arguments, open: true)
+        }
     }
 }

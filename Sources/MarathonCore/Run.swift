@@ -47,7 +47,7 @@ internal class RunTask: Task, Executable {
             throw Error.missingPath
         }
 
-        let script = try scriptManager.script(at: path)
+        let script = try scriptManager.makeScript(at: path)
         try script.build()
 
         do {

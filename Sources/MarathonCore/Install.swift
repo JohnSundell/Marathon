@@ -38,7 +38,7 @@ internal class InstallTask: Task, Executable {
             throw Error.missingPath
         }
 
-        let script = try scriptManager.script(at: path)
+        let script = try scriptManager.makeScript(at: path)
         let installPath = makeInstallPath(for: script)
         let installed = try script.install(at: installPath, confirmBeforeOverwriting: !arguments.contains("--force"))
 
