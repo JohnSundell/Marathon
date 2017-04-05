@@ -93,13 +93,20 @@ Check out [this repository](https://github.com/JohnSundell/Marathon-Examples) fo
 
 ## Using a Marathonfile
 
-To easily define dependencies for a script in a declarative way, you can create a `Marathonfile` in the same folder as your script. This file is simply a *new line separated list* of URLs pointing to packages that should be installed before running the script. By doing this you can ensure that the required dependencies will be installed when sharing your script with team members, friends or the wider community.
+To easily define dependencies for a script in a declarative way, you can create a `Marathonfile` in the same folder as your script. This file is simply a *new line separated list* of URLs pointing to either:
+
+- The URL to a git repository of a local or remote package to install before running your script.
+- The path to another script that should be linked to your script before running it.
+
+ By using a `Marathonfile` you can ensure that the required dependencies will be installed when sharing your script with team members, friends or the wider community.
 
 Here is an example of a `Marathonfile`:
 ```
 git@github.com:JohnSundell/Files.git
 git@github.com:JohnSundell/Unbox.git
 git@github.com:JohnSundell/Wrap.git
+~/packages/MyPackage
+otherScript.swift
 ```
 
 ## Help, feedback or suggestions?
