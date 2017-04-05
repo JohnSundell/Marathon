@@ -490,7 +490,7 @@ class MarathonTests: XCTestCase {
         try run(with: ["run", "TestScript/script"])
     }
 
-    func testAddingOtherScriptsAsDependenciesUsingMarathonfile() throws {
+    func testAddingOtherScriptAsDependencyUsingMarathonfile() throws {
         let scriptFolder = try folder.createSubfolder(named: "TestScript")
 
         let script = "import Foundation\nprint(helloWorld())"
@@ -503,8 +503,18 @@ class MarathonTests: XCTestCase {
         let marathonFile = try scriptFolder.createFile(named: "Marathonfile")
         try marathonFile.write(string: "dependency.swift")
 
-        let output = try run(with: ["run", "TestScript/script"])
-        XCTAssertEqual(output, "Hello world")
+        XCTAssertEqual(try run(with: ["run", "TestScript/script"]), "Hello world")
+
+        // Verify build folder structure
+        let buildFolder = try folder.subfolder(named: "Scripts").subfolders.first!.subfolder(named: "Sources")
+        XCTAssertEqual(buildFolder.files.names, ["dependency.swift", "main.swift"])
+
+        // Scripts removed from the Marathonfile should also be removed from the build folder
+        try marathonFile.write(string: "")
+        try scriptFile.write(string: "import Foundation\nprint(\"Hello again\")")
+
+        XCTAssertEqual(try run(with: ["run", "TestScript/script"]), "Hello again")
+        XCTAssertEqual(buildFolder.files.names, ["main.swift"])
     }
 
     func testIncorrectlyFormattedMarathonfileThrows() throws {

@@ -118,6 +118,7 @@ internal final class ScriptManager {
         }
 
         let sourcesFolder = try scriptFolder.createSubfolderIfNeeded(withName: "Sources")
+        try sourcesFolder.empty()
         try sourcesFolder.createFile(named: "main.swift", contents: file.read())
 
         return scriptFolder
