@@ -60,7 +60,6 @@ internal final class Script {
 
     let name: String
     let folder: Folder
-    var marathonFile: File? { return resolveMarathonfile() }
 
     private let print: Printer
     private var copyLoopDispatchQueue: DispatchQueue?
@@ -145,6 +144,20 @@ internal final class Script {
         }
     }
 
+    func resolveMarathonFile() throws -> MarathonFile? {
+        let scriptFile = try File(path: expandSymlink())
+
+        guard let parentFolder = scriptFile.parent else {
+            return nil
+        }
+
+        guard let file = try? parentFolder.file(named: "Marathonfile") else {
+            return nil
+        }
+
+        return try MarathonFile(file: file)
+    }
+
     // MARK: - Private
 
     private func editingPath(from arguments: [String]) throws -> String {
@@ -162,15 +175,6 @@ internal final class Script {
 
     private func expandSymlink() throws -> String {
         return try folder.moveToAndPerform(command: "readlink OriginalFile")
-    }
-
-    private func resolveMarathonfile() -> File? {
-        do {
-            let scriptFile = try File(path: expandSymlink())
-            return try scriptFile.parent?.file(named: "Marathonfile")
-        } catch {
-            return nil
-        }
     }
 
     private func startCopyLoop() {

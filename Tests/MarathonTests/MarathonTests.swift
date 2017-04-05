@@ -472,7 +472,7 @@ class MarathonTests: XCTestCase {
         XCTAssertEqual(packagesFolder.subfolders.count, 2)
     }
 
-    func testAddingLocalPackageUsingRelativePathInMarathonFile() throws {
+    func testAddingLocalPackageUsingRelativePathInMarathonfile() throws {
         let packageFolder = try folder.createSubfolder(named: "TestPackage")
         try packageFolder.moveToAndPerform(command: "swift package init")
 
@@ -490,6 +490,23 @@ class MarathonTests: XCTestCase {
         try run(with: ["run", "TestScript/script"])
     }
 
+    func testAddingOtherScriptsAsDependenciesUsingMarathonfile() throws {
+        let scriptFolder = try folder.createSubfolder(named: "TestScript")
+
+        let script = "import Foundation\nprint(helloWorld())"
+        let scriptFile = try scriptFolder.createFile(named: "script.swift")
+        try scriptFile.write(string: script)
+
+        let dependencyScriptFile = try scriptFolder.createFile(named: "dependency.swift")
+        try dependencyScriptFile.write(string: "func helloWorld() -> String { return \"Hello world\" }")
+
+        let marathonFile = try scriptFolder.createFile(named: "Marathonfile")
+        try marathonFile.write(string: "dependency.swift")
+
+        let output = try run(with: ["run", "TestScript/script"])
+        XCTAssertEqual(output, "Hello world")
+    }
+
     func testIncorrectlyFormattedMarathonfileThrows() throws {
         let script = "import Foundation"
         let scriptFile = try folder.createFile(named: "script.swift")
@@ -499,7 +516,7 @@ class MarathonTests: XCTestCase {
         try marathonFile.write(string: "💥")
 
         assert(try run(with: ["run", scriptFile.path]),
-               throwsError: PackageManagerError.failedToReadMarathonFile(marathonFile))
+               throwsError: MarathonFileError.failedToRead(marathonFile))
     }
 }
 

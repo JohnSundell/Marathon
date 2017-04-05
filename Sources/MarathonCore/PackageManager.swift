@@ -21,7 +21,6 @@ public enum PackageManagerError {
     case failedToUpdatePackages(Folder)
     case unknownPackageForRemoval(String)
     case failedToRemovePackage(String, Folder)
-    case failedToReadMarathonFile(File)
 }
 
 extension PackageManagerError: PrintableError {
@@ -43,8 +42,6 @@ extension PackageManagerError: PrintableError {
             return "Cannot remove package '\(name)' - no such package has been added"
         case .failedToRemovePackage(let name, _):
             return "Could not remove package '\(name)'"
-        case .failedToReadMarathonFile(let file):
-            return "Incorrectly formatted Marathonfile at '\(file.path)'"
         }
     }
 
@@ -74,8 +71,6 @@ extension PackageManagerError: PrintableError {
                    "To list all added packages run 'marathon list'"]
         case .failedToRemovePackage(_, let folder):
             return ["Make sure you have write permissions to the folder '\(folder.path)'"]
-        case .failedToReadMarathonFile(_):
-            return ["Ensure that the file is formatted according to the documentation at https://github.com/johnsundell/marathon"]
         }
     }
 }
@@ -120,34 +115,14 @@ internal final class PackageManager {
         return package
     }
 
-    func addPackages(fromMarathonFile file: File) throws {
-        let fileContent = try perform(file.readAsString().components(separatedBy: .newlines),
-                                      orThrow: Error.failedToReadMarathonFile(file))
-
+    func addPackages(fromMarathonFile file: MarathonFile) throws {
         let existingPackageURLs = Set(makePackageList().map { package in
             return package.url
         })
 
-        for urlString in fileContent {
-            guard !urlString.isEmpty else {
-                continue
-            }
-
-            guard var url = URL(string: urlString) else {
-                throw Error.failedToReadMarathonFile(file)
-            }
-
+        for url in file.packageURLs {
             guard !existingPackageURLs.contains(url) else {
                 continue
-            }
-
-            if !url.isForRemoteRepository {
-                if !urlString.hasPrefix("/") && !urlString.hasPrefix("~") {
-                    let folder = try perform(file.parent!.subfolder(atPath: urlString),
-                                             orThrow: Error.failedToReadMarathonFile(file))
-
-                    url = URL(string: folder.path)!
-                }
             }
 
             try addPackage(at: url, throwIfAlreadyAdded: false)

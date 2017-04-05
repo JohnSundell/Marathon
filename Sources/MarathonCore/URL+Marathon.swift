@@ -10,4 +10,8 @@ internal extension URL {
     var isForRemoteRepository: Bool {
         return absoluteString.hasSuffix(".git")
     }
+
+    var isForScript: Bool {
+        return absoluteString.hasSuffix(".swift")
+    }
 }
