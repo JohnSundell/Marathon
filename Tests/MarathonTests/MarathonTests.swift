@@ -8,6 +8,7 @@ import XCTest
 import MarathonCore
 import Files
 import Unbox
+import Require
 
 class MarathonTests: XCTestCase {
     fileprivate var folder: Folder!
@@ -348,7 +349,7 @@ class MarathonTests: XCTestCase {
 
         let scriptFolders = try folder.subfolder(named: "Scripts").subfolders
         XCTAssertEqual(scriptFolders.count, 1)
-        XCTAssertNotNil(try? scriptFolders.first!.subfolder(named: "Script.xcodeproj"))
+        XCTAssertNotNil(try? scriptFolders.first.require().subfolder(named: "Script.xcodeproj"))
     }
 
     func testEditingScriptWithoutXcode() throws {
@@ -360,7 +361,7 @@ class MarathonTests: XCTestCase {
 
         let scriptFolders = try folder.subfolder(named: "Scripts").subfolders
         XCTAssertEqual(scriptFolders.count, 1)
-        XCTAssertNil(try? scriptFolders.first!.subfolder(named: "Script.xcodeproj"))
+        XCTAssertNil(try? scriptFolders.first.require().subfolder(named: "Script.xcodeproj"))
     }
 
     // MARK: - Removing script data
@@ -520,7 +521,7 @@ class MarathonTests: XCTestCase {
         XCTAssertEqual(try run(with: ["run", "TestScript/script"]), "Hello world")
 
         // Verify build folder structure
-        let buildFolder = try folder.subfolder(named: "Scripts").subfolders.first!.subfolder(named: "Sources")
+        let buildFolder = try folder.subfolder(named: "Scripts").subfolders.first.require().subfolder(named: "Sources")
         XCTAssertEqual(buildFolder.files.names, ["dependency.swift", "main.swift"])
 
         // Scripts removed from the Marathonfile should also be removed from the build folder

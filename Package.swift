@@ -16,6 +16,7 @@ let package = Package(
         .Package(url: "https://github.com/johnsundell/files.git", majorVersion: 1),
         .Package(url: "https://github.com/johnsundell/unbox.git", majorVersion: 2),
         .Package(url: "https://github.com/johnsundell/wrap.git", majorVersion: 2),
-        .Package(url: "https://github.com/johnsundell/shellout.git", majorVersion: 1)
+        .Package(url: "https://github.com/johnsundell/shellout.git", majorVersion: 1),
+        .Package(url: "https://github.com/johnsundell/require.git", majorVersion: 1)
     ]
 )

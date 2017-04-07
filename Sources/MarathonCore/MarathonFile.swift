@@ -6,6 +6,7 @@
 
 import Foundation
 import Files
+import Require
 
 // MARK: - Error
 
@@ -84,10 +85,12 @@ internal struct MarathonFile {
 
 private extension File {
     func sibling(at url: URL) throws -> FileSystem.Item {
+        let parent = self.parent.require()
+
         if url.isForScript {
-            return try parent!.file(atPath: url.absoluteString)
+            return try parent.file(atPath: url.absoluteString)
         } else {
-            return try parent!.subfolder(atPath: url.absoluteString)
+            return try parent.subfolder(atPath: url.absoluteString)
         }
     }
 }

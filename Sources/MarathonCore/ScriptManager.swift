@@ -6,6 +6,7 @@
 
 import Foundation
 import Files
+import Require
 
 // MARK: - Error
 
@@ -67,7 +68,7 @@ internal final class ScriptManager {
     func script(at path: String, usingPrinter printer: @escaping Printer) throws -> Script {
         let file = try perform(File(path: path), orThrow: Error.scriptNotFound(path))
         let identifier = scriptIdentifier(from: file.path)
-        let name = identifier.components(separatedBy: "-").last!.capitalized
+        let name = identifier.components(separatedBy: "-").last.require().capitalized
         let folder = try createFolderIfNeededForScript(withIdentifier: identifier, file: file)
         let script = Script(name: name, folder: folder, printer: printer)
 

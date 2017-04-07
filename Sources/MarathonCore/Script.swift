@@ -7,6 +7,7 @@
 import Foundation
 import Files
 import ShellOut
+import Require
 
 // MARK: - Error
 
@@ -209,7 +210,7 @@ internal final class Script {
                 continue
             }
 
-            let message = lineComponents.last!.replacingOccurrences(of: " error:", with: "")
+            let message = lineComponents.last.require().replacingOccurrences(of: " error:", with: "")
             messages.append(message)
 
             if let range = message.range(of: "'[A-Za-z]+'", options: .regularExpression), message.contains("no such module") {
