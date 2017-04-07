@@ -307,6 +307,9 @@ class MarathonTests: XCTestCase {
 
         let scriptFile = try File(path: FileSystem().currentFolder.path + "script.swift")
 
+        // Verify that the script has default content
+        try XCTAssertEqual(scriptFile.readAsString(), "import Foundation\n\n")
+
         // Delete the file since we're creating it in the current working folder
         try scriptFile.delete()
     }
@@ -317,6 +320,17 @@ class MarathonTests: XCTestCase {
 
         try run(with: ["create", scriptPath, "--no-open"])
         try XCTAssertFalse(scriptFolder.file(named: "script.swift").read().isEmpty)
+    }
+
+    func testCreatingScriptWithContent() throws {
+        let script = "import Foundation\nprint(\"Hello\")"
+        try run(with: ["create", "script", script, "--no-open"])
+
+        let scriptFile = try File(path: FileSystem().currentFolder.path + "script.swift")
+        try XCTAssertEqual(scriptFile.readAsString(), script)
+
+        // Delete the file since we're creating it in the current working folder
+        try scriptFile.delete()
     }
 
     // MARK: - Editing scripts

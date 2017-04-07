@@ -44,9 +44,7 @@ internal final class CreateTask: Task, Executable {
             throw Error.missingName
         }
 
-        let script = arguments.element(at: 1) ?? "import Foundation\n\n"
-
-        guard let data = script.data(using: .utf8) else {
+        guard let data = makeScriptContent().data(using: .utf8) else {
             throw Error.failedToCreateFile(path)
         }
 
@@ -59,5 +57,19 @@ internal final class CreateTask: Task, Executable {
             let script = try scriptManager.script(at: file.path, usingPrinter: print)
             try script.edit(arguments: arguments, open: true)
         }
+    }
+
+    private func makeScriptContent() -> String {
+        let defaultContent = "import Foundation\n\n"
+
+        guard let argument = arguments.element(at: 1) else {
+            return defaultContent
+        }
+
+        guard !argument.hasPrefix("-") else {
+            return defaultContent
+        }
+
+        return argument
     }
 }
