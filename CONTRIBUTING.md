@@ -13,6 +13,7 @@ You can help us reach that goal by contributing. Here are some ways you can cont
 - [Implement one of our starter tasks](https://github.com/JohnSundell/Marathon/issues?q=is%3Aissue+is%3Aopen+label%3A%22starter+task%22)
 - [Implement other tasks selected for development](https://github.com/JohnSundell/Marathon/issues?q=is%3Aissue+is%3Aopen+label%3A%22ready+for+implementation%22)
 - [Help answer questions asked by the community](https://github.com/JohnSundell/Marathon/issues?q=is%3Aopen+is%3Aissue+label%3Aquestion)
+- [Share a script as an example](https://github.com/JohnSundell/Marathon-Examples)
 - [Spread the word about Marathon](https://twitter.com/intent/tweet?text=Marathon%20makes%20it%20easy%20to%20write,%20run%20and%20manage%20your%20Swift%20scripts:%20https://github.com/johnsundell/marathon)
 
 ## Code of conduct
