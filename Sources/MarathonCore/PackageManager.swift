@@ -9,6 +9,7 @@ import Files
 import Wrap
 import Unbox
 import ShellOut
+import Require
 
 // MARK: - Error
 
@@ -312,7 +313,7 @@ internal final class PackageManager {
         }
 
         let path = try! Folder(path: url.absoluteString).path
-        return URL(string: path)!
+        return URL(string: path).require()
     }
 
     private func save(package: Package) throws {
@@ -352,7 +353,7 @@ internal final class PackageManager {
         description += "\n    ]\n)"
 
         try generatedFolder.createFile(named: "Package.swift",
-                                       contents: description.data(using: .utf8)!)
+                                       contents: description.data(using: .utf8).require())
     }
 
     private func makePackageList() -> [Package] {
