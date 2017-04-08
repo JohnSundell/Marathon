@@ -106,7 +106,7 @@ internal final class ScriptManager {
     // MARK: - Private
 
     private func scriptIdentifier(from path: String) -> String {
-        let pathExcludingExtension = path.components(separatedBy: ".swift").first!
+        let pathExcludingExtension = path.components(separatedBy: ".swift").first.require()
         return pathExcludingExtension.replacingOccurrences(of: "/", with: "-")
     }
 
