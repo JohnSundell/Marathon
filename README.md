@@ -46,11 +46,19 @@ $ marathon edit helloWorld
 $ marathon edit helloWorld --no-xcode
 ```
 
-💻 Install scripts as binaries and run them independently from anywhere
+💻 Install scripts as binaries and run them independently from anywhere...
 ```
 $ marathon install helloWorld
 $ helloWorld
 > Hello world
+```
+
+...you can even install remote scripts (+ their dependencies) from a URL:
+```
+$ marathon install https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/AddSuffix.swift
+$ cd myImages
+$ addSuffix "@2x"
+> Added suffix "@2x" to 15 files
 ```
 
 👪 Share your scripts with your team and automatically install their dependencies:
