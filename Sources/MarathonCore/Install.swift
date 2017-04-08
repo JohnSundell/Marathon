@@ -38,8 +38,13 @@ internal class InstallTask: Task, Executable {
             throw Error.missingPath
         }
 
-        let script = try scriptManager.script(at: path, usingPrinter: print)
+        let script = try loadScript(from: path)
         let installPath = makeInstallPath(for: script)
+
+        printProgress("Compiling script...")
+        try script.build(withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
+
+        printProgress("Installing binary...")
         let installed = try script.install(at: installPath, confirmBeforeOverwriting: !arguments.contains("--force"))
 
         guard installed else {
@@ -47,6 +52,18 @@ internal class InstallTask: Task, Executable {
         }
 
         print("💻  \(path) installed at \(installPath)")
+    }
+
+    private func loadScript(from path: String) throws -> Script {
+        if let url = URL(string: path) {
+            if let urlScheme = url.scheme {
+                if urlScheme.hasPrefix("http") {
+                    return try scriptManager.downloadScript(from: url, usingPrinter: print)
+                }
+            }
+        }
+
+        return try scriptManager.script(at: path, usingPrinter: print)
     }
 
     private func makeInstallPath(for script: Script) -> String {

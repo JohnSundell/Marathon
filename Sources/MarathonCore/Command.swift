@@ -58,7 +58,7 @@ extension Command {
         case .run:
             return "Run a script at a given path"
         case .install:
-            return "Install a script at a given path as a binary"
+            return "Install a script at a given path or URL as a binary"
         case .add:
             return "Add a package from a given URL to be able to use it from your scripts"
         case .list:
@@ -75,13 +75,13 @@ extension Command {
         case .create:
             return "<script-path> [<script-content>] [--no-xcode] [--no-open]"
         case .edit:
-            return "<path-to-script> [--no-xcode] [--no-open]"
+            return "<script-path> [--no-xcode] [--no-open]"
         case .remove:
             return "<name-of-package-or-path-to-script> [--all-script-data] [--all-packages]"
         case .run:
-            return "<path-to-script> [<script-arguments...>]"
+            return "<script-path> [<script-arguments...>]"
         case .install:
-            return "<script-path> [<install-path>] [--force]"
+            return "<script-path-or-url> [<install-path>] [--force]"
         case .add:
             return "<url-or-path-to-package>"
         case .list:
@@ -93,7 +93,7 @@ extension Command {
         }
     }
 
-    var makeTaskClosure: (Folder, [String], ScriptManager, PackageManager, @escaping Printer) -> Executable {
+    var makeTaskClosure: (Folder, [String], ScriptManager, PackageManager, @escaping Printer, @escaping Printer) -> Executable {
         switch self {
         case .create:
             return CreateTask.init
@@ -116,7 +116,7 @@ extension Command {
         }
     }
 
-    var allowsVerboseOutput: Bool {
+    var allowsProgressOutput: Bool {
         return self != .run
     }
 

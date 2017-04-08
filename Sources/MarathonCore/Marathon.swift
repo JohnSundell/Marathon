@@ -23,30 +23,37 @@ public final class Marathon {
     public static func run(with arguments: [String] = CommandLine.arguments,
                            folderPath: String = "~/.marathon",
                            printer: @escaping Printer = { print($0) }) throws {
-        let command = try Command(arguments: arguments)
-        let fileSystem = FileSystem()
-
-        let setupError = Error.couldNotPerformSetup(folderPath)
-        let rootFolder = try perform(fileSystem.createFolderIfNeeded(at: folderPath), orThrow: setupError)
-        let packageFolder = try perform(rootFolder.createSubfolderIfNeeded(withName: "Packages"), orThrow: setupError)
-        let scriptFolder = try perform(rootFolder.createSubfolderIfNeeded(withName: "Scripts"), orThrow: setupError)
-
-        let verbosePrinter = makeVerbosePrinter(from: printer, for: command)
-        let packageManager = try perform(PackageManager(folder: packageFolder, printer: verbosePrinter), orThrow: setupError)
-        let scriptManager = ScriptManager(folder: scriptFolder, packageManager: packageManager, printer: verbosePrinter)
-
-        let task = command.makeTaskClosure(fileSystem.currentFolder,
-                                           Array(arguments.dropFirst(2)),
-                                           scriptManager, packageManager,
-                                           printer)
-
+        let task = try resolveTask(forArguments: arguments, folderPath: folderPath, printer: printer)
         try task.execute()
     }
 
     // MARK: - Private
 
-    private static func makeVerbosePrinter(from printer: @escaping Printer, for command: Command) -> Printer {
-        guard command.allowsVerboseOutput else {
+    private static func resolveTask(forArguments arguments: [String], folderPath: String, printer: @escaping Printer) throws -> Executable {
+        let command = try Command(arguments: arguments)
+        let fileSystem = FileSystem()
+
+        do {
+            let rootFolder = try fileSystem.createFolderIfNeeded(at: folderPath)
+            let packageFolder = try rootFolder.createSubfolderIfNeeded(withName: "Packages")
+            let scriptFolder = try rootFolder.createSubfolderIfNeeded(withName: "Scripts")
+
+            let progressPrinter = makeProgressPrinter(from: printer, for: command)
+            let packageManager = try PackageManager(folder: packageFolder, printer: progressPrinter)
+            let scriptManager = try ScriptManager(folder: scriptFolder, packageManager: packageManager, printer: progressPrinter)
+
+            return command.makeTaskClosure(fileSystem.currentFolder,
+                                           Array(arguments.dropFirst(2)),
+                                           scriptManager, packageManager,
+                                           progressPrinter,
+                                           printer)
+        } catch {
+            throw Error.couldNotPerformSetup(folderPath)
+        }
+    }
+
+    private static func makeProgressPrinter(from printer: @escaping Printer, for command: Command) -> Printer {
+        guard command.allowsProgressOutput else {
             return { _ in }
         }
 

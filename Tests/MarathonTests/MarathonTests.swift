@@ -275,7 +275,7 @@ class MarathonTests: XCTestCase {
 
     // MARK: - Installing scripts
 
-    func testInstallingScript() throws {
+    func testInstallingLocalScript() throws {
         try run(with: ["add", "git@github.com:JohnSundell/Files.git"])
 
         let script = "import Files\n\n" +
@@ -295,6 +295,29 @@ class MarathonTests: XCTestCase {
         try run(with: ["install", "script", "installed-script", "--force"])
         let reInstalledOutput = try folder.moveToAndPerform(command: "./installed-script")
         XCTAssertEqual(reInstalledOutput, "Re-installed")
+    }
+
+    func testInstallingRemoteScriptWithDependencies() throws {
+        try run(with: [
+            "install",
+            "https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/addSuffix.swift",
+            "installed-script"
+        ])
+
+        // Make a couple of files that we can try the installed script on
+        let executionFolder = try folder.createSubfolder(named: "TestInstallation")
+        try executionFolder.createFile(named: "A.swift")
+        try executionFolder.createFile(named: "B.swift")
+
+        // Run the installed binary
+        try executionFolder.moveToAndPerform(command: "../installed-script -suffix")
+        XCTAssertEqual(executionFolder.files.names, ["A-suffix.swift", "B-suffix.swift"])
+
+        // List should not contain the script, as it was only added temporarily
+        try XCTAssertFalse(run(with: ["list"]).lowercased().contains("addsuffix"))
+
+        // Make sure that the temporary folder for the script is cleaned up
+        try XCTAssertEqual(folder.subfolder(atPath: "Scripts/Temp").subfolders.count, 0)
     }
 
     // MARK: - Creating scripts
@@ -347,7 +370,7 @@ class MarathonTests: XCTestCase {
 
         try run(with: ["edit", scriptFile.path, "--no-open"])
 
-        let scriptFolders = try folder.subfolder(named: "Scripts").subfolders
+        let scriptFolders = try folder.subfolder(atPath: "Scripts/Cache").subfolders
         XCTAssertEqual(scriptFolders.count, 1)
         XCTAssertNotNil(try? scriptFolders.first.require().subfolder(named: "Script.xcodeproj"))
     }
@@ -359,7 +382,7 @@ class MarathonTests: XCTestCase {
 
         try run(with: ["edit", scriptFile.path, "--no-xcode", "--no-open"])
 
-        let scriptFolders = try folder.subfolder(named: "Scripts").subfolders
+        let scriptFolders = try folder.subfolder(atPath: "Scripts/Cache").subfolders
         XCTAssertEqual(scriptFolders.count, 1)
         XCTAssertNil(try? scriptFolders.first.require().subfolder(named: "Script.xcodeproj"))
     }
@@ -373,7 +396,7 @@ class MarathonTests: XCTestCase {
 
         try run(with: ["run", scriptFile.path])
 
-        let scriptsFolder = try folder.subfolder(named: "Scripts")
+        let scriptsFolder = try folder.subfolder(atPath: "Scripts/Cache")
         XCTAssertEqual(scriptsFolder.subfolders.count, 1)
 
         try run(with: ["remove", scriptFile.path])
@@ -389,7 +412,7 @@ class MarathonTests: XCTestCase {
 
         try run(with: ["run", scriptFile.path])
 
-        let scriptsFolder = try folder.subfolder(named: "Scripts")
+        let scriptsFolder = try folder.subfolder(atPath: "Scripts/Cache")
         XCTAssertEqual(scriptsFolder.subfolders.count, 1)
 
         // Delete the script before running 'remove'
@@ -409,7 +432,7 @@ class MarathonTests: XCTestCase {
             scriptFiles.append(scriptFile)
         }
 
-        let scriptsFolder = try folder.subfolder(named: "Scripts")
+        let scriptsFolder = try folder.subfolder(atPath: "Scripts/Cache")
         XCTAssertEqual(scriptsFolder.subfolders.count, scriptFiles.count)
 
         // Delete the script before running 'remove'
@@ -521,7 +544,7 @@ class MarathonTests: XCTestCase {
         XCTAssertEqual(try run(with: ["run", "TestScript/script"]), "Hello world")
 
         // Verify build folder structure
-        let buildFolder = try folder.subfolder(named: "Scripts").subfolders.first.require().subfolder(named: "Sources")
+        let buildFolder = try folder.subfolder(atPath: "Scripts/Cache").subfolders.first.require().subfolder(named: "Sources")
         XCTAssertEqual(buildFolder.files.names, ["dependency.swift", "main.swift"])
 
         // Scripts removed from the Marathonfile should also be removed from the build folder

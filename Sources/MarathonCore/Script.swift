@@ -91,8 +91,6 @@ internal final class Script {
     }
 
     func install(at path: String, confirmBeforeOverwriting: Bool) throws -> Bool {
-        try build(withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
-
         do {
             var pathComponents = path.components(separatedBy: "/")
             let installName = pathComponents.removeLast()
