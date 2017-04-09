@@ -168,6 +168,31 @@ class MarathonTests: XCTestCase {
                throwsError: PackageManagerError.packageAlreadyAdded("Files"))
     }
 
+    func testListingPackagesOrScripts() throws {
+        let script = "script.swift"
+        let package = "git@github.com:JohnSundell/Files.git"
+
+        try run(with: ["create", script, "--no-open"])
+        try run(with: ["run", script])
+        try run(with: ["add", package])
+
+        // List should now include packages and scripts
+        try XCTAssertTrue(run(with: ["list"]).contains(script))
+        try XCTAssertTrue(run(with: ["list"]).contains(package))
+
+        // List with `--packages` or `-p` should no longer include scripts
+        try XCTAssertTrue(run(with: ["list", "--packages"]).contains(package))
+        try XCTAssertTrue(run(with: ["list", "-p"]).contains(package))
+        try XCTAssertFalse(run(with: ["list", "--packages"]).contains(script))
+        try XCTAssertFalse(run(with: ["list", "-p"]).contains(script))
+
+        // List with `--scripts` or `-s` should no longer include packages
+        try XCTAssertTrue(run(with: ["list", "--scripts"]).contains(script))
+        try XCTAssertTrue(run(with: ["list", "-s"]).contains(script))
+        try XCTAssertFalse(run(with: ["list", "--scripts"]).contains(package))
+        try XCTAssertFalse(run(with: ["list", "-s"]).contains(package))
+    }
+
     // MARK: - Running scripts
 
     func testRunningScriptWithoutPathThrows() {
