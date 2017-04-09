@@ -35,7 +35,7 @@ It's recommended that you re-generate the Xcode project whenever you pull down n
 
 Tests should be added for all functionality, both when adding new behaviors to existing features, and implementing new ones.
 
-Marathon uses `XCTest` to run its tests, which can either be run through Xcode or by running `$ swift test` in the repository.
+Marathon uses `XCTest` to run its tests, which can be run by running `$ make test` in the repository.
 
 ## Architectural overview
 
