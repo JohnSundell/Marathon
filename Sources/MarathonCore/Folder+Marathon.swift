@@ -10,7 +10,7 @@ import ShellOut
 
 public extension Folder {
     @discardableResult func moveToAndPerform(command: String) throws -> String {
-        return try shellOut(to: "cd \(path) && \(command)")
+        return try shellOut(to: "cd \"\(path)\" && \(command)")
     }
 }
 

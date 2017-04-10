@@ -362,7 +362,10 @@ class MarathonTests: XCTestCase {
         let scriptPath = scriptFolder.path + "script.swift"
 
         try run(with: ["create", scriptPath, "--no-open"])
-        try run(with: ["run", scriptPath])
+
+        // For running the script, move to the script folder to ensure that spaces are handled
+        FileManager.default.changeCurrentDirectoryPath(scriptFolder.path)
+        try run(with: ["run", "script"])
     }
 
     // MARK: - Editing scripts
