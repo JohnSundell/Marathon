@@ -10,7 +10,6 @@ import Foundation
 
 public struct ArgumentParser: CustomStringConvertible {
     private var arguments: [ArgumentType]
-    private var index: Int
 
     private enum ArgumentType: CustomStringConvertible {
         case argument(String)
@@ -48,7 +47,6 @@ public struct ArgumentParser: CustomStringConvertible {
 
             return .argument(argument)
         }
-        self.index = 0
     }
 
     // MARK: - API
@@ -62,8 +60,6 @@ public struct ArgumentParser: CustomStringConvertible {
     }
 
     public func hasOption(_ optionName: String, flag flagName: Character) -> Bool {
-        var index = 0
-
         for argument in arguments {
             switch argument {
             case .option(let option):
@@ -77,7 +73,6 @@ public struct ArgumentParser: CustomStringConvertible {
             default:
                 break
             }
-            index += 1
         }
 
         return false
