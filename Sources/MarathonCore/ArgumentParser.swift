@@ -59,7 +59,7 @@ public struct ArgumentParser: CustomStringConvertible {
         return arguments.isEmpty
     }
 
-    public func hasOption(_ optionName: String, flag flagName: Character) -> Bool {
+    public func hasOption(_ optionName: String, flag flagName: Character = " ") -> Bool {
         for argument in arguments {
             switch argument {
             case .option(let option):
