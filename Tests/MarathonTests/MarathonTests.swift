@@ -357,6 +357,14 @@ class MarathonTests: XCTestCase {
         try scriptFile.delete()
     }
 
+    func testCreatingAndRunningScriptInFolderWithSpaces() throws {
+        let scriptFolder = try folder.createSubfolder(named: "test script with spaces")
+        let scriptPath = scriptFolder.path + "script.swift"
+
+        try run(with: ["create", scriptPath, "--no-open"])
+        try run(with: ["run", scriptPath])
+    }
+
     // MARK: - Editing scripts
 
     func testEditingScriptWithoutPathThrows() {

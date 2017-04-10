@@ -16,6 +16,6 @@ public extension Folder {
 
 internal extension Folder {
     func createSymlink(to originalPath: String, at linkPath: String) throws {
-        try moveToAndPerform(command: "ln -s \(originalPath) \(linkPath)")
+        try moveToAndPerform(command: "ln -s \"\(originalPath)\" \"\(linkPath)\"")
     }
 }

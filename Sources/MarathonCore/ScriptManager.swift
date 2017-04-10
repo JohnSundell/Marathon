@@ -155,6 +155,7 @@ internal final class ScriptManager {
     private func scriptIdentifier(from path: String) -> String {
         let pathExcludingExtension = path.components(separatedBy: ".swift").first.require()
         return pathExcludingExtension.replacingOccurrences(of: "/", with: "-")
+                                     .replacingOccurrences(of: " ", with: "-")
     }
 
     private func scriptName(from identifier: String) -> String {
