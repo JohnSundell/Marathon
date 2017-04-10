@@ -52,22 +52,24 @@ internal final class HelpTask: Task, Executable {
         switch command {
         case .create, .edit:
             return "The script will be opened for editing in Xcode by default\n" +
-                   "To open the source file directly (without an Xcode project), pass the '--no-xcode' flag\n" +
-                   "To not open the script at all, pass the '--no-open' flag"
+                   "To open the source file directly (without an Xcode project), pass the '--no-xcode' option\n" +
+                   "To not open the script at all, pass the '--no-open' option"
         case .remove:
             return "You can use this command to clean up data for scripts or packages no longer needed. To list them, use 'marathon list'\n" +
-                   "To remove all script data, pass the '--all-script-data' flag" +
-                   "To remove all packages, pass the '--all-packages' flag"
+                   "To remove all script data, pass the '--all-script-data' option" +
+                   "To remove all packages, pass the '--all-packages' option"
         case .run:
             return "The script will be compiled and run, and any output generated will be returned"
         case .install:
             return "The script will be compiled, and the resulting binary copied to the install path\n" +
                    "The default install path is '/usr/local/bin/<lowercased-name-of-script>'\n" +
-                   "Marathon will ask before overwriting any existing binary, unless the '--force' flag is passed"
+                   "Marathon will ask before overwriting any existing binary, unless the '--force' option is passed"
         case .add:
             return "You can also use a 'Marathonfile' to automatically add packages. See https://github.com/johnsundell/marathon for more information"
         case .list:
-            return "You can remove any packages or script data no longer needed using 'marathon remove'"
+            return "You can remove any packages or script data no longer neefded using 'marathon remove'\n" +
+                   "To list only scripts, pass the '--scripts' option or '-s' flag\n" +
+                   "To list only packages, pass the '--packages' option or '-p' flag"
         case .update:
             return ""
         case .help:
