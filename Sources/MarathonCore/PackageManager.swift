@@ -10,6 +10,7 @@ import Wrap
 import Unbox
 import ShellOut
 import Require
+import Releases
 
 // MARK: - Error
 
@@ -197,52 +198,14 @@ internal final class PackageManager {
     // MARK: - Private
 
     private func latestMajorVersionForPackage(at url: URL) throws -> Int {
-        let command: String
+        let releases = try perform(Releases.versions(for: url).withoutPreReleases(),
+                                   orThrow: Error.failedToResolveLatestVersion(url))
 
-        if url.isForRemoteRepository {
-            command = "git ls-remote --tags \(url.absoluteString)"
-        } else {
-            command = "cd \(url.absoluteString) && git tag"
+        guard let latestVersion = releases.sorted().last else {
+            throw Error.failedToResolveLatestVersion(url)
         }
 
-        let error = Error.failedToResolveLatestVersion(url)
-        let commandOutput = try perform(shellOut(to: command), orThrow: error)
-        let ignoredVersionTerms = ["alpha", "a", "beta", "b", "pre", "prerelease"]
-        var latestVersion: Int?
-
-        try commandOutput.components(separatedBy: "\n").forEach { line in
-            guard let versionString = line.components(separatedBy: "refs/tags/").last else {
-                throw error
-            }
-
-            for term in ignoredVersionTerms {
-                if versionString.lowercased().contains(term) {
-                    return
-                }
-            }
-
-            guard let majorVersionString = versionString.components(separatedBy: ".").first else {
-                throw error
-            }
-
-            guard let majorVersion = majorVersion(from: majorVersionString) else {
-                throw error
-            }
-
-            if let currentLatestVersion = latestVersion {
-                if majorVersion > currentLatestVersion {
-                    latestVersion = majorVersion
-                }
-            } else {
-                latestVersion = majorVersion
-            }
-        }
-
-        guard let version = latestVersion else {
-            throw error
-        }
-
-        return version
+        return latestVersion.major
     }
 
     private func nameOfPackage(at url: URL) throws -> String {
@@ -290,21 +253,6 @@ internal final class PackageManager {
         try clone.delete()
 
         return name
-    }
-
-    private func majorVersion(from string: String) -> Int? {
-        guard var firstComponent = string.components(separatedBy: ".").first else {
-            return nil
-        }
-
-        var number = Int(firstComponent)
-
-        while number == nil && firstComponent.characters.count > 0 {
-            firstComponent.remove(at: firstComponent.startIndex)
-            number = Int(firstComponent)
-        }
-
-        return number
     }
 
     private func absoluteRepositoryURL(from url: URL) -> URL {
