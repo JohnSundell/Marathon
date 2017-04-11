@@ -87,6 +87,8 @@ internal final class ScriptManager {
 
     func downloadScript(from url: URL, usingPrinter printer: @escaping Printer) throws -> Script {
         do {
+            let url = URLTransformer.transform(url)
+
             print("Downloading script...")
             let data = try Data(contentsOf: url)
 
