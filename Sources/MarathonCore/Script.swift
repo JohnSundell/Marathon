@@ -131,7 +131,7 @@ internal final class Script {
 
                 if path.hasSuffix(".xcodeproj/") {
                     print("\nℹ️  Marathon will keep running, in order to commit any changes you make in Xcode back to the original script file")
-                    print("   Press any key once you're done")
+                    print("   Press the return key once you're done")
 
                     startCopyLoop()
                     _ = FileHandle.standardInput.availableData
