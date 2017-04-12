@@ -52,6 +52,6 @@ internal final class AddTask: Task, Executable {
         }
 
         let package = try packageManager.addPackage(at: url)
-        print("📦  \(package.name) added")
+        printer.output("📦  \(package.name) added")
     }
 }

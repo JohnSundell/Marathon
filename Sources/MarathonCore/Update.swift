@@ -9,6 +9,6 @@ import Foundation
 internal final class UpdateTask: Task, Executable {
     func execute() throws {
         try packageManager.updateAllPackagesToLatestMajorVersion()
-        print("♻️  All packages updated")
+        printer.output("♻️  All packages updated")
     }
 }

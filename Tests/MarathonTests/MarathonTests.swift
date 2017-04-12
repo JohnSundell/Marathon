@@ -577,6 +577,46 @@ class MarathonTests: XCTestCase {
         assert(try run(with: ["run", scriptFile.path]),
                throwsError: MarathonFileError.failedToRead(marathonFile))
     }
+
+    // MARK: - Source verification
+
+    func testNoDirectUsesOfPrintFunction() throws {
+        for file in try resolveSourceFiles() {
+            XCTAssertEqual(file.extension, "swift")
+
+            // Whitelist Marathon.swift & main.swift, since it sets up the Printer wrapper
+            switch file.nameExcludingExtension {
+            case "Marathon", "main":
+                continue
+            default:
+                break
+            }
+
+            let source = try file.readAsString()
+            XCTAssertFalse(source.contains("print("),
+                           "\(file.name) uses the print() function directly. Use Printer instead.")
+        }
+    }
+
+    func testNoDirectUsesOfShellOut() throws {
+        for file in try resolveSourceFiles() {
+            XCTAssertEqual(file.extension, "swift")
+
+            // Whitelist ShellOut+Marathon.swift, since it wraps ShellOut
+            guard file.nameExcludingExtension != "ShellOut+Marathon" else {
+                continue
+            }
+
+            for line in try file.readAsString().components(separatedBy: "\n") {
+                guard line.contains("shellOut(to:") else {
+                    continue
+                }
+
+                XCTAssertTrue(line.contains("printer:"),
+                              "\(file.name) uses ShellOut directly. Use ShellOut+Marathon instead.")
+            }
+        }
+    }
 }
 
 // MARK: - Utilities
@@ -598,8 +638,28 @@ fileprivate extension MarathonTests {
         arguments.insert(folder.path, at: 0)
 
         var output = ""
-        try Marathon.run(with: arguments, folderPath: folder.path, printer: { output.append($0) })
+
+        let printer = Printer(
+            outputFunction: { output.append($0) },
+            progressFunction: { (_: () -> String) in },
+            verboseFunction: { (_: () -> String) in }
+        )
+
+        try Marathon.run(with: arguments, folderPath: folder.path, printer: printer)
+
         return output
+    }
+
+    func resolveSourceFiles() throws -> FileSystemSequence<File> {
+        let currentFile = try File(path: #file)
+        let testModuleFolder = currentFile.parent.require()
+        let sourcesFolder = try Folder(path: "\(testModuleFolder.path)../../Sources")
+        XCTAssertEqual(sourcesFolder.name, "Sources")
+
+        let sourceFiles = sourcesFolder.makeFileSequence(recursive: true)
+        XCTAssertNotNil(sourceFiles.first)
+
+        return sourceFiles
     }
 }
 

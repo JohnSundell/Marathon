@@ -44,6 +44,6 @@ internal final class ListTask: Task, Executable {
             output.append("👉  To remove either a package or the cached data for a script, use 'marathon remove'")
         }
 
-        print(output)
+        printer.output(output)
     }
 }

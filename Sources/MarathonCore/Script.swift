@@ -65,15 +65,15 @@ internal final class Script {
     let name: String
     let folder: Folder
 
-    private let print: Printer
+    private let printer: Printer
     private var copyLoopDispatchQueue: DispatchQueue?
 
     // MARK: - Init
 
-    init(name: String, folder: Folder, printer: @escaping Printer) {
+    init(name: String, folder: Folder, printer: Printer) {
         self.name = name
         self.folder = folder
-        self.print = printer
+        self.printer = printer
     }
 
     // MARK: - API
@@ -81,7 +81,7 @@ internal final class Script {
     func build(withArguments arguments: [String] = []) throws {
         do {
             let command = "swift build --enable-prefetching " + arguments.joined(separator: " ")
-            try folder.moveToAndPerform(command: command)
+            try folder.moveToAndPerform(command: command, printer: printer)
         } catch {
             throw formatBuildError(error as! ShellOutError)
         }
@@ -90,7 +90,7 @@ internal final class Script {
     func run(in executionFolder: Folder, with arguments: [String]) throws -> String {
         let scriptPath = folder.path + ".build/debug/" + name
         let command = scriptPath + " " + arguments.joined(separator: " ")
-        return try executionFolder.moveToAndPerform(command: command)
+        return try executionFolder.moveToAndPerform(command: command, printer: printer)
     }
 
     func install(at path: String, confirmBeforeOverwriting: Bool) throws -> Bool {
@@ -102,8 +102,8 @@ internal final class Script {
 
             if confirmBeforeOverwriting {
                 if (try? parentFolder.file(named: installName)) != nil {
-                    print("⚠️  A binary already exists at \(path)")
-                    print("❓  Are you sure you want to overwrite it? (Type 'Y' to confirm)")
+                    printer.output("⚠️  A binary already exists at \(path)")
+                    printer.output("❓  Are you sure you want to overwrite it? (Type 'Y' to confirm)")
 
                     let input = readLine()?.lowercased()
 
@@ -114,7 +114,7 @@ internal final class Script {
             }
 
             let buildFolder = try folder.subfolder(atPath: ".build/release")
-            try buildFolder.moveToAndPerform(command: "cp -f \(name) \(path)")
+            try buildFolder.moveToAndPerform(command: "cp -f \(name) \(path)", printer: printer)
 
             return true
         } catch {
@@ -128,13 +128,13 @@ internal final class Script {
 
             if open {
                 let relativePath = path.replacingOccurrences(of: folder.path, with: "")
-                print("✏️  Opening \(relativePath)")
+                printer.output("✏️  Opening \(relativePath)")
 
-                try shellOut(to: "open", arguments: [path])
+                try shellOut(to: "open \"\(path)\"", printer: printer)
 
                 if path.hasSuffix(".xcodeproj/") {
-                    print("\nℹ️  Marathon will keep running, in order to commit any changes you make in Xcode back to the original script file")
-                    print("   Press the return key once you're done")
+                    printer.output("\nℹ️  Marathon will keep running, in order to commit any changes you make in Xcode back to the original script file")
+                    printer.output("   Press the return key once you're done")
 
                     startCopyLoop()
                     _ = FileHandle.standardInput.availableData
@@ -171,12 +171,12 @@ internal final class Script {
     }
 
     private func generateXcodeProject() throws -> Folder {
-        try folder.moveToAndPerform(command: "swift package generate-xcodeproj")
+        try folder.moveToAndPerform(command: "swift package generate-xcodeproj", printer: printer)
         return try folder.subfolder(named: name + ".xcodeproj")
     }
 
     private func expandSymlink() throws -> String {
-        return try folder.moveToAndPerform(command: "readlink OriginalFile")
+        return try folder.moveToAndPerform(command: "readlink OriginalFile", printer: printer)
     }
 
     private func startCopyLoop() {
