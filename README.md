@@ -55,7 +55,7 @@ $ helloWorld
 
 ...you can even install remote scripts (+ their dependencies) from a URL:
 ```
-$ marathon install https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/AddSuffix.swift
+$ marathon install https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/addSuffix.swift
 $ cd myImages
 $ addSuffix "@2x"
 > Added suffix "@2x" to 15 files
