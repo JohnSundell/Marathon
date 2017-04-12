@@ -120,6 +120,7 @@ otherScript.swift
 ## Help, feedback or suggestions?
 
 - Run `$ marathon help` to display help for the tool itself or for any specific command.
+- Append `--verbose` to any command to make Marathon output everything it's doing, for debugging purposes.
 - [Open an issue](https://github.com/JohnSundell/Marathon/issues/new) if you need help, if you found a bug, or if you want to discuss a feature request.
 - [Open a PR](https://github.com/JohnSundell/Marathon/pull/new/master) if you want to make some change to Marathon.
 - Contact [@johnsundell on Twitter](https://twitter.com/johnsundell) for discussions, news & announcements about Marathon.
