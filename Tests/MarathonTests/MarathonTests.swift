@@ -609,7 +609,40 @@ fileprivate extension MarathonTests {
 extension MarathonTests {
     static var allTests : [(String, (MarathonTests) -> () throws -> Void)] {
         return [
-            ("testExample", testExample),
+            ("InvalidCommandThrows", testInvalidCommandThrows),
+            ("AddingAndRemovingRemotePackage", testAddingAndRemovingRemotePackage),
+            ("AddingAndRemovingLocalPackage", testAddingAndRemovingLocalPackage),
+            ("RemovingAllPackages", testRemovingAllPackages),
+            ("AddingLocalPackageWithDependency", testAddingLocalPackageWithDependency),
+            ("AddingLocalPackageWithUnsortedVersionsContainingLetters", testAddingLocalPackageWithUnsortedVersionsContainingLetters),
+            ("AddingAlreadyAddedPackageThrows", testAddingAlreadyAddedPackageThrows),
+            ("RunningScriptWithoutPathThrows", testRunningScriptWithoutPathThrows),
+            ("testRunningScript", testRunningScript),
+            ("testRunningScriptWithNewDependency", testRunningScriptWithNewDependency),
+            ("testRunningScriptWithBuildFailedErrorThrows", testRunningScriptWithBuildFailedErrorThrows),
+            ("testRunningScriptWithBuildFailedErrorWhenNoSuchModuleThrows", testRunningScriptWithBuildFailedErrorWhenNoSuchModuleThrows),
+            ("testRunningScriptWithRuntimeErrorThrows", testRunningScriptWithRuntimeErrorThrows),
+            ("testRunningScriptReturnsOutput", testRunningScriptReturnsOutput),
+            ("testPassingArgumentsToScript", testPassingArgumentsToScript),
+            ("testCurrentWorkingDirectoryOfScriptIsExecutionFolder", testCurrentWorkingDirectoryOfScriptIsExecutionFolder),
+            ("testScriptWithLargeAmountOfOutput", testScriptWithLargeAmountOfOutput),
+            ("testInstallingLocalScript", testInstallingLocalScript),
+            ("testInstallingRemoteScriptWithDependencies", testInstallingRemoteScriptWithDependencies),
+            ("testCreatingScriptWithoutNameThrows", testCreatingScriptWithoutNameThrows),
+            ("testCreatingScriptWithName", testCreatingScriptWithName),
+            ("testCreatingScriptWithPath", testCreatingScriptWithPath),
+            ("testCreatingScriptWithContent", testCreatingScriptWithContent),
+            ("testCreatingAndRunningScriptInFolderWithSpaces", testCreatingAndRunningScriptInFolderWithSpaces),
+            ("testEditingScriptWithoutPathThrows", testEditingScriptWithoutPathThrows),
+            ("testEditingScriptWithoutXcode", testEditingScriptWithoutXcode),
+            ("testRemovingScriptCacheData", testRemovingScriptCacheData),
+            ("testRemovingScriptCacheDataForDeletedScript", testRemovingScriptCacheDataForDeletedScript),
+            ("testRemovingAllScriptData", testRemovingAllScriptData),
+            ("testUpdatingPackages", testUpdatingPackages),
+            ("testUsingMarathonfileToInstallDependencies", testUsingMarathonfileToInstallDependencies),
+            ("testAddingLocalPackageUsingRelativePathInMarathonfile", testAddingLocalPackageUsingRelativePathInMarathonfile),
+            ("testAddingOtherScriptAsDependencyUsingMarathonfile", testAddingOtherScriptAsDependencyUsingMarathonfile),
+            ("testIncorrectlyFormattedMarathonfileThrows", testIncorrectlyFormattedMarathonfileThrows)
         ]
     }
 }

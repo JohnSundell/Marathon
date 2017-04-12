@@ -8,6 +8,9 @@ import Foundation
 import Files
 import ShellOut
 import Require
+#if os(Linux)
+    import Dispatch
+#endif
 
 // MARK: - Error
 
