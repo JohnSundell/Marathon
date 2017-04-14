@@ -55,4 +55,23 @@ internal extension URL {
 
         return URL(string: parentString).require()
     }
+    
+    func transformIfNeeded() -> URL {
+        guard isGithubURL else { return self }
+        return rawGithubUrl ?? self
+    }
+    
+    var isGithubURL: Bool {
+        return host == "github.com"
+    }
+    
+    var rawGithubUrl: URL? {
+        let base = "https://raw.githubusercontent.com"
+        
+        let urlString = pathComponents
+            .filter { $0 != "blob" && $0 != "/" }
+            .reduce(base) { "\($0)/\($1)" }
+        
+        return URL(string: urlString)
+    }
 }
