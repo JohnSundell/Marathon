@@ -47,12 +47,12 @@ internal class RunTask: Task, Executable {
             throw Error.missingPath
         }
 
-        let script = try scriptManager.script(at: path, usingPrinter: print)
+        let script = try scriptManager.script(at: path)
         try script.build()
 
         do {
             let output = try script.run(in: folder, with: Array(arguments.dropFirst()))
-            print(output)
+            printer.output(output)
         } catch {
             throw Error.failedToRunScript((error as! ShellOutError).message)
         }

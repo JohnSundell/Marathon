@@ -6,16 +6,15 @@
 
 import Foundation
 import Files
-import ShellOut
 
 public extension Folder {
-    @discardableResult func moveToAndPerform(command: String) throws -> String {
-        return try shellOut(to: "cd \"\(path)\" && \(command)")
+    @discardableResult func moveToAndPerform(command: String, printer: Printer) throws -> String {
+        return try shellOut(to: command, in: self, printer: printer)
     }
 }
 
 internal extension Folder {
-    func createSymlink(to originalPath: String, at linkPath: String) throws {
-        try moveToAndPerform(command: "ln -s \"\(originalPath)\" \"\(linkPath)\"")
+    func createSymlink(to originalPath: String, at linkPath: String, printer: Printer) throws {
+        try shellOut(to: "ln -s \"\(originalPath)\" \"\(linkPath)\"", in: self, printer: printer)
     }
 }

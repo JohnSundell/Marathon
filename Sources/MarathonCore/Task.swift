@@ -12,21 +12,18 @@ internal class Task {
     let arguments: [String]
     let scriptManager: ScriptManager
     let packageManager: PackageManager
-    let printProgress: Printer
-    let print: Printer
+    let printer: Printer
 
     init(folder: Folder,
          arguments: [String],
          scriptManager: ScriptManager,
          packageManager: PackageManager,
-         progressPrinter: @escaping Printer,
-         outputPrinter: @escaping Printer) {
+         printer: Printer) {
         self.folder = folder
         self.arguments = arguments
         self.scriptManager = scriptManager
         self.packageManager = packageManager
-        self.printProgress = progressPrinter
-        self.print = outputPrinter
+        self.printer = printer
     }
 }
 

@@ -8,7 +8,6 @@ import Foundation
 import Files
 import Wrap
 import Unbox
-import ShellOut
 import Require
 import Releases
 
@@ -87,16 +86,16 @@ internal final class PackageManager {
     private let folder: Folder
     private let generatedFolder: Folder
     private let temporaryFolder: Folder
-    private let print: Printer
+    private let printer: Printer
     private var masterPackageName: String { return "MARATHON_PACKAGES" }
 
     // MARK: - Init
 
-    init(folder: Folder, printer: @escaping Printer) throws {
+    init(folder: Folder, printer: Printer) throws {
         self.folder = folder
         self.generatedFolder = try folder.createSubfolderIfNeeded(withName: "Generated")
         self.temporaryFolder = try folder.createSubfolderIfNeeded(withName: "Temp")
-        self.print = printer
+        self.printer = printer
     }
 
     // MARK: - API
@@ -132,7 +131,7 @@ internal final class PackageManager {
     }
 
     @discardableResult func removePackage(named name: String, shouldUpdatePackages: Bool = true) throws -> Package {
-        print("Removing \(name)...")
+        printer.reportProgress("Removing \(name)...")
 
         let packageFile = try perform(folder.file(named: name),
                                       orThrow: Error.unknownPackageForRemoval(name))
@@ -177,7 +176,7 @@ internal final class PackageManager {
         }
 
         let buildFolder = try folder.createSubfolderIfNeeded(withName: ".build")
-        try buildFolder.createSymlink(to: packagesFolder.path, at: "checkouts")
+        try buildFolder.createSymlink(to: packagesFolder.path, at: "checkouts", printer: printer)
     }
 
     func updateAllPackagesToLatestMajorVersion() throws {
@@ -198,6 +197,8 @@ internal final class PackageManager {
     // MARK: - Private
 
     private func latestMajorVersionForPackage(at url: URL) throws -> Int {
+        printer.reportProgress("Resolving latest major version for \(url.absoluteString)...")
+
         let releases = try perform(Releases.versions(for: url).withoutPreReleases(),
                                    orThrow: Error.failedToResolveLatestVersion(url))
 
@@ -245,9 +246,9 @@ internal final class PackageManager {
             try existingClone.delete()
         }
 
-        print("Cloning \(url.absoluteString)...")
+        printer.reportProgress("Cloning \(url.absoluteString)...")
 
-        try temporaryFolder.moveToAndPerform(command: "git clone \(url.absoluteString) Clone -q")
+        try temporaryFolder.moveToAndPerform(command: "git clone \(url.absoluteString) Clone -q", printer: printer)
         let clone = try temporaryFolder.subfolder(named: "Clone")
         let name = try nameOfPackage(in: clone)
         try clone.delete()
@@ -270,11 +271,11 @@ internal final class PackageManager {
     }
 
     private func updatePackages() throws {
-        print("Updating packages...")
+        printer.reportProgress("Updating packages...")
 
         do {
             try generateMasterPackageDescription()
-            try generatedFolder.moveToAndPerform(command: "swift package --enable-prefetching update")
+            try generatedFolder.moveToAndPerform(command: "swift package --enable-prefetching update", printer: printer)
             try generatedFolder.createSubfolderIfNeeded(withName: "Packages")
         } catch {
             throw Error.failedToUpdatePackages(folder)

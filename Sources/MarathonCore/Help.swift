@@ -35,7 +35,7 @@ internal final class HelpTask: Task, Executable {
             }
         }
 
-        print(output)
+        printer.output(output)
     }
 
     // MARK: - Private

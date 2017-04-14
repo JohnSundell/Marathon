@@ -49,7 +49,7 @@ internal final class RemoveTask: Task, Executable {
                 deletedObjects.append("all packages")
             }
 
-            return print("🗑  Removed \(deletedObjects.joined(separator: " and "))")
+            return printer.output("🗑  Removed \(deletedObjects.joined(separator: " and "))")
         }
 
         guard let identifier = arguments.first else {
@@ -58,10 +58,10 @@ internal final class RemoveTask: Task, Executable {
 
         if identifier.hasSuffix(".swift") {
             try scriptManager.removeDataForScript(at: identifier)
-            return print("🗑  Removed cache data for script '\(identifier)'")
+            return printer.output("🗑  Removed cache data for script '\(identifier)'")
         }
 
         let package = try packageManager.removePackage(named: identifier)
-        print("🗑  Removed package '\(package.name)'")
+        printer.output("🗑  Removed package '\(package.name)'")
     }
 }

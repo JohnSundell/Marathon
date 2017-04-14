@@ -93,7 +93,7 @@ extension Command {
         }
     }
 
-    var makeTaskClosure: (Folder, [String], ScriptManager, PackageManager, @escaping Printer, @escaping Printer) -> Executable {
+    var makeTaskClosure: (Folder, [String], ScriptManager, PackageManager, Printer) -> Executable {
         switch self {
         case .create:
             return CreateTask.init

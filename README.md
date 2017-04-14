@@ -55,7 +55,7 @@ $ helloWorld
 
 ...you can even install remote scripts (+ their dependencies) from a URL:
 ```
-$ marathon install https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/AddSuffix.swift
+$ marathon install https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/addSuffix.swift
 $ cd myImages
 $ addSuffix "@2x"
 > Added suffix "@2x" to 15 files
@@ -69,6 +69,8 @@ $ marathon run mySharedScript
 
 ## Installing
 
+### On macOS
+
 Using Make:
 ```
 $ git clone git@github.com:JohnSundell/Marathon.git
@@ -81,6 +83,15 @@ Using the Swift Package Manager:
 $ git clone git@github.com:JohnSundell/Marathon.git
 $ cd Marathon
 $ swift build -c release -Xswiftc -static-stdlib
+$ cp -f .build/release/Marathon /usr/local/bin/marathon
+```
+
+### On Linux
+
+```
+$ git clone git@github.com:JohnSundell/Marathon.git
+$ cd Marathon
+$ swift build -c release
 $ cp -f .build/release/Marathon /usr/local/bin/marathon
 ```
 
@@ -120,6 +131,7 @@ otherScript.swift
 ## Help, feedback or suggestions?
 
 - Run `$ marathon help` to display help for the tool itself or for any specific command.
+- Append `--verbose` to any command to make Marathon output everything it's doing, for debugging purposes.
 - [Open an issue](https://github.com/JohnSundell/Marathon/issues/new) if you need help, if you found a bug, or if you want to discuss a feature request.
 - [Open a PR](https://github.com/JohnSundell/Marathon/pull/new/master) if you want to make some change to Marathon.
 - Contact [@johnsundell on Twitter](https://twitter.com/johnsundell) for discussions, news & announcements about Marathon.

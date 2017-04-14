@@ -41,29 +41,32 @@ internal class InstallTask: Task, Executable {
         let script = try loadScript(from: path)
         let installPath = makeInstallPath(for: script)
 
-        printProgress("Compiling script...")
-        try script.build(withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
-
-        printProgress("Installing binary...")
+        printer.reportProgress("Compiling script...")
+        #if os(Linux)
+            try script.build(withArguments: ["-c", "release"])
+        #else
+            try script.build(withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
+        #endif
+        printer.reportProgress("Installing binary...")
         let installed = try script.install(at: installPath, confirmBeforeOverwriting: !arguments.contains("--force"))
 
         guard installed else {
-            return print("✋  Installation cancelled")
+            return printer.output("✋  Installation cancelled")
         }
 
-        print("💻  \(path) installed at \(installPath)")
+        printer.output("💻  \(path) installed at \(installPath)")
     }
 
     private func loadScript(from path: String) throws -> Script {
         if let url = URL(string: path) {
             if let urlScheme = url.scheme {
                 if urlScheme.hasPrefix("http") {
-                    return try scriptManager.downloadScript(from: url, usingPrinter: print)
+                    return try scriptManager.downloadScript(from: url)
                 }
             }
         }
 
-        return try scriptManager.script(at: path, usingPrinter: print)
+        return try scriptManager.script(at: path)
     }
 
     private func makeInstallPath(for script: Script) -> String {

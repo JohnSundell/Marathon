@@ -22,15 +22,16 @@ public final class Marathon {
 
     public static func run(with arguments: [String] = CommandLine.arguments,
                            folderPath: String = "~/.marathon",
-                           printer: @escaping Printer = { print($0) }) throws {
-        let task = try resolveTask(forArguments: arguments, folderPath: folderPath, printer: printer)
+                           printer: Printer? = nil) throws {
+        let task = try resolveTask(for: arguments, folderPath: folderPath, printer: printer)
         try task.execute()
     }
 
     // MARK: - Private
 
-    private static func resolveTask(forArguments arguments: [String], folderPath: String, printer: @escaping Printer) throws -> Executable {
+    private static func resolveTask(for arguments: [String], folderPath: String, printer: Printer?) throws -> Executable {
         let command = try Command(arguments: arguments)
+        let printer = printer ?? makeDefaultPrinter(for: command, arguments: arguments)
         let fileSystem = FileSystem()
 
         do {
@@ -38,30 +39,56 @@ public final class Marathon {
             let packageFolder = try rootFolder.createSubfolderIfNeeded(withName: "Packages")
             let scriptFolder = try rootFolder.createSubfolderIfNeeded(withName: "Scripts")
 
-            let progressPrinter = makeProgressPrinter(from: printer, for: command)
-            let packageManager = try PackageManager(folder: packageFolder, printer: progressPrinter)
-            let scriptManager = try ScriptManager(folder: scriptFolder, packageManager: packageManager, printer: progressPrinter)
+            let packageManager = try PackageManager(folder: packageFolder, printer: printer)
+            let scriptManager = try ScriptManager(folder: scriptFolder, packageManager: packageManager, printer: printer)
 
             return command.makeTaskClosure(fileSystem.currentFolder,
                                            Array(arguments.dropFirst(2)),
                                            scriptManager, packageManager,
-                                           progressPrinter,
                                            printer)
         } catch {
             throw Error.couldNotPerformSetup(folderPath)
         }
     }
 
-    private static func makeProgressPrinter(from printer: @escaping Printer, for command: Command) -> Printer {
-        guard command.allowsProgressOutput else {
-            return { _ in }
-        }
+    private static func makeDefaultPrinter(for command: Command, arguments: [String]) -> Printer {
+        let progressFunction = makeProgressPrintingFunction(for: command)
+        let verboseFunction = makeVerbosePrintingFunction(for: arguments, progressFunction: progressFunction)
 
+        return Printer(
+            outputFunction: { print($0) },
+            progressFunction: progressFunction,
+            verboseFunction: verboseFunction
+        )
+    }
+
+    private static func makeProgressPrintingFunction(for command: Command) -> VerbosePrintFunction {
         var isFirstOutput = true
 
-        return { message in
-            printer(message.withIndentedNewLines(prefix: isFirstOutput ? "🏃  " : "   "))
+        return { (messageExpression: () -> String) in
+            guard command.allowsProgressOutput else {
+                return
+            }
+
+            let message = messageExpression()
+            print(message.withIndentedNewLines(prefix: isFirstOutput ? "🏃  " : "   "))
+
             isFirstOutput = false
+        }
+    }
+
+    private static func makeVerbosePrintingFunction(for arguments: [String],
+                                                    progressFunction: @escaping VerbosePrintFunction) -> VerbosePrintFunction {
+        let allowVerboseOutput = arguments.contains("--verbose")
+
+        return { (messageExpression: () -> String) in
+            guard allowVerboseOutput else {
+                return
+            }
+
+            // Make text italic
+            let message = "\u{001B}[0;3m\(messageExpression())\u{001B}[0;23m"
+            progressFunction(message)
         }
     }
 }

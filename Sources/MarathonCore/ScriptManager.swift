@@ -60,15 +60,15 @@ internal final class ScriptManager {
     private let temporaryFolder: Folder
     private lazy var temporaryScriptFiles = [File]()
     private let packageManager: PackageManager
-    private let print: Printer
+    private let printer: Printer
 
     // MARK: - Lifecycle
 
-    init(folder: Folder, packageManager: PackageManager, printer: @escaping Printer) throws {
+    init(folder: Folder, packageManager: PackageManager, printer: Printer) throws {
         self.cacheFolder = try folder.createSubfolderIfNeeded(withName: "Cache")
         self.temporaryFolder = try folder.createSubfolderIfNeeded(withName: "Temp")
         self.packageManager = packageManager
-        self.print = printer
+        self.printer = printer
     }
 
     deinit {
@@ -80,36 +80,36 @@ internal final class ScriptManager {
 
     // MARK: - API
 
-    func script(at path: String, usingPrinter printer: @escaping Printer) throws -> Script {
+    func script(at path: String) throws -> Script {
         let file = try perform(File(path: path), orThrow: Error.scriptNotFound(path))
-        return try script(from: file, usingPrinter: printer)
+        return try script(from: file)
     }
 
-    func downloadScript(from url: URL, usingPrinter printer: @escaping Printer) throws -> Script {
+    func downloadScript(from url: URL) throws -> Script {
         do {
             let url = url.transformIfNeeded()
 
-            print("Downloading script...")
+            printer.reportProgress("Downloading script...")
             let data = try Data(contentsOf: url)
 
-            print("Saving script...")
+            printer.reportProgress("Saving script...")
             let identifier = scriptIdentifier(from: url.absoluteString)
             let folder = try temporaryFolder.createSubfolderIfNeeded(withName: identifier)
             let fileName = scriptName(from: identifier) + ".swift"
             let file = try folder.createFile(named: fileName, contents: data)
             temporaryScriptFiles.append(file)
 
-            print("Resolving Marathonfile...")
+            printer.reportProgress("Resolving Marathonfile...")
             if let parentURL = url.parent {
                 let marathonFileURL = URL(string: parentURL.absoluteString + "Marathonfile").require()
 
                 if let marathonFileData = try? Data(contentsOf: marathonFileURL) {
-                    print("Saving Marathonfile...")
+                    printer.reportProgress("Saving Marathonfile...")
                     try folder.createFile(named: "Marathonfile", contents: marathonFileData)
                 }
             }
 
-            return try script(from: file, usingPrinter: printer)
+            return try script(from: file)
         } catch {
             throw Error.failedToDownloadScript(url)
         }
@@ -133,7 +133,7 @@ internal final class ScriptManager {
 
     // MARK: - Private
 
-    private func script(from file: File, usingPrinter printer: @escaping Printer) throws -> Script {
+    private func script(from file: File) throws -> Script {
         let identifier = scriptIdentifier(from: file.path)
         let name = scriptName(from: identifier)
         let folder = try createFolderIfNeededForScript(withIdentifier: identifier, file: file)
@@ -169,7 +169,7 @@ internal final class ScriptManager {
         try packageManager.symlinkPackages(to: scriptFolder)
 
         if (try? scriptFolder.file(named: "OriginalFile")) == nil {
-            try scriptFolder.createSymlink(to: file.path, at: "OriginalFile")
+            try scriptFolder.createSymlink(to: file.path, at: "OriginalFile", printer: printer)
         }
 
         let sourcesFolder = try scriptFolder.createSubfolderIfNeeded(withName: "Sources")
@@ -198,7 +198,7 @@ internal final class ScriptManager {
 
     private func makeManagedScriptPathList() -> [String] {
         return cacheFolder.subfolders.flatMap { scriptFolder in
-            guard let path = try? scriptFolder.moveToAndPerform(command: "readlink OriginalFile") else {
+            guard let path = try? scriptFolder.moveToAndPerform(command: "readlink OriginalFile", printer: printer) else {
                 return nil
             }
 

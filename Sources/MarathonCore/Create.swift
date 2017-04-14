@@ -51,10 +51,10 @@ internal final class CreateTask: Task, Executable {
         let file = try perform(FileSystem().createFile(at: path, contents: data),
                                orThrow: Error.failedToCreateFile(path))
 
-        print("🐣  Created script at \(path)")
+        printer.output("🐣  Created script at \(path)")
 
         if !argumentsContainNoOpenFlag {
-            let script = try scriptManager.script(at: file.path, usingPrinter: print)
+            let script = try scriptManager.script(at: file.path)
             try script.edit(arguments: arguments, open: true)
         }
     }
