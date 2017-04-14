@@ -69,6 +69,8 @@ $ marathon run mySharedScript
 
 ## Installing
 
+### On macOS
+
 Using Make:
 ```
 $ git clone git@github.com:JohnSundell/Marathon.git
@@ -84,7 +86,8 @@ $ swift build -c release -Xswiftc -static-stdlib
 $ cp -f .build/release/Marathon /usr/local/bin/marathon
 ```
 
-On a Linux machine don't use Make but the Swift Package Manager:
+### On Linux
+
 ```
 $ git clone git@github.com:JohnSundell/Marathon.git
 $ cd Marathon
