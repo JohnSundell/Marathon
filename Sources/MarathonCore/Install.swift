@@ -42,8 +42,11 @@ internal class InstallTask: Task, Executable {
         let installPath = makeInstallPath(for: script)
 
         printer.reportProgress("Compiling script...")
-        try script.build(withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
-
+        #if os(Linux)
+            try script.build(withArguments: ["-c", "release"])
+        #else
+            try script.build(withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
+        #endif
         printer.reportProgress("Installing binary...")
         let installed = try script.install(at: installPath, confirmBeforeOverwriting: !arguments.contains("--force"))
 
