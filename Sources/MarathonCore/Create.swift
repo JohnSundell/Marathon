@@ -53,7 +53,7 @@ internal final class CreateTask: Task, Executable {
 
         printer.output("🐣  Created script at \(path)")
 
-        if !argumentsContainNoOpenFlag {
+        if !argumentsContainNoOpenOption {
             let script = try scriptManager.script(at: file.path)
             try script.edit(arguments: arguments, open: true)
         }

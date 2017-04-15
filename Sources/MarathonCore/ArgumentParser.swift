@@ -8,73 +8,52 @@
 
 import Foundation
 
-public struct ArgumentParser: CustomStringConvertible {
-    private var arguments: [ArgumentType]
+public struct ArgumentParser {
+    fileprivate var options: [Option]
 
-    private enum ArgumentType: CustomStringConvertible {
-        case argument(String)
-        case option(String)
-        case flag(Character)
-
-        var description: String {
-            switch self {
-            case .argument(let value):
-                return value
-            case .option(let option):
-                return "--\(option)"
-            case .flag(let flag):
-                return "-\(String(flag))"
-            }
-        }
+    fileprivate struct Option {
+        let long: String
+        let short: String
     }
 
     // MARK: - Init
 
     public init(arguments: [String]) {
-        self.arguments = arguments.map { argument in
-            if argument.characters.first == "-" {
-                let flags = argument[argument.characters.index(after: argument.startIndex)..<argument.endIndex]
-
-                if flags.characters.first == "-" {
-                    let option = flags[flags.characters.index(after: flags.startIndex)..<flags.endIndex]
-                    return .option(option)
-                }
-
-                if let flag = flags.characters.first, flags.characters.count == 1 {
-                    return .flag(flag)
-                }
+        self.options = arguments.filter { argument in
+            return argument.hasPrefix("-") || argument.hasPrefix("--") || !argument.hasPrefix("---")
+        }.map { argument in
+            if argument.hasPrefix("--") {
+                return Option(long: argument, short: "")
+            } else {
+                return Option(long: "", short: argument)
             }
-
-            return .argument(argument)
         }
     }
 
     // MARK: - API
 
-    public var description:String {
-        return arguments.map { $0.description }.joined(separator: " ")
-    }
-
     public var isEmpty: Bool {
-        return arguments.isEmpty
+        return options.isEmpty
     }
 
-    public func hasOption(_ optionName: String, flag flagName: Character = " ") -> Bool {
-        for argument in arguments {
-            switch argument {
-            case .option(let option):
-                if option == optionName {
-                    return true
-                }
-            case .flag(let flag):
-                if flag == flagName {
-                    return true
-                }
-            default:
-                break
+    public func hasOption(_ long: String, short: String) -> Bool {
+        let option = Option(long: long, short: short)
+        if options.contains(option) {
+            return true
+        }
+        return false
+    }
+}
+
+// MARK: - Private utilities
+
+private extension Array where Element == ArgumentParser.Option {
+    func contains(_ option: ArgumentParser.Option) -> Bool {
+        for element in self {
+            if element.long == option.long || element.short == option.short {
+                return true
             }
         }
-
         return false
     }
 }
