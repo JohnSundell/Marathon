@@ -7,7 +7,6 @@
 import Foundation
 
 internal final class ListTask: Task, Executable {
-
     func execute() throws {
         let packages = packageManager.addedPackages
         let scriptPaths = scriptManager.managedScriptPaths
