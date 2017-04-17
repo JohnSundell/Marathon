@@ -7,7 +7,7 @@
 import Foundation
 import Files
 
-public extension Folder {
+internal extension Folder {
     @discardableResult func moveToAndPerform(command: String, printer: Printer) throws -> String {
         return try shellOut(to: command, in: self, printer: printer)
     }

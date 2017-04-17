@@ -5,17 +5,11 @@
  */
 
 import Foundation
-import MarathonCore
 import Files
+import ShellOut
 
 internal extension Folder {
     @discardableResult func moveToAndPerform(command: String) throws -> String {
-        let printer = Printer(
-            outputFunction: { _ in },
-            progressFunction: { (_: () -> String) in },
-            verboseFunction: { (_: () -> String) in }
-        )
-
-        return try moveToAndPerform(command: command, printer: printer)
+        return try shellOut(to: command, at: path)
     }
 }

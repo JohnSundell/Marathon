@@ -22,16 +22,18 @@ public final class Marathon {
 
     public static func run(with arguments: [String] = CommandLine.arguments,
                            folderPath: String = "~/.marathon",
-                           printer: Printer? = nil) throws {
-        let task = try resolveTask(for: arguments, folderPath: folderPath, printer: printer)
+                           printFunction: @escaping PrintFunction = { print($0) }) throws {
+        let task = try resolveTask(for: arguments, folderPath: folderPath, printFunction: printFunction)
         try task.execute()
     }
 
     // MARK: - Private
 
-    private static func resolveTask(for arguments: [String], folderPath: String, printer: Printer?) throws -> Executable {
+    private static func resolveTask(for arguments: [String],
+                                    folderPath: String,
+                                    printFunction: @escaping PrintFunction) throws -> Executable {
         let command = try Command(arguments: arguments)
-        let printer = printer ?? makeDefaultPrinter(for: command, arguments: arguments)
+        let printer = makePrinter(using: printFunction, command: command, arguments: arguments)
         let fileSystem = FileSystem()
 
         do {
@@ -51,34 +53,39 @@ public final class Marathon {
         }
     }
 
-    private static func makeDefaultPrinter(for command: Command, arguments: [String]) -> Printer {
-        let progressFunction = makeProgressPrintingFunction(for: command)
-        let verboseFunction = makeVerbosePrintingFunction(for: arguments, progressFunction: progressFunction)
+    private static func makePrinter(using printFunction: @escaping PrintFunction,
+                                    command: Command,
+                                    arguments: [String]) -> Printer {
+        let progressFunction = makeProgressPrintingFunction(using: printFunction, command: command, arguments: arguments)
+        let verboseFunction = makeVerbosePrintingFunction(using: progressFunction, arguments: arguments)
 
         return Printer(
-            outputFunction: { print($0) },
+            outputFunction: printFunction,
             progressFunction: progressFunction,
             verboseFunction: verboseFunction
         )
     }
 
-    private static func makeProgressPrintingFunction(for command: Command) -> VerbosePrintFunction {
+    private static func makeProgressPrintingFunction(using printFunction: @escaping PrintFunction,
+                                                     command: Command,
+                                                     arguments: [String]) -> VerbosePrintFunction {
         var isFirstOutput = true
+        let shouldPrint = command.allowsProgressOutput || arguments.contains("--verbose")
 
         return { (messageExpression: () -> String) in
-            guard command.allowsProgressOutput else {
+            guard shouldPrint else {
                 return
             }
 
             let message = messageExpression()
-            print(message.withIndentedNewLines(prefix: isFirstOutput ? "🏃  " : "   "))
+            printFunction(message.withIndentedNewLines(prefix: isFirstOutput ? "🏃  " : "   "))
 
             isFirstOutput = false
         }
     }
 
-    private static func makeVerbosePrintingFunction(for arguments: [String],
-                                                    progressFunction: @escaping VerbosePrintFunction) -> VerbosePrintFunction {
+    private static func makeVerbosePrintingFunction(using progressFunction: @escaping VerbosePrintFunction,
+                                                    arguments: [String]) -> VerbosePrintFunction {
         let allowVerboseOutput = arguments.contains("--verbose")
 
         return { (messageExpression: () -> String) in
