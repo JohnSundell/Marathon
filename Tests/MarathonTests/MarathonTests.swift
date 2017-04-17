@@ -669,14 +669,14 @@ fileprivate extension MarathonTests {
 extension MarathonTests {
     static var allTests : [(String, (MarathonTests) -> () throws -> Void)] {
         return [
-            ("InvalidCommandThrows", testInvalidCommandThrows),
-            ("AddingAndRemovingRemotePackage", testAddingAndRemovingRemotePackage),
-            ("AddingAndRemovingLocalPackage", testAddingAndRemovingLocalPackage),
-            ("RemovingAllPackages", testRemovingAllPackages),
-            ("AddingLocalPackageWithDependency", testAddingLocalPackageWithDependency),
-            ("AddingLocalPackageWithUnsortedVersionsContainingLetters", testAddingLocalPackageWithUnsortedVersionsContainingLetters),
-            ("AddingAlreadyAddedPackageThrows", testAddingAlreadyAddedPackageThrows),
-            ("RunningScriptWithoutPathThrows", testRunningScriptWithoutPathThrows),
+            ("testInvalidCommandThrows", testInvalidCommandThrows),
+            ("testAddingAndRemovingRemotePackage", testAddingAndRemovingRemotePackage),
+            ("testAddingAndRemovingLocalPackage", testAddingAndRemovingLocalPackage),
+            ("testRemovingAllPackages", testRemovingAllPackages),
+            ("testAddingLocalPackageWithDependency", testAddingLocalPackageWithDependency),
+            ("testAddingLocalPackageWithUnsortedVersionsContainingLetters", testAddingLocalPackageWithUnsortedVersionsContainingLetters),
+            ("testAddingAlreadyAddedPackageThrows", testAddingAlreadyAddedPackageThrows),
+            ("testRunningScriptWithoutPathThrows", testRunningScriptWithoutPathThrows),
             ("testRunningScript", testRunningScript),
             ("testRunningScriptWithNewDependency", testRunningScriptWithNewDependency),
             ("testRunningScriptWithBuildFailedErrorThrows", testRunningScriptWithBuildFailedErrorThrows),
@@ -702,7 +702,9 @@ extension MarathonTests {
             ("testUsingMarathonfileToInstallDependencies", testUsingMarathonfileToInstallDependencies),
             ("testAddingLocalPackageUsingRelativePathInMarathonfile", testAddingLocalPackageUsingRelativePathInMarathonfile),
             ("testAddingOtherScriptAsDependencyUsingMarathonfile", testAddingOtherScriptAsDependencyUsingMarathonfile),
-            ("testIncorrectlyFormattedMarathonfileThrows", testIncorrectlyFormattedMarathonfileThrows)
+            ("testIncorrectlyFormattedMarathonfileThrows", testIncorrectlyFormattedMarathonfileThrows),
+            ("testNoDirectUsesOfPrintFunction", testNoDirectUsesOfPrintFunction),
+            ("testNoDirectUsesOfShellOut", testNoDirectUsesOfShellOut)
         ]
     }
 }
