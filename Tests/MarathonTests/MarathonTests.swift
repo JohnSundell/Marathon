@@ -304,28 +304,15 @@ class MarathonTests: XCTestCase {
         let reInstalledOutput = try folder.moveToAndPerform(command: "./installed-script")
         XCTAssertEqual(reInstalledOutput, "Re-installed")
     }
-
-    func testInstallingRemoteScriptWithDependencies() throws {
-        try run(with: [
-            "install",
-            "https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/addSuffix.swift",
-            "installed-script"
-        ])
-
-        // Make a couple of files that we can try the installed script on
-        let executionFolder = try folder.createSubfolder(named: "TestInstallation")
-        try executionFolder.createFile(named: "A.swift")
-        try executionFolder.createFile(named: "B.swift")
-
-        // Run the installed binary
-        try executionFolder.moveToAndPerform(command: "../installed-script -suffix")
-        XCTAssertEqual(executionFolder.files.names, ["A-suffix.swift", "B-suffix.swift"])
-
-        // List should not contain the script, as it was only added temporarily
-        try XCTAssertFalse(run(with: ["list"]).lowercased().contains("addsuffix"))
-
-        // Make sure that the temporary folder for the script is cleaned up
-        try XCTAssertEqual(folder.subfolder(atPath: "Scripts/Temp").subfolders.count, 0)
+    
+    func testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL() throws {
+        let gitHubURLString = "https://github.com/JohnSundell/Marathon-Examples/blob/master/AddSuffix/addSuffix.swift"
+        try testInstallingRemoteScriptWithDependenciesUsingURL(gitHubURLString)
+    }
+    
+    func testInstallingRemoteScriptWithDependenciesUsingRawGithubURL() throws {
+        let rawGitHubURLString = "https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/addSuffix.swift"
+        try testInstallingRemoteScriptWithDependenciesUsingURL(rawGitHubURLString)
     }
 
     // MARK: - Creating scripts
@@ -715,3 +702,30 @@ extension MarathonTests {
     }
 }
 #endif
+
+// MARK: - Abstract Test Cases
+
+fileprivate extension MarathonTests {
+    func testInstallingRemoteScriptWithDependenciesUsingURL(_ urlString: String) throws {
+        try run(with: [
+            "install",
+            urlString,
+            "installed-script"
+            ])
+        
+        // Make a couple of files that we can try the installed script on
+        let executionFolder = try folder.createSubfolder(named: "TestInstallation")
+        try executionFolder.createFile(named: "A.swift")
+        try executionFolder.createFile(named: "B.swift")
+        
+        // Run the installed binary
+        try executionFolder.moveToAndPerform(command: "../installed-script -suffix")
+        XCTAssertEqual(executionFolder.files.names, ["A-suffix.swift", "B-suffix.swift"])
+        
+        // List should not contain the script, as it was only added temporarily
+        try XCTAssertFalse(run(with: ["list"]).lowercased().contains("addsuffix"))
+        
+        // Make sure that the temporary folder for the script is cleaned up
+        try XCTAssertEqual(folder.subfolder(atPath: "Scripts/Temp").subfolders.count, 0)
+    }
+}
