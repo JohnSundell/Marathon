@@ -13,7 +13,7 @@ import Require
                                           in folder: Folder = FileSystem().currentFolder,
                                           printer: Printer) throws -> String {
     do {
-        printer.verboseOutput("$ \(command)")
+        printer.verboseOutput("$ cd \"\(folder.path)\" && \(command)")
         let output = try shellOut(to: command, at: folder.path)
         printer.verboseOutput(output)
 

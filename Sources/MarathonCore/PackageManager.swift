@@ -166,17 +166,26 @@ internal final class PackageManager {
     }
 
     func symlinkPackages(to folder: Folder) throws {
-        guard let packagesFolder = try? generatedFolder.subfolder(atPath: ".build/checkouts") else {
+        guard let checkoutsFolder = try? generatedFolder.subfolder(atPath: ".build/checkouts"),
+              let repositoriesFolder = try? generatedFolder.subfolder(atPath: ".build/repositories"),
+              let workspaceStateFile = try? generatedFolder.file(atPath: ".build/workspace-state.json") else {
             try updatePackages()
             return try symlinkPackages(to: folder)
         }
 
-        guard (try? folder.subfolder(atPath: ".build/checkouts")) == nil else {
-            return
+        let buildFolder = try folder.createSubfolderIfNeeded(withName: ".build")
+
+        if !buildFolder.containsSubfolder(named: "checkouts") {
+            try buildFolder.createSymlink(to: checkoutsFolder.path, at: "checkouts", printer: printer)
         }
 
-        let buildFolder = try folder.createSubfolderIfNeeded(withName: ".build")
-        try buildFolder.createSymlink(to: packagesFolder.path, at: "checkouts", printer: printer)
+        if !buildFolder.containsSubfolder(named: "repositories") {
+            try buildFolder.createSymlink(to: repositoriesFolder.path, at: "repositories", printer: printer)
+        }
+
+        if !buildFolder.containsFile(named: "workspace-state.json") {
+            try buildFolder.createSymlink(to: workspaceStateFile.path, at: "workspace-state.json", printer: printer)
+        }
     }
 
     func updateAllPackagesToLatestMajorVersion() throws {

@@ -273,6 +273,14 @@ class MarathonTests: XCTestCase {
         try run(with: ["run", scriptFile.path])
     }
 
+    func testRunningScriptWithVerboseOutput() throws {
+        let scriptFile = try folder.createFile(named: "script.swift")
+        try scriptFile.write(string: "")
+
+        let output = try run(with: ["run", scriptFile.path, "--verbose"])
+        XCTAssertTrue(output.contains("🏃"))
+    }
+
     // MARK: - Installing scripts
 
     func testInstallingLocalScript() throws {
@@ -626,13 +634,11 @@ fileprivate extension MarathonTests {
 
         var output = ""
 
-        let printer = Printer(
-            outputFunction: { output.append($0) },
-            progressFunction: { (_: () -> String) in },
-            verboseFunction: { (_: () -> String) in }
-        )
+        let printFunction: PrintFunction = { message in
+            output.append(message)
+        }
 
-        try Marathon.run(with: arguments, folderPath: folder.path, printer: printer)
+        try Marathon.run(with: arguments, folderPath: folder.path, printFunction: printFunction)
 
         return output
     }
@@ -656,14 +662,14 @@ fileprivate extension MarathonTests {
 extension MarathonTests {
     static var allTests : [(String, (MarathonTests) -> () throws -> Void)] {
         return [
-            ("InvalidCommandThrows", testInvalidCommandThrows),
-            ("AddingAndRemovingRemotePackage", testAddingAndRemovingRemotePackage),
-            ("AddingAndRemovingLocalPackage", testAddingAndRemovingLocalPackage),
-            ("RemovingAllPackages", testRemovingAllPackages),
-            ("AddingLocalPackageWithDependency", testAddingLocalPackageWithDependency),
-            ("AddingLocalPackageWithUnsortedVersionsContainingLetters", testAddingLocalPackageWithUnsortedVersionsContainingLetters),
-            ("AddingAlreadyAddedPackageThrows", testAddingAlreadyAddedPackageThrows),
-            ("RunningScriptWithoutPathThrows", testRunningScriptWithoutPathThrows),
+            ("testInvalidCommandThrows", testInvalidCommandThrows),
+            ("testAddingAndRemovingRemotePackage", testAddingAndRemovingRemotePackage),
+            ("testAddingAndRemovingLocalPackage", testAddingAndRemovingLocalPackage),
+            ("testRemovingAllPackages", testRemovingAllPackages),
+            ("testAddingLocalPackageWithDependency", testAddingLocalPackageWithDependency),
+            ("testAddingLocalPackageWithUnsortedVersionsContainingLetters", testAddingLocalPackageWithUnsortedVersionsContainingLetters),
+            ("testAddingAlreadyAddedPackageThrows", testAddingAlreadyAddedPackageThrows),
+            ("testRunningScriptWithoutPathThrows", testRunningScriptWithoutPathThrows),
             ("testRunningScript", testRunningScript),
             ("testRunningScriptWithNewDependency", testRunningScriptWithNewDependency),
             ("testRunningScriptWithBuildFailedErrorThrows", testRunningScriptWithBuildFailedErrorThrows),
@@ -689,7 +695,9 @@ extension MarathonTests {
             ("testUsingMarathonfileToInstallDependencies", testUsingMarathonfileToInstallDependencies),
             ("testAddingLocalPackageUsingRelativePathInMarathonfile", testAddingLocalPackageUsingRelativePathInMarathonfile),
             ("testAddingOtherScriptAsDependencyUsingMarathonfile", testAddingOtherScriptAsDependencyUsingMarathonfile),
-            ("testIncorrectlyFormattedMarathonfileThrows", testIncorrectlyFormattedMarathonfileThrows)
+            ("testIncorrectlyFormattedMarathonfileThrows", testIncorrectlyFormattedMarathonfileThrows),
+            ("testNoDirectUsesOfPrintFunction", testNoDirectUsesOfPrintFunction),
+            ("testNoDirectUsesOfShellOut", testNoDirectUsesOfShellOut)
         ]
     }
 }
