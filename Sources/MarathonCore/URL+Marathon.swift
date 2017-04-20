@@ -61,14 +61,14 @@ internal extension URL {
             return self
         }
         
-        return rawGitHubUrl ?? self
+        return rawGitHubURL ?? self
     }
     
     private var isGitHubURL: Bool {
         return host == "github.com"
     }
     
-    private var rawGitHubUrl: URL? {
+    private var rawGitHubURL: URL? {
         let base = "https://raw.githubusercontent.com"
         
         let urlString = pathComponents

@@ -306,13 +306,13 @@ class MarathonTests: XCTestCase {
     }
     
     func testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL() throws {
-        let gitHubUrlString = "https://github.com/JohnSundell/Marathon-Examples/blob/master/AddSuffix/addSuffix.swift"
-        try testInstallingRemoteScriptWithDependenciesUsingURL(gitHubUrlString)
+        let gitHubURLString = "https://github.com/JohnSundell/Marathon-Examples/blob/master/AddSuffix/addSuffix.swift"
+        try testInstallingRemoteScriptWithDependenciesUsingURL(gitHubURLString)
     }
     
     func testInstallingRemoteScriptWithDependenciesUsingRawGithubURL() throws {
-        let rawGitHubUrlString = "https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/addSuffix.swift"
-        try testInstallingRemoteScriptWithDependenciesUsingURL(rawGitHubUrlString)
+        let rawGitHubURLString = "https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/addSuffix.swift"
+        try testInstallingRemoteScriptWithDependenciesUsingURL(rawGitHubURLString)
     }
 
     // MARK: - Creating scripts
