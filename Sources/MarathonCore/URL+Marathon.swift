@@ -57,15 +57,18 @@ internal extension URL {
     }
     
     func transformIfNeeded() -> URL {
-        guard isGithubURL else { return self }
-        return rawGithubUrl ?? self
+        guard isGitHubURL else {
+            return self
+        }
+        
+        return rawGitHubUrl ?? self
     }
     
-    var isGithubURL: Bool {
+    private var isGitHubURL: Bool {
         return host == "github.com"
     }
     
-    var rawGithubUrl: URL? {
+    private var rawGitHubUrl: URL? {
         let base = "https://raw.githubusercontent.com"
         
         let urlString = pathComponents
