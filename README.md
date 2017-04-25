@@ -2,7 +2,17 @@
     <img src="Logo.png" width="480" max-width="90%" alt="Marathon" />
 </p>
 
-[![BuddyBuild](https://dashboard.buddybuild.com/api/statusImage?appID=58ff19a79a06210001d14c2d&branch=master&build=latest)](https://dashboard.buddybuild.com/apps/58ff19a79a06210001d14c2d/build/latest?branch=master)
+<p align="center">
+    <a href="https://dashboard.buddybuild.com/apps/58ff19a79a06210001d14c2d/build/latest?branch=master">
+        <img src="https://dashboard.buddybuild.com/api/statusImage?appID=58ff19a79a06210001d14c2d&branch=master&build=latest" />
+    </a>
+    <a href="https://swift.org/package-manager">
+        <img src="https://img.shields.io/badge/spm-compatible-brightgreen.svg?style=flat" alt="Swift Package Manager" />
+    </a>
+    <a href="https://twitter.com/johnsundell">
+        <img src="https://img.shields.io/badge/contact-@johnsundell-blue.svg?style=flat" alt="Twitter: @johnsundell" />
+    </a>
+</p>
 
 Welcome to **Marathon**, a command line tool that makes it easy to write, run and manage your Swift scripts. It's powered by the [Swift Package Manager](https://github.com/apple/swift-package-manager) and requires no modification to your existing scripts or dependency packages.
 
