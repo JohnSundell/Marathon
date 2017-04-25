@@ -2,6 +2,8 @@
     <img src="Logo.png" width="480" max-width="90%" alt="Marathon" />
 </p>
 
+[![BuddyBuild](https://dashboard.buddybuild.com/api/statusImage?appID=58ff19a79a06210001d14c2d&branch=master&build=latest)](https://dashboard.buddybuild.com/apps/58ff19a79a06210001d14c2d/build/latest?branch=master)
+
 Welcome to **Marathon**, a command line tool that makes it easy to write, run and manage your Swift scripts. It's powered by the [Swift Package Manager](https://github.com/apple/swift-package-manager) and requires no modification to your existing scripts or dependency packages.
 
 ## Features
