@@ -233,21 +233,25 @@ internal final class PackageManager {
 
     private func nameOfPackage(in folder: Folder) throws -> String {
         let packageFile = try folder.file(named: "Package.swift")
-        var packageDescription = try packageFile.readAsString()
 
-        guard let nameStartRange = packageDescription.range(of: "name:") else {
-            throw Error.failedToReadPackageFile(packageFile.nameExcludingExtension)
+        for line in try packageFile.readAsString().components(separatedBy: .newlines) {
+            guard let nameTokenRange = line.range(of: "name:") else {
+                continue
+            }
+
+            var line = line.substring(from: nameTokenRange.upperBound)
+
+            if let range = line.range(of: ",") {
+                line = line.substring(to: range.lowerBound)
+            } else if let range = line.range(of: ")") {
+                line = line.substring(to: range.lowerBound)
+            }
+
+            line = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            return line.replacingOccurrences(of: "\"", with: "")
         }
 
-        packageDescription = packageDescription.substring(from: nameStartRange.upperBound)
-
-        guard let delimiterRange = packageDescription.range(of: ",") ?? packageDescription.range(of: ")") else {
-            throw Error.failedToReadPackageFile(packageFile.nameExcludingExtension)
-        }
-
-        packageDescription = packageDescription.substring(to: delimiterRange.lowerBound)
-        packageDescription = packageDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        return packageDescription.replacingOccurrences(of: "\"", with: "")
+        throw Error.failedToReadPackageFile(packageFile.name)
     }
 
     private func nameOfRemotePackage(at url: URL) throws -> String {
