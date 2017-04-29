@@ -106,6 +106,32 @@ class MarathonTests: XCTestCase {
         try XCTAssertEqual(folder.subfolder(named: "Packages").files.count, 0)
     }
 
+    func testAddingLocalPackage() throws {
+        let packageFolder = try folder.createSubfolder(named: "TestPackage")
+        try packageFolder.moveToAndPerform(command: "swift package init")
+
+        let packageDescription = "import PackageDescription\n" +
+                                 "let package = Package(name: \"TestPackage\")"
+
+        let packageFile = try packageFolder.file(named: "Package.swift")
+        try packageFile.write(string: packageDescription)
+
+        let gitCommand = "git init && git add . && git commit -a -m \"Commit\" && git tag 0.1.0"
+        try packageFolder.moveToAndPerform(command: gitCommand)
+
+        try run(with: ["add", "TestPackage"])
+        XCTAssertNotNil(try? folder.subfolder(named: "Packages").file(named: "TestPackage").read())
+
+        let generatedFolder = try folder.subfolder(atPath: "Packages/Generated")
+
+        let generatedPackageFile = try generatedFolder.file(named: "Package.swift")
+        try XCTAssertTrue(generatedPackageFile.readAsString().contains(packageFolder.path))
+
+        let packageNames = try generatedFolder.subfolder(atPath: ".build/checkouts").subfolders.names
+        XCTAssertEqual(packageNames.count, 1)
+        XCTAssertTrue(packageNames.contains { $0.hasPrefix("TestPackage-") })
+    }
+
     func testAddingLocalPackageWithDependency() throws {
         let packageFolder = try folder.createSubfolder(named: "TestPackage")
         try packageFolder.moveToAndPerform(command: "swift package init")
