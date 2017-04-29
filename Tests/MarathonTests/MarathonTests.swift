@@ -733,11 +733,7 @@ extension MarathonTests {
 
 fileprivate extension MarathonTests {
     func testInstallingRemoteScriptWithDependenciesUsingURL(_ urlString: String) throws {
-        try run(with: [
-            "install",
-            urlString,
-            "installed-script"
-            ])
+        try run(with: ["install", urlString, "installed-script"])
         
         // Make a couple of files that we can try the installed script on
         let executionFolder = try folder.createSubfolder(named: "TestInstallation")
