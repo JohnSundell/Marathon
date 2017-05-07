@@ -288,7 +288,7 @@ internal final class PackageManager {
 
         do {
             try generateMasterPackageDescription()
-            try generatedFolder.moveToAndPerform(command: "swift package --enable-prefetching update", printer: printer)
+            try shellOutToSwiftCommand("package --enable-prefetching update", in: generatedFolder, printer: printer)
             try generatedFolder.createSubfolderIfNeeded(withName: "Packages")
         } catch {
             throw Error.failedToUpdatePackages(folder)

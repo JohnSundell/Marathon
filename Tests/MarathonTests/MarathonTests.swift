@@ -638,6 +638,21 @@ class MarathonTests: XCTestCase {
             }
         }
     }
+
+    func testNoDirectUsesOfSwiftCommandLineToolOnMacOS() throws {
+        for file in try resolveSourceFiles() {
+            XCTAssertEqual(file.extension, "swift")
+
+            let source = try file.readAsString()
+
+            // No files should shell out directly to 'swift ...' on macOS, 'xcrun' should always be used
+            XCTAssertFalse(source.contains("shellOut(to: \"swift"),
+                           "\(file.name) shells out to swift directly, use shellOutToSwiftCommand() instead")
+
+            XCTAssertFalse(source.contains("moveToAndPerform(command: \"swift"),
+                           "\(file.name) shells out to swift directly, use shellOutToSwiftCommand() instead")
+        }
+    }
 }
 
 // MARK: - Utilities
