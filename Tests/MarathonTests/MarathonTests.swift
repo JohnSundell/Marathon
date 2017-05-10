@@ -644,7 +644,7 @@ class MarathonTests: XCTestCase {
 
 fileprivate extension MarathonTests {
     func createFolder() -> Folder {
-        let folderName = ".marathonTests"
+        let folderName = ".marathonTests-\(NSUUID().uuidString)"
 
         if let existingFolder = try? FileSystem().homeFolder.subfolder(named: folderName) {
             try! existingFolder.empty(includeHidden: true)
