@@ -40,7 +40,7 @@ extension Task {
         return argument
     }
 
-    var argumentsContainNoOpenFlag: Bool {
+    var argumentsContainNoOpenOption: Bool {
         return arguments.contains("--no-open")
     }
 }

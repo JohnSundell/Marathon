@@ -85,7 +85,7 @@ extension Command {
         case .add:
             return "<url-or-path-to-package>"
         case .list:
-            return ""
+            return "[--scripts or -s] [--packages or -p]"
         case .update:
             return ""
         case .help:

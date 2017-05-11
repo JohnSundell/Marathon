@@ -14,28 +14,34 @@ internal final class ListTask: Task, Executable {
         var output = ""
         var listIsEmpty = true
 
-        if !packages.isEmpty {
-            let title = "📦  Packages"
-            output.append(title + "\n" + title.dashesWithMatchingLength + "\n")
+        let parser = ArgumentParser(arguments: arguments)
 
-            for package in packageManager.addedPackages {
-                output.append("\(package.name) (\(package.url))\n")
+        if parser.hasOption("--packages", short: "-p") || parser.isEmpty {
+            if !packages.isEmpty {
+                let title = "📦  Packages"
+                output.append(title + "\n" + title.dashesWithMatchingLength + "\n")
+
+                for package in packageManager.addedPackages {
+                    output.append("\(package.name) (\(package.url))\n")
+                }
+
+                output.append("\n")
+                listIsEmpty = false
             }
-
-            output.append("\n")
-            listIsEmpty = false
         }
 
-        if !scriptPaths.isEmpty {
-            let title = "📄  Scripts"
-            output.append(title + "\n" + title.dashesWithMatchingLength + "\n")
+        if parser.hasOption("--scripts", short: "-s") || parser.isEmpty {
+            if !scriptPaths.isEmpty {
+                let title = "📄  Scripts"
+                output.append(title + "\n" + title.dashesWithMatchingLength + "\n")
 
-            for path in scriptPaths {
-                output.append("\(path)\n")
+                for path in scriptPaths {
+                    output.append("\(path)\n")
+                }
+
+                output.append("\n")
+                listIsEmpty = false
             }
-
-            output.append("\n")
-            listIsEmpty = false
         }
 
         if listIsEmpty {
