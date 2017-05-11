@@ -223,7 +223,7 @@ internal final class PackageManager {
             if url.isForRemoteRepository {
                 return try nameOfRemotePackage(at: url)
             }
-            
+
             let folder = try Folder(path: url.absoluteString)
             return try nameOfPackage(in: folder)
         } catch {

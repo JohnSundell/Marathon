@@ -14,7 +14,7 @@ public struct Package {
 }
 
 extension Package: Equatable {
-    public static func ==(lhs: Package, rhs: Package) -> Bool {
+    public static func == (lhs: Package, rhs: Package) -> Bool {
         return lhs.url == rhs.url && lhs.majorVersion == rhs.majorVersion
     }
 }

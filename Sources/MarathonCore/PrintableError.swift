@@ -12,7 +12,7 @@ public protocol PrintableError: Error, Equatable, CustomStringConvertible {
 }
 
 public extension PrintableError {
-    static func ==(lhs: Self, rhs: Self) -> Bool {
+    static func == (lhs: Self, rhs: Self) -> Bool {
         return lhs.message == rhs.message && lhs.hints == rhs.hints
     }
 
