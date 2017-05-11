@@ -644,16 +644,15 @@ class MarathonTests: XCTestCase {
 
 fileprivate extension MarathonTests {
     func createFolder() -> Folder {
-        let folderName = ".marathonTests"
-        let subFolderName = NSUUID().uuidString
+        let parentFolder = try! Folder.home.createSubfolderIfNeeded(withName: ".marathonTests")
+        let folderName = UUID().uuidString
 
-        if let existingFolder = try? FileSystem().homeFolder.subfolder(atPath: folderName + "/" + subFolderName) {
+        if let existingFolder = try? parentFolder.subfolder(named: folderName) {
             try! existingFolder.empty(includeHidden: true)
             return existingFolder
         }
 
-        let parentFolder = try! FileSystem().homeFolder.createSubfolderIfNeeded(withName: folderName)
-        return try! parentFolder.createSubfolder(named: subFolderName)
+        return try! parentFolder.createSubfolder(named: folderName)
     }
 
     @discardableResult func run(with arguments: [String]) throws -> String {
