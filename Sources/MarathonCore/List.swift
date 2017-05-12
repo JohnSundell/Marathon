@@ -19,7 +19,7 @@ internal final class ListTask: Task, Executable {
             output.append(title + "\n" + title.dashesWithMatchingLength + "\n")
 
             for package in packageManager.addedPackages {
-                output.append("\(package.name) (\(package.url))\n")
+                output.append("\(package.name) (\(package.url.absoluteString))\n")
             }
 
             output.append("\n")

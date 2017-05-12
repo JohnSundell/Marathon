@@ -28,9 +28,9 @@ extension PackageManagerError: PrintableError {
     public var message: String {
         switch self {
         case .failedToResolveLatestVersion(let url):
-            return "Could not resolve the latest version for package at '\(url)'"
+            return "Could not resolve the latest version for package at '\(url.absoluteString)'"
         case .failedToResolveName(let url):
-            return "Could not resolve the name of package at '\(url)'"
+            return "Could not resolve the name of package at '\(url.absoluteString)'"
         case .packageAlreadyAdded(let name):
             return "A package named '\(name)' has already been added"
         case .failedToSavePackageFile(let name, _):
