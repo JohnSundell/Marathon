@@ -20,7 +20,7 @@ public extension PrintableError {
         var description = "💥  \(message)"
 
         if !hints.isEmpty {
-            hints.forEach { description.append("\n" + $0.withIndentedNewLines(prefix: "👉  ")) }
+            hints.forEach { description.append("\n" + $0.mt.withIndentedNewLines(prefix: "👉  ")) }
         }
 
         return description

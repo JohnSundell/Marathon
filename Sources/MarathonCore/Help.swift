@@ -15,7 +15,7 @@ internal final class HelpTask: Task, Executable {
         let command = try Command(arguments: arguments, index: 0)
         let title = makeTitle(for: command)
         let message = makeMessage(for: command)
-        var output = title + "\n" + title.dashesWithMatchingLength
+        var output = title + "\n" + title.mt.dashesWithMatchingLength
 
         if command == .help {
             output.append("-\n")
@@ -24,14 +24,14 @@ internal final class HelpTask: Task, Executable {
             output.append("\n" + command.description + "\n\n")
             output.append("👉  Usage: 'marathon \(command.rawValue)")
 
-            if command.usageText.length > 0 {
+            if command.usageText.mt.length > 0 {
                 output.append(" \(command.usageText)")
             }
 
             output.append("'")
 
             if !message.isEmpty {
-                output.append("\n\n" + message.withIndentedNewLines(prefix: "ℹ️  "))
+                output.append("\n\n" + message.mt.withIndentedNewLines(prefix: "ℹ️  "))
             }
         }
 
@@ -101,7 +101,7 @@ private extension Command {
             return title
         }
 
-        let paddingNeeded = 10 - rawValue.length
+        let paddingNeeded = 10 - rawValue.mt.length
 
         guard paddingNeeded > 0 else {
             return title

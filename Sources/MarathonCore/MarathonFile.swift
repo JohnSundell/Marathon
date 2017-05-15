@@ -51,7 +51,7 @@ internal struct MarathonFile {
 
             let url = try absoluteURL(from: urlString, file: file)
 
-            if url.isForScript {
+            if url.mt.isForScript {
                 scriptURLs.append(url)
             } else {
                 packageURLs.append(url)
@@ -66,7 +66,7 @@ internal struct MarathonFile {
             throw Error.failedToRead(file)
         }
 
-        guard !url.isForRemoteRepository else {
+        guard !url.mt.isForRemoteRepository else {
             return url
         }
 
@@ -87,7 +87,7 @@ private extension File {
     func sibling(at url: URL) throws -> FileSystem.Item {
         let parent = self.parent.require()
 
-        if url.isForScript {
+        if url.mt.isForScript {
             return try parent.file(atPath: url.absoluteString)
         } else {
             return try parent.subfolder(atPath: url.absoluteString)

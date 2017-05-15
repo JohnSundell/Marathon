@@ -51,7 +51,7 @@ extension PackageManagerError: PrintableError {
         case .failedToResolveLatestVersion(let url):
             var hint = "Make sure that the package you're trying to add is reachable, and has at least one tagged release"
 
-            if !url.isForRemoteRepository {
+            if !url.mt.isForRemoteRepository {
                 hint += "\nYou can make a release by using 'git tag <version>' in your package's repository"
             }
 
@@ -176,15 +176,15 @@ internal final class PackageManager {
         let buildFolder = try folder.createSubfolderIfNeeded(withName: ".build")
 
         if !buildFolder.containsSubfolder(named: "checkouts") {
-            try buildFolder.createSymlink(to: checkoutsFolder.path, at: "checkouts", printer: printer)
+            try buildFolder.mt.createSymlink(to: checkoutsFolder.path, at: "checkouts", printer: printer)
         }
 
         if !buildFolder.containsSubfolder(named: "repositories") {
-            try buildFolder.createSymlink(to: repositoriesFolder.path, at: "repositories", printer: printer)
+            try buildFolder.mt.createSymlink(to: repositoriesFolder.path, at: "repositories", printer: printer)
         }
 
         if !buildFolder.containsFile(named: "workspace-state.json") {
-            try buildFolder.createSymlink(to: workspaceStateFile.path, at: "workspace-state.json", printer: printer)
+            try buildFolder.mt.createSymlink(to: workspaceStateFile.path, at: "workspace-state.json", printer: printer)
         }
     }
 
@@ -220,7 +220,7 @@ internal final class PackageManager {
 
     private func nameOfPackage(at url: URL) throws -> String {
         do {
-            if url.isForRemoteRepository {
+            if url.mt.isForRemoteRepository {
                 return try nameOfRemotePackage(at: url)
             }
             
@@ -261,7 +261,7 @@ internal final class PackageManager {
 
         printer.reportProgress("Cloning \(url.absoluteString)...")
 
-        try temporaryFolder.moveToAndPerform(command: "git clone \(url.absoluteString) Clone -q", printer: printer)
+        try temporaryFolder.mt.moveToAndPerform(command: "git clone \(url.absoluteString) Clone -q", printer: printer)
         let clone = try temporaryFolder.subfolder(named: "Clone")
         let name = try nameOfPackage(in: clone)
         try clone.delete()
@@ -270,7 +270,7 @@ internal final class PackageManager {
     }
 
     private func absoluteRepositoryURL(from url: URL) -> URL {
-        guard !url.isForRemoteRepository else {
+        guard !url.mt.isForRemoteRepository else {
             return url
         }
 
@@ -288,7 +288,7 @@ internal final class PackageManager {
 
         do {
             try generateMasterPackageDescription()
-            try generatedFolder.moveToAndPerform(command: "swift package --enable-prefetching update", printer: printer)
+            try generatedFolder.mt.moveToAndPerform(command: "swift package --enable-prefetching update", printer: printer)
             try generatedFolder.createSubfolderIfNeeded(withName: "Packages")
         } catch {
             throw Error.failedToUpdatePackages(folder)

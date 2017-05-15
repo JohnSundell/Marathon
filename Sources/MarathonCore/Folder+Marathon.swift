@@ -7,14 +7,12 @@
 import Foundation
 import Files
 
-internal extension Folder {
+internal extension Marathon where Base == Folder {
     @discardableResult func moveToAndPerform(command: String, printer: Printer) throws -> String {
-        return try shellOut(to: command, in: self, printer: printer)
+        return try shellOut(to: command, in: base.self, printer: printer)
     }
-}
 
-internal extension Folder {
     func createSymlink(to originalPath: String, at linkPath: String, printer: Printer) throws {
-        try shellOut(to: "ln -s \"\(originalPath)\" \"\(linkPath)\"", in: self, printer: printer)
+        try shellOut(to: "ln -s \"\(originalPath)\" \"\(linkPath)\"", in: base.self, printer: printer)
     }
 }
