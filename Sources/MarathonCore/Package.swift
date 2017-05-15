@@ -33,7 +33,7 @@ internal extension Package {
     }
 
     var folderPrefix: String {
-        if url.isForRemoteRepository {
+        if url.mt.isForRemoteRepository {
             return "\(name).git-"
         }
 

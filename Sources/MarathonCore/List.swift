@@ -16,7 +16,7 @@ internal final class ListTask: Task, Executable {
 
         if !packages.isEmpty {
             let title = "📦  Packages"
-            output.append(title + "\n" + title.dashesWithMatchingLength + "\n")
+            output.append(title + "\n" + title.mt.dashesWithMatchingLength + "\n")
 
             for package in packageManager.addedPackages {
                 output.append("\(package.name) (\(package.url.absoluteString))\n")
@@ -28,7 +28,7 @@ internal final class ListTask: Task, Executable {
 
         if !scriptPaths.isEmpty {
             let title = "📄  Scripts"
-            output.append(title + "\n" + title.dashesWithMatchingLength + "\n")
+            output.append(title + "\n" + title.mt.dashesWithMatchingLength + "\n")
 
             for path in scriptPaths {
                 output.append("\(path)\n")

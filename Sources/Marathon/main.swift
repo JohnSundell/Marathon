@@ -9,7 +9,7 @@ import MarathonCore
 import Require
 
 do {
-    try Marathon.run()
+    try MarathonCore.run()
 } catch {
     let errorData = "\(error)".data(using: .utf8).require()
     FileHandle.standardError.write(errorData)

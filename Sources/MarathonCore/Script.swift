@@ -81,7 +81,7 @@ internal final class Script {
     func build(withArguments arguments: [String] = []) throws {
         do {
             let command = "swift build --enable-prefetching " + arguments.joined(separator: " ")
-            try folder.moveToAndPerform(command: command, printer: printer)
+            try folder.mt.moveToAndPerform(command: command, printer: printer)
         } catch {
             throw formatBuildError(error as! ShellOutError)
         }
@@ -90,7 +90,7 @@ internal final class Script {
     func run(in executionFolder: Folder, with arguments: [String]) throws -> String {
         let scriptPath = folder.path + ".build/debug/" + name
         let command = scriptPath + " " + arguments.joined(separator: " ")
-        return try executionFolder.moveToAndPerform(command: command, printer: printer)
+        return try executionFolder.mt.moveToAndPerform(command: command, printer: printer)
     }
 
     func install(at path: String, confirmBeforeOverwriting: Bool) throws -> Bool {
@@ -114,7 +114,7 @@ internal final class Script {
             }
 
             let buildFolder = try folder.subfolder(atPath: ".build/release")
-            try buildFolder.moveToAndPerform(command: "cp -f \(name) \(path)", printer: printer)
+            try buildFolder.mt.moveToAndPerform(command: "cp -f \(name) \(path)", printer: printer)
 
             return true
         } catch {
@@ -171,12 +171,12 @@ internal final class Script {
     }
 
     private func generateXcodeProject() throws -> Folder {
-        try folder.moveToAndPerform(command: "swift package generate-xcodeproj", printer: printer)
+        try folder.mt.moveToAndPerform(command: "swift package generate-xcodeproj", printer: printer)
         return try folder.subfolder(named: name + ".xcodeproj")
     }
 
     private func expandSymlink() throws -> String {
-        return try folder.moveToAndPerform(command: "readlink OriginalFile", printer: printer)
+        return try folder.mt.moveToAndPerform(command: "readlink OriginalFile", printer: printer)
     }
 
     private func startCopyLoop() {

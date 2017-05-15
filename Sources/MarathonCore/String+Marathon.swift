@@ -6,9 +6,9 @@
 
 import Foundation
 
-internal extension String {
+internal extension Marathon where Base == String {
     var length: String.IndexDistance {
-        return distance(from: startIndex, to: endIndex)
+        return base.distance(from: base.startIndex, to: base.endIndex)
     }
 
     var dashesWithMatchingLength: String {
@@ -18,7 +18,7 @@ internal extension String {
     func withIndentedNewLines(prefix: String) -> String {
         var indentedString = ""
 
-        for (index, line) in components(separatedBy: .newlines).enumerated() {
+        for (index, line) in base.components(separatedBy: .newlines).enumerated() {
             let linePrefix = (index == 0 ? prefix : "\n   ")
             indentedString.append(linePrefix + line)
         }

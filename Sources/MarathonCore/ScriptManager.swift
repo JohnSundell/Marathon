@@ -87,7 +87,7 @@ internal final class ScriptManager {
 
     func downloadScript(from url: URL) throws -> Script {
         do {
-            let url = url.transformIfNeeded()
+            let url = url.mt.transformIfNeeded()
 
             printer.reportProgress("Downloading script...")
             let data = try Data(contentsOf: url)
@@ -100,7 +100,7 @@ internal final class ScriptManager {
             temporaryScriptFiles.append(file)
 
             printer.reportProgress("Resolving Marathonfile...")
-            if let parentURL = url.parent {
+            if let parentURL = url.mt.parent {
                 let marathonFileURL = URL(string: parentURL.absoluteString + "Marathonfile").require()
 
                 if let marathonFileData = try? Data(contentsOf: marathonFileURL) {
@@ -169,7 +169,7 @@ internal final class ScriptManager {
         try packageManager.symlinkPackages(to: scriptFolder)
 
         if (try? scriptFolder.file(named: "OriginalFile")) == nil {
-            try scriptFolder.createSymlink(to: file.path, at: "OriginalFile", printer: printer)
+            try scriptFolder.mt.createSymlink(to: file.path, at: "OriginalFile", printer: printer)
         }
 
         let sourcesFolder = try scriptFolder.createSubfolderIfNeeded(withName: "Sources")
@@ -198,7 +198,7 @@ internal final class ScriptManager {
 
     private func makeManagedScriptPathList() -> [String] {
         return cacheFolder.subfolders.flatMap { scriptFolder in
-            guard let path = try? scriptFolder.moveToAndPerform(command: "readlink OriginalFile", printer: printer) else {
+            guard let path = try? scriptFolder.mt.moveToAndPerform(command: "readlink OriginalFile", printer: printer) else {
                 return nil
             }
 

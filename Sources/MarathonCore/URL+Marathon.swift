@@ -7,22 +7,22 @@
 import Foundation
 import Require
 
-internal extension URL {
+internal extension Marathon where Base == URL {
     var isForRemoteRepository: Bool {
-        return absoluteString.hasSuffix(".git")
+        return base.absoluteString.hasSuffix(".git")
     }
 
     var isForScript: Bool {
-        return absoluteString.hasSuffix(".swift")
+        return base.absoluteString.hasSuffix(".swift")
     }
 
     var parent: URL? {
-        guard let scheme = scheme else {
+        guard let scheme = base.scheme else {
             return nil
         }
 
         let schemeWithSuffix = scheme + "://"
-        let string = absoluteString
+        let string = base.absoluteString
 
         guard string != schemeWithSuffix else {
             return nil
@@ -46,7 +46,7 @@ internal extension URL {
             return nil
         }
 
-        let parentEndIndex = string.index(string.endIndex, offsetBy: -lastComponent.length)
+        let parentEndIndex = string.index(string.endIndex, offsetBy: -lastComponent.mt.length)
         let parentString = string.substring(to: parentEndIndex)
 
         guard parentString != schemeWithSuffix else {
@@ -55,25 +55,25 @@ internal extension URL {
 
         return URL(string: parentString).require()
     }
-    
+
     func transformIfNeeded() -> URL {
         guard isGitHubURL else {
-            return self
+            return base.self
         }
-        
-        return rawGitHubURL ?? self
+
+        return rawGitHubURL ?? base.self
     }
-    
+
     private var isGitHubURL: Bool {
-        return host == "github.com"
+        return base.host == "github.com"
     }
-    
+
     private var rawGitHubURL: URL? {
-        let base = "https://raw.githubusercontent.com"
-        
-        let urlString = pathComponents
+        let baseURLString = "https://raw.githubusercontent.com"
+
+        let urlString = base.pathComponents
             .filter { $0 != "blob" && $0 != "/" }
-            .reduce(base) { "\($0)/\($1)" }
+            .reduce(baseURLString) { "\($0)/\($1)" }
         
         return URL(string: urlString)
     }
