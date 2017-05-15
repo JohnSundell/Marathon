@@ -577,7 +577,7 @@ class MarathonTests: XCTestCase {
 
         // Verify build folder structure
         let buildFolder = try folder.subfolder(atPath: "Scripts/Cache").subfolders.first.require().subfolder(named: "Sources")
-        XCTAssertEqual(buildFolder.files.names, ["dependency.swift", "main.swift"])
+        XCTAssertEqual(buildFolder.files.names.sorted(), ["dependency.swift", "main.swift"])
 
         // Scripts removed from the Marathonfile should also be removed from the build folder
         try marathonFile.write(string: "")
