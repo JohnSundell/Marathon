@@ -13,11 +13,11 @@ let package = Package(
         Target(name: "MarathonCore")
     ],
     dependencies: [
-        .Package(url: "git@github.com:johnsundell/files.git", majorVersion: 1),
-        .Package(url: "git@github.com:johnsundell/unbox.git", majorVersion: 2),
-        .Package(url: "git@github.com:johnsundell/wrap.git", majorVersion: 2),
-        .Package(url: "git@github.com:johnsundell/shellout.git", majorVersion: 1),
-        .Package(url: "git@github.com:johnsundell/require.git", majorVersion: 1),
-        .Package(url: "git@github.com:johnsundell/releases.git", majorVersion: 1)
+        .Package(url: "https://github.com/JohnSundell/Files.git", majorVersion: 1),
+        .Package(url: "https://github.com/JohnSundell/Unbox.git", majorVersion: 2),
+        .Package(url: "https://github.com/JohnSundell/Wrap.git", majorVersion: 2),
+        .Package(url: "https://github.com/JohnSundell/ShellOut.git", majorVersion: 1),
+        .Package(url: "https://github.com/JohnSundell/Require.git", majorVersion: 1),
+        .Package(url: "https://github.com/JohnSundell/Releases.git", majorVersion: 1)
     ]
 )
