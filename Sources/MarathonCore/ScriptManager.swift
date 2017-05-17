@@ -16,6 +16,7 @@ public enum ScriptManagerError {
     case failedToAddDependencyScript(String)
     case failedToRemoveScriptFolder(Folder)
     case failedToDownloadScript(URL, Error)
+    case invalidInlineDependencyURL(String)
 }
 
 extension ScriptManagerError: PrintableError {
@@ -31,6 +32,8 @@ extension ScriptManagerError: PrintableError {
             return "Failed to remove script folder"
         case .failedToDownloadScript(let url, let error):
             return "Failed to download script from '\(url.absoluteString)' (\(error))"
+        case .invalidInlineDependencyURL(let urlString):
+            return "Could not resolve inline dependency '\(urlString)'"
         }
     }
 
@@ -45,6 +48,8 @@ extension ScriptManagerError: PrintableError {
             return ["Make sure that the file exists and is readable"]
         case .failedToDownloadScript(_):
             return ["Make sure that the URL is reachable, and that it contains a valid Swift script"]
+        case .invalidInlineDependencyURL(_):
+            return ["Please verify that the URL is correct and try again"]
         }
     }
 }
@@ -144,6 +149,8 @@ internal final class ScriptManager {
             try addDependencyScripts(fromMarathonFile: marathonFile, toFolder: folder)
         }
 
+        try resolveInlineDependencies(from: file)
+
         do {
             let packageFile = try folder.createFile(named: "Package.swift")
             try packageFile.write(string: packageManager.makePackageDescription(for: script))
@@ -152,6 +159,32 @@ internal final class ScriptManager {
         }
 
         return script
+    }
+
+    private func resolveInlineDependencies(from file: File) throws {
+        let lines = try file.readAsString().components(separatedBy: .newlines)
+
+        for line in lines {
+            if line.hasPrefix("import ") {
+                let components = line.components(separatedBy: "marathon:")
+
+                guard components.count > 1 else {
+                    continue
+                }
+
+                let urlString = components.last!.trimmingCharacters(in: .whitespaces)
+
+                guard let url = URL(string: urlString) else {
+                    throw Error.invalidInlineDependencyURL(urlString)
+                }
+
+                try packageManager.addPackage(at: url, throwIfAlreadyAdded: false)
+            } else if let firstCharacter = line.unicodeScalars.first {
+                guard !CharacterSet.alphanumerics.contains(firstCharacter) else {
+                    return
+                }
+            }
+        }
     }
 
     private func scriptIdentifier(from path: String) -> String {

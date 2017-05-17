@@ -599,6 +599,22 @@ class MarathonTests: XCTestCase {
                throwsError: MarathonFileError.failedToRead(marathonFile))
     }
 
+    // MARK: - Inline dependency resolution
+
+    func testResolvingInlineDependencies() throws {
+        let script = "import Foundation\n" +
+                     "import Files // marathon:https://github.com/JohnSundell/Files.git\n\n" +
+                     "import Unbox //marathon: https://github.com/JohnSundell/Unbox.git\n\n" +
+                     "print(Folder.current.path)\n" +
+                     "struct Model: Unboxable { init(unboxer: Unboxer) throws {} }"
+
+        let scriptFile = try folder.createFile(named: "script.swift")
+        try scriptFile.write(string: script)
+
+        let output = try run(with: ["run", scriptFile.path])
+        XCTAssertEqual(output, folder.path)
+    }
+
     // MARK: - Source verification
 
     func testNoDirectUsesOfPrintFunction() throws {
@@ -659,15 +675,13 @@ class MarathonTests: XCTestCase {
 
 fileprivate extension MarathonTests {
     func createFolder() -> Folder {
-        let parentFolder = try! Folder.home.createSubfolderIfNeeded(withName: ".marathonTests")
+        let parentFolder = (try? Folder.home.createSubfolderIfNeeded(withName: ".marathonTests"))
+                               .require(hint: "Could not set up '.marathonTests' root folder")
+
         let folderName = UUID().uuidString
-
-        if let existingFolder = try? parentFolder.subfolder(named: folderName) {
-            try! existingFolder.empty(includeHidden: true)
-            return existingFolder
-        }
-
-        return try! parentFolder.createSubfolder(named: folderName)
+        let folder = (try? parentFolder.createSubfolderIfNeeded(withName: folderName)).require(hint: "Could not setup child test folder")
+        try! folder.empty(includeHidden: true)
+        return folder
     }
 
     @discardableResult func run(with arguments: [String]) throws -> String {
