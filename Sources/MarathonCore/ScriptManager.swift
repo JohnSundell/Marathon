@@ -145,7 +145,7 @@ internal final class ScriptManager {
         let script = Script(name: name, folder: folder, printer: printer)
 
         if let marathonFile = try script.resolveMarathonFile() {
-            try packageManager.addPackages(fromMarathonFile: marathonFile)
+            try packageManager.addPackagesIfNeeded(from: marathonFile.packageURLs)
             try addDependencyScripts(fromMarathonFile: marathonFile, toFolder: folder)
         }
 
@@ -159,32 +159,6 @@ internal final class ScriptManager {
         }
 
         return script
-    }
-
-    private func resolveInlineDependencies(from file: File) throws {
-        let lines = try file.readAsString().components(separatedBy: .newlines)
-
-        for line in lines {
-            if line.hasPrefix("import ") {
-                let components = line.components(separatedBy: "marathon:")
-
-                guard components.count > 1 else {
-                    continue
-                }
-
-                let urlString = components.last!.trimmingCharacters(in: .whitespaces)
-
-                guard let url = URL(string: urlString) else {
-                    throw Error.invalidInlineDependencyURL(urlString)
-                }
-
-                try packageManager.addPackage(at: url, throwIfAlreadyAdded: false)
-            } else if let firstCharacter = line.unicodeScalars.first {
-                guard !CharacterSet.alphanumerics.contains(firstCharacter) else {
-                    return
-                }
-            }
-        }
     }
 
     private func scriptIdentifier(from path: String) -> String {
@@ -227,6 +201,35 @@ internal final class ScriptManager {
                 throw Error.failedToAddDependencyScript(url.absoluteString)
             }
         }
+    }
+
+    private func resolveInlineDependencies(from file: File) throws {
+        let lines = try file.readAsString().components(separatedBy: .newlines)
+        var packageURLs = [URL]()
+
+        for line in lines {
+            if line.hasPrefix("import ") {
+                let components = line.components(separatedBy: "marathon:")
+
+                guard components.count > 1 else {
+                    continue
+                }
+
+                let urlString = components.last!.trimmingCharacters(in: .whitespaces)
+
+                guard let url = URL(string: urlString) else {
+                    throw Error.invalidInlineDependencyURL(urlString)
+                }
+
+                packageURLs.append(url)
+            } else if let firstCharacter = line.unicodeScalars.first {
+                guard !CharacterSet.alphanumerics.contains(firstCharacter) else {
+                    break
+                }
+            }
+        }
+
+        try packageManager.addPackagesIfNeeded(from: packageURLs)
     }
 
     private func makeManagedScriptPathList() -> [String] {
