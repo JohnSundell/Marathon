@@ -34,7 +34,7 @@ $ marathon run helloWorld
 
 📦 Hassle free dependency management. Simply add a package...
 ```
-$ marathon add git@github.com:JohnSundell/Files.git
+$ marathon add https://github.com/JohnSundell/Files.git
 ```
 
 ...and use it without any additional work
@@ -76,10 +76,16 @@ $ addSuffix "@2x"
 > Added suffix "@2x" to 15 files
 ```
 
-👪 Share your scripts with your team and automatically install their dependencies:
+👪 Share your scripts with your team and automatically install their dependencies...
+```swift
+import Files // marathon:https://github.com/JohnSundell/Files.git
+
+print(Folder.current.path)
 ```
-$ echo "git@github.com:JohnSundell/Files.git" > Marathonfile
-$ marathon run mySharedScript
+
+...or specify your dependencies using a `Marathonfile`:
+```
+$ echo "https://github.com/JohnSundell/Files.git" > Marathonfile
 ```
 
 ## Installing
@@ -125,14 +131,23 @@ Marathon requires the following to be installed on your system:
 
 Check out [this repository](https://github.com/JohnSundell/Marathon-Examples) for a few example Swift scripts that you can run using Marathon.
 
+## Specifying dependencies inline
+
+Scripting usually involves using 3rd party frameworks to get your job done, and Marathon provides an easy way to define such dependencies right when you are importing them in your script, using a simple comment syntax:
+
+```swift
+import Files // marathon:https://github.com/JohnSundell/Files.git
+import Unbox // marathon:https://github.com/JohnSundell/Unbox.git
+```
+
+Specifying your dependencies ensures that they will always be installed by Marathon before your script is run, edited or installed - making it super easy to share scripts with your friends, team or the wider community. All you have to do is share the script file, and Marathon takes care of the rest!
+
 ## Using a Marathonfile
 
-To easily define dependencies for a script in a declarative way, you can create a `Marathonfile` in the same folder as your script. This file is simply a *new line separated list* of URLs pointing to either:
+If you prefer to keep your dependency declarations separate, you can create a `Marathonfile` in the same folder as your script. This file is simply a *new line separated list* of URLs pointing to either:
 
 - The URL to a git repository of a local or remote package to install before running your script.
 - The path to another script that should be linked to your script before running it.
-
- By using a `Marathonfile` you can ensure that the required dependencies will be installed when sharing your script with team members, friends or the wider community.
 
 Here is an example of a `Marathonfile`:
 ```
