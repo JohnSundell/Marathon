@@ -599,6 +599,21 @@ class MarathonTests: XCTestCase {
                throwsError: MarathonFileError.failedToRead(marathonFile))
     }
 
+    // MARK: - Inline dependency resolution
+
+    func testResolvingInlineDependencies() throws {
+        let script = "import Foundation\n" +
+                     "import Files // marathon:https://github.com/JohnSundell/Files.git\n\n" +
+                     "import Unbox //marathon: https://github.com/JohnSundell/Unbox.git\n\n" +
+                     "print(Folder.current.path)"
+
+        let scriptFile = try folder.createFile(named: "script.swift")
+        try scriptFile.write(string: script)
+
+        let output = try run(with: ["run", scriptFile.path])
+        XCTAssertEqual(output, folder.path)
+    }
+
     // MARK: - Source verification
 
     func testNoDirectUsesOfPrintFunction() throws {
