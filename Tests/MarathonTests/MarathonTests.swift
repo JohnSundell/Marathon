@@ -605,7 +605,8 @@ class MarathonTests: XCTestCase {
         let script = "import Foundation\n" +
                      "import Files // marathon:https://github.com/JohnSundell/Files.git\n\n" +
                      "import Unbox //marathon: https://github.com/JohnSundell/Unbox.git\n\n" +
-                     "print(Folder.current.path)"
+                     "print(Folder.current.path)\n" +
+                     "struct Model: Unboxable { init(unboxer: Unboxer) throws {} }"
 
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: script)
