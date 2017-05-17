@@ -116,12 +116,12 @@ internal final class PackageManager {
         return package
     }
 
-    func addPackages(fromMarathonFile file: MarathonFile) throws {
+    func addPackagesIfNeeded(from packageURLs: [URL]) throws {
         let existingPackageURLs = Set(makePackageList().map { package in
             return package.url
         })
 
-        for url in file.packageURLs {
+        for url in packageURLs {
             guard !existingPackageURLs.contains(url) else {
                 continue
             }
