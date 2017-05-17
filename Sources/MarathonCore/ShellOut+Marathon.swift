@@ -10,7 +10,7 @@ import ShellOut
 import Require
 
 @discardableResult internal func shellOut(to command: String,
-                                          in folder: Folder = FileSystem().currentFolder,
+                                          in folder: Folder = Folder.current,
                                           printer: Printer) throws -> String {
     do {
         printer.verboseOutput("$ cd \"\(folder.path)\" && \(command)")
@@ -29,4 +29,19 @@ import Require
 
         throw error
     }
+}
+
+@discardableResult internal func shellOutToSwiftCommand(_ command: String,
+                                                        in folder: Folder = Folder.current,
+                                                        printer: Printer) throws -> String {
+    func resolveSwiftPath() -> String {
+        #if os(Linux)
+        return "swift"
+        #else
+        return "/usr/bin/env xcrun --sdk macosx swift"
+        #endif
+    }
+
+    let swiftPath = resolveSwiftPath()
+    return try shellOut(to: "\(swiftPath) \(command)", in: folder, printer: printer)
 }

@@ -15,7 +15,7 @@ public enum ScriptManagerError {
     case failedToCreatePackageFile(Folder)
     case failedToAddDependencyScript(String)
     case failedToRemoveScriptFolder(Folder)
-    case failedToDownloadScript(URL)
+    case failedToDownloadScript(URL, Error)
 }
 
 extension ScriptManagerError: PrintableError {
@@ -29,8 +29,8 @@ extension ScriptManagerError: PrintableError {
             return "Failed to add the dependency script at '\(path)'"
         case .failedToRemoveScriptFolder(_):
             return "Failed to remove script folder"
-        case .failedToDownloadScript(let url):
-            return "Failed to download script from '\(url.absoluteString)'"
+        case .failedToDownloadScript(let url, let error):
+            return "Failed to download script from '\(url.absoluteString)' (\(error))"
         }
     }
 
@@ -111,7 +111,7 @@ internal final class ScriptManager {
 
             return try script(from: file)
         } catch {
-            throw Error.failedToDownloadScript(url)
+            throw Error.failedToDownloadScript(url, error)
         }
     }
 

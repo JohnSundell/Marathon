@@ -35,28 +35,28 @@ class MarathonTests: XCTestCase {
     // MARK: - Managing packages
 
     func testAddingAndRemovingRemotePackage() throws {
-        try run(with: ["add", "git@github.com:JohnSundell/Files.git"])
+        try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
         XCTAssertNotNil(try? folder.subfolder(named: "Packages").file(named: "Files").read())
 
         let generatedFolder = try folder.subfolder(atPath: "Packages/Generated")
 
         let packageFile = try generatedFolder.file(named: "Package.swift")
-        try XCTAssertTrue(packageFile.readAsString().contains("git@github.com:JohnSundell/Files.git"))
+        try XCTAssertTrue(packageFile.readAsString().contains("https://github.com/JohnSundell/Files.git"))
 
         let packagesFolder = try generatedFolder.subfolder(named: ".build/checkouts")
         XCTAssertEqual(packagesFolder.subfolders.count, 1)
         XCTAssertEqual(packagesFolder.subfolders.first?.name.hasPrefix("Files.git"), true)
 
         // List should now include the package
-        try XCTAssertTrue(run(with: ["list"]).contains("git@github.com:JohnSundell/Files.git"))
+        try XCTAssertTrue(run(with: ["list"]).contains("https://github.com/JohnSundell/Files.git"))
 
         // Remove the package
-        try run(with: ["remove", "files"])
+        try run(with: ["remove", "Files"])
         XCTAssertEqual(packagesFolder.subfolders.count, 0)
         try XCTAssertEqual(folder.subfolder(named: "Packages").files.count, 0)
 
         // List should no longer include the package
-        try XCTAssertFalse(run(with: ["list"]).contains("git@github.com:JohnSundell/Files.git"))
+        try XCTAssertFalse(run(with: ["list"]).contains("https://github.com/JohnSundell/Files.git"))
     }
 
     func testAddingAndRemovingLocalPackage() throws {
@@ -91,9 +91,9 @@ class MarathonTests: XCTestCase {
     }
 
     func testRemovingAllPackages() throws {
-        try run(with: ["add", "git@github.com:JohnSundell/Files.git"])
-        try run(with: ["add", "git@github.com:JohnSundell/Wrap.git"])
-        try run(with: ["add", "git@github.com:JohnSundell/Unbox.git"])
+        try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
+        try run(with: ["add", "https://github.com/JohnSundell/Wrap.git"])
+        try run(with: ["add", "https://github.com/JohnSundell/Unbox.git"])
 
         let generatedFolder = try folder.subfolder(atPath: "Packages/Generated")
         let packagesFolder = try generatedFolder.subfolder(named: ".build/checkouts")
@@ -187,10 +187,10 @@ class MarathonTests: XCTestCase {
     }
 
     func testAddingAlreadyAddedPackageThrows() throws {
-        try run(with: ["add", "git@github.com:JohnSundell/Files.git"])
+        try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
         XCTAssertNotNil(try? folder.subfolder(named: "Packages").file(named: "Files").read())
 
-        assert(try run(with: ["add", "git@github.com:JohnSundell/Files.git"]),
+        assert(try run(with: ["add", "https://github.com/JohnSundell/Files.git"]),
                throwsError: PackageManagerError.packageAlreadyAdded("Files"))
     }
 
@@ -206,7 +206,7 @@ class MarathonTests: XCTestCase {
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: script)
 
-        try run(with: ["add", "git@github.com:JohnSundell/Files.git"])
+        try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
         try run(with: ["run", scriptFile.path])
 
         XCTAssertNotNil(try? folder.subfolder(named: "addedFromScript"))
@@ -223,7 +223,7 @@ class MarathonTests: XCTestCase {
         try scriptFile.write(string: script)
 
         try run(with: ["run", scriptFile.path])
-        try run(with: ["add", "git@github.com:JohnSundell/Files.git"])
+        try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
 
         script += "import Files\n\n" +
                   "try FileSystem().createFolder(at: filePath)"
@@ -310,7 +310,7 @@ class MarathonTests: XCTestCase {
     // MARK: - Installing scripts
 
     func testInstallingLocalScript() throws {
-        try run(with: ["add", "git@github.com:JohnSundell/Files.git"])
+        try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
 
         let script = "import Files\n\n" +
                      "print(FileSystem().currentFolder.path)"
@@ -518,7 +518,7 @@ class MarathonTests: XCTestCase {
 
     func testUsingMarathonfileToInstallDependencies() throws {
         // Add Files before, since already installed dependencies should be ignored
-        try run(with: ["add", "git@github.com:JohnSundell/Files.git"])
+        try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
 
         let script = "import Foundation\n" +
                      "import Files\n" +
@@ -530,8 +530,8 @@ class MarathonTests: XCTestCase {
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: script)
 
-        let marathonFileContent = "git@github.com:JohnSundell/Files.git\n" +
-                                  "git@github.com:JohnSundell/Wrap.git"
+        let marathonFileContent = "https://github.com/JohnSundell/Files.git\n" +
+                                  "https://github.com/JohnSundell/Wrap.git"
 
         let marathonFile = try folder.createFile(named: "Marathonfile")
         try marathonFile.write(string: marathonFileContent)
@@ -577,7 +577,7 @@ class MarathonTests: XCTestCase {
 
         // Verify build folder structure
         let buildFolder = try folder.subfolder(atPath: "Scripts/Cache").subfolders.first.require().subfolder(named: "Sources")
-        XCTAssertEqual(buildFolder.files.names, ["dependency.swift", "main.swift"])
+        XCTAssertEqual(buildFolder.files.names.sorted(), ["dependency.swift", "main.swift"])
 
         // Scripts removed from the Marathonfile should also be removed from the build folder
         try marathonFile.write(string: "")
@@ -636,6 +636,21 @@ class MarathonTests: XCTestCase {
                 XCTAssertTrue(line.contains("printer:"),
                               "\(file.name) uses ShellOut directly. Use ShellOut+Marathon instead.")
             }
+        }
+    }
+
+    func testNoDirectUsesOfSwiftCommandLineToolOnMacOS() throws {
+        for file in try resolveSourceFiles() {
+            XCTAssertEqual(file.extension, "swift")
+
+            let source = try file.readAsString()
+
+            // No files should shell out directly to 'swift ...' on macOS, 'xcrun' should always be used
+            XCTAssertFalse(source.contains("shellOut(to: \"swift"),
+                           "\(file.name) shells out to swift directly, use shellOutToSwiftCommand() instead")
+
+            XCTAssertFalse(source.contains("moveToAndPerform(command: \"swift"),
+                           "\(file.name) shells out to swift directly, use shellOutToSwiftCommand() instead")
         }
     }
 }
