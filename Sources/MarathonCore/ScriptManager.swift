@@ -15,7 +15,8 @@ public enum ScriptManagerError {
     case failedToCreatePackageFile(Folder)
     case failedToAddDependencyScript(String)
     case failedToRemoveScriptFolder(Folder)
-    case failedToDownloadScript(URL)
+    case failedToDownloadScript(URL, Error)
+    case invalidInlineDependencyURL(String)
 }
 
 extension ScriptManagerError: PrintableError {
@@ -29,8 +30,10 @@ extension ScriptManagerError: PrintableError {
             return "Failed to add the dependency script at '\(path)'"
         case .failedToRemoveScriptFolder(_):
             return "Failed to remove script folder"
-        case .failedToDownloadScript(let url):
-            return "Failed to download script from '\(url.absoluteString)'"
+        case .failedToDownloadScript(let url, let error):
+            return "Failed to download script from '\(url.absoluteString)' (\(error))"
+        case .invalidInlineDependencyURL(let urlString):
+            return "Could not resolve inline dependency '\(urlString)'"
         }
     }
 
@@ -45,6 +48,8 @@ extension ScriptManagerError: PrintableError {
             return ["Make sure that the file exists and is readable"]
         case .failedToDownloadScript(_):
             return ["Make sure that the URL is reachable, and that it contains a valid Swift script"]
+        case .invalidInlineDependencyURL(_):
+            return ["Please verify that the URL is correct and try again"]
         }
     }
 }
@@ -111,7 +116,7 @@ internal final class ScriptManager {
 
             return try script(from: file)
         } catch {
-            throw Error.failedToDownloadScript(url)
+            throw Error.failedToDownloadScript(url, error)
         }
     }
 
@@ -140,9 +145,11 @@ internal final class ScriptManager {
         let script = Script(name: name, folder: folder, printer: printer)
 
         if let marathonFile = try script.resolveMarathonFile() {
-            try packageManager.addPackages(fromMarathonFile: marathonFile)
+            try packageManager.addPackagesIfNeeded(from: marathonFile.packageURLs)
             try addDependencyScripts(fromMarathonFile: marathonFile, toFolder: folder)
         }
+
+        try resolveInlineDependencies(from: file)
 
         do {
             let packageFile = try folder.createFile(named: "Package.swift")
@@ -194,6 +201,35 @@ internal final class ScriptManager {
                 throw Error.failedToAddDependencyScript(url.absoluteString)
             }
         }
+    }
+
+    private func resolveInlineDependencies(from file: File) throws {
+        let lines = try file.readAsString().components(separatedBy: .newlines)
+        var packageURLs = [URL]()
+
+        for line in lines {
+            if line.hasPrefix("import ") {
+                let components = line.components(separatedBy: "marathon:")
+
+                guard components.count > 1 else {
+                    continue
+                }
+
+                let urlString = components.last!.trimmingCharacters(in: .whitespaces)
+
+                guard let url = URL(string: urlString) else {
+                    throw Error.invalidInlineDependencyURL(urlString)
+                }
+
+                packageURLs.append(url)
+            } else if let firstCharacter = line.unicodeScalars.first {
+                guard !CharacterSet.alphanumerics.contains(firstCharacter) else {
+                    break
+                }
+            }
+        }
+
+        try packageManager.addPackagesIfNeeded(from: packageURLs)
     }
 
     private func makeManagedScriptPathList() -> [String] {

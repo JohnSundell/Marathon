@@ -80,8 +80,8 @@ internal final class Script {
 
     func build(withArguments arguments: [String] = []) throws {
         do {
-            let command = "swift build --enable-prefetching " + arguments.joined(separator: " ")
-            try folder.moveToAndPerform(command: command, printer: printer)
+            let command = "build -C \(folder.path) --enable-prefetching " + arguments.joined(separator: " ")
+            try shellOutToSwiftCommand(command, in: folder, printer: printer)
         } catch {
             throw formatBuildError(error as! ShellOutError)
         }
@@ -171,7 +171,7 @@ internal final class Script {
     }
 
     private func generateXcodeProject() throws -> Folder {
-        try folder.moveToAndPerform(command: "swift package generate-xcodeproj", printer: printer)
+        try shellOutToSwiftCommand("package generate-xcodeproj", in: folder, printer: printer)
         return try folder.subfolder(named: name + ".xcodeproj")
     }
 

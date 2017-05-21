@@ -28,9 +28,9 @@ extension PackageManagerError: PrintableError {
     public var message: String {
         switch self {
         case .failedToResolveLatestVersion(let url):
-            return "Could not resolve the latest version for package at '\(url)'"
+            return "Could not resolve the latest version for package at '\(url.absoluteString)'"
         case .failedToResolveName(let url):
-            return "Could not resolve the name of package at '\(url)'"
+            return "Could not resolve the name of package at '\(url.absoluteString)'"
         case .packageAlreadyAdded(let name):
             return "A package named '\(name)' has already been added"
         case .failedToSavePackageFile(let name, _):
@@ -116,12 +116,12 @@ internal final class PackageManager {
         return package
     }
 
-    func addPackages(fromMarathonFile file: MarathonFile) throws {
+    func addPackagesIfNeeded(from packageURLs: [URL]) throws {
         let existingPackageURLs = Set(makePackageList().map { package in
             return package.url
         })
 
-        for url in file.packageURLs {
+        for url in packageURLs {
             guard !existingPackageURLs.contains(url) else {
                 continue
             }
@@ -288,7 +288,7 @@ internal final class PackageManager {
 
         do {
             try generateMasterPackageDescription()
-            try generatedFolder.moveToAndPerform(command: "swift package --enable-prefetching update", printer: printer)
+            try shellOutToSwiftCommand("package --enable-prefetching update", in: generatedFolder, printer: printer)
             try generatedFolder.createSubfolderIfNeeded(withName: "Packages")
         } catch {
             throw Error.failedToUpdatePackages(folder)

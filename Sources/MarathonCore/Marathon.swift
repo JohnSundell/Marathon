@@ -41,6 +41,8 @@ public final class Marathon {
             let packageFolder = try rootFolder.createSubfolderIfNeeded(withName: "Packages")
             let scriptFolder = try rootFolder.createSubfolderIfNeeded(withName: "Scripts")
 
+            installShellAutocompleteIfNeeded(in: rootFolder)
+
             let packageManager = try PackageManager(folder: packageFolder, printer: printer)
             let scriptManager = try ScriptManager(folder: scriptFolder, packageManager: packageManager, printer: printer)
 
@@ -97,5 +99,9 @@ public final class Marathon {
             let message = "\u{001B}[0;3m\(messageExpression())\u{001B}[0;23m"
             progressFunction(message)
         }
+    }
+
+    private static func installShellAutocompleteIfNeeded(in folder: Folder) {
+        ZshAutocompleteInstaller.installIfNeeded(in: folder)
     }
 }
