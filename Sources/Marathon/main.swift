@@ -11,7 +11,7 @@ import Require
 do {
     try Marathon.run()
 } catch {
-    let errorData = "\(error)".data(using: .utf8).require()
+    let errorData = "\(error)\n".data(using: .utf8).require()
     FileHandle.standardError.write(errorData)
     exit(1)
 }
