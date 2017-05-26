@@ -192,6 +192,10 @@ class MarathonTests: XCTestCase {
 
         assert(try run(with: ["add", "https://github.com/JohnSundell/Files.git"]),
                throwsError: PackageManagerError.packageAlreadyAdded("Files"))
+
+        // Using a different casing shouldn't matter
+        assert(try run(with: ["add", "https://github.com/johnsundell/files.git"]),
+               throwsError: PackageManagerError.packageAlreadyAdded("Files"))
     }
 
     // MARK: - Running scripts
@@ -613,6 +617,22 @@ class MarathonTests: XCTestCase {
 
         let output = try run(with: ["run", scriptFile.path])
         XCTAssertEqual(output, folder.path)
+    }
+
+    func testInlineDependencyWithDifferentCasingAsAlreadyAddedPackageNotAdded() throws {
+        // First add Files using the camelCased URL
+        try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
+
+        // Inline, Files is specified using a lowercase URL
+        let script = "import Files // marathon:https://github.com/johnsundell/files.git"
+        let scriptFile = try folder.createFile(named: "script.swift")
+        try scriptFile.write(string: script)
+        try run(with: ["run", scriptFile.path, "--verbose"])
+
+        // Files' URL should not have been overwritten
+        let packageFile = try folder.file(atPath: "Packages/Files")
+        let package: Package = try unbox(data: packageFile.read())
+        XCTAssertEqual(package.url, URL(string: "https://github.com/JohnSundell/Files.git"))
     }
 
     // MARK: - Source verification

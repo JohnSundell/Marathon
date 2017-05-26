@@ -118,11 +118,11 @@ internal final class PackageManager {
 
     func addPackagesIfNeeded(from packageURLs: [URL]) throws {
         let existingPackageURLs = Set(makePackageList().map { package in
-            return package.url
+            return package.url.absoluteString.lowercased()
         })
 
         for url in packageURLs {
-            guard !existingPackageURLs.contains(url) else {
+            guard !existingPackageURLs.contains(url.absoluteString.lowercased()) else {
                 continue
             }
 
