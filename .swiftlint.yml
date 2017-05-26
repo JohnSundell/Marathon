@@ -8,9 +8,9 @@ included:
   - Tests
 
 type_body_length:
-  - 700 #warning
-  - 1000 #error
+  - 400 #warning
+  - 600 #error
 
 file_length:
-  - 1000 #warning
-  - 1200 #error
+  - 800 #warning
+  - 1000 #error
