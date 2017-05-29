@@ -43,7 +43,7 @@ internal class RunTask: Task, Executable {
     // MARK: - Executable
 
     func execute() throws {
-        guard let path = firstArgumentAsScriptPath else {
+        guard let path = arguments.first else {
             throw Error.missingPath
         }
 

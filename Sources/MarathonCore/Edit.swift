@@ -36,7 +36,7 @@ internal final class EditTask: Task, Executable {
     // MARK: - Executable
 
     func execute() throws {
-        guard let path = firstArgumentAsScriptPath else {
+        guard let path = arguments.first?.asScriptPath() else {
             throw Error.missingPath
         }
 

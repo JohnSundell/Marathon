@@ -40,7 +40,7 @@ internal final class CreateTask: Task, Executable {
     private typealias Error = CreateError
 
     func execute() throws {
-        guard let path = firstArgumentAsScriptPath else {
+        guard let path = arguments.first?.asScriptPath() else {
             throw Error.missingName
         }
 
