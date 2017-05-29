@@ -28,18 +28,6 @@ internal class Task {
 }
 
 extension Task {
-    var firstArgumentAsScriptPath: String? {
-        guard let argument = arguments.first else {
-            return nil
-        }
-
-        guard argument.hasSuffix(".swift") else {
-            return argument + ".swift"
-        }
-
-        return argument
-    }
-
     var argumentsContainNoOpenFlag: Bool {
         return arguments.contains("--no-open")
     }

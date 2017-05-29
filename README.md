@@ -61,6 +61,16 @@ $ marathon edit helloWorld
 $ marathon edit helloWorld --no-xcode
 ```
 
+🌍 Run remote scripts directly from a Git repository...
+```
+$ marathon run https://github.com/johnsundell/testdrive.git
+```
+
+...using only a GitHub username & repository name:
+```
+$ marathon run johnsundell/testdrive
+```
+
 💻 Install scripts as binaries and run them independently from anywhere...
 ```
 $ marathon install helloWorld
@@ -74,6 +84,12 @@ $ marathon install https://raw.githubusercontent.com/JohnSundell/Marathon-Exampl
 $ cd myImages
 $ addSuffix "@2x"
 > Added suffix "@2x" to 15 files
+```
+
+...or from a GitHub repository:
+```
+$ marathon install johnsundell/testdrive
+$ testdrive
 ```
 
 👪 Share your scripts with your team and automatically install their dependencies...

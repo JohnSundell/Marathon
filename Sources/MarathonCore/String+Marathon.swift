@@ -25,4 +25,14 @@ internal extension String {
 
         return indentedString
     }
+
+    func asScriptPath() -> String {
+        let suffix = ".swift"
+
+        guard hasSuffix(suffix) else {
+            return self + suffix
+        }
+
+        return self
+    }
 }

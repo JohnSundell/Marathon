@@ -34,11 +34,11 @@ internal class InstallTask: Task, Executable {
     private typealias Error = InstallError
 
     func execute() throws {
-        guard let path = firstArgumentAsScriptPath else {
+        guard let path = arguments.first else {
             throw Error.missingPath
         }
 
-        let script = try loadScript(from: path)
+        let script = try scriptManager.script(at: path)
         let installPath = makeInstallPath(for: script)
 
         printer.reportProgress("Compiling script...")
@@ -55,18 +55,6 @@ internal class InstallTask: Task, Executable {
         }
 
         printer.output("💻  \(path) installed at \(installPath)")
-    }
-
-    private func loadScript(from path: String) throws -> Script {
-        if let url = URL(string: path) {
-            if let urlScheme = url.scheme {
-                if urlScheme.hasPrefix("http") {
-                    return try scriptManager.downloadScript(from: url)
-                }
-            }
-        }
-
-        return try scriptManager.script(at: path)
     }
 
     private func makeInstallPath(for script: Script) -> String {

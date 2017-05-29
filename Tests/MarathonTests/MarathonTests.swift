@@ -311,6 +311,17 @@ class MarathonTests: XCTestCase {
         XCTAssertTrue(output.contains("🏃"))
     }
 
+    func testRunningRemoteScriptFromURL() throws {
+        let testDriveURL = "https://raw.githubusercontent.com/JohnSundell/TestDrive/master/Sources/TestDrive.swift"
+        let output = try run(with: ["run", testDriveURL])
+        XCTAssertTrue(output.hasPrefix("🚘"))
+    }
+
+    func testRunningRemoteScriptFromGitHubRepository() throws {
+        let output = try run(with: ["run", "johnsundell/testdrive"])
+        XCTAssertTrue(output.hasPrefix("🚘"))
+    }
+
     // MARK: - Installing scripts
 
     func testInstallingLocalScript() throws {
