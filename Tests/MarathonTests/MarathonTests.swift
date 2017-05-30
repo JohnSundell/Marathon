@@ -358,12 +358,12 @@ class MarathonTests: XCTestCase {
     
     func testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL() throws {
         let gitHubURLString = "https://github.com/JohnSundell/Marathon-Examples/blob/master/AddSuffix/addSuffix.swift"
-        try testInstallingRemoteScriptWithDependenciesUsingURL(gitHubURLString)
+        try performTestForInstallingRemoteScriptWithDependenciesUsingURL(gitHubURLString)
     }
     
     func testInstallingRemoteScriptWithDependenciesUsingRawGithubURL() throws {
         let rawGitHubURLString = "https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/addSuffix.swift"
-        try testInstallingRemoteScriptWithDependenciesUsingURL(rawGitHubURLString)
+        try performTestForInstallingRemoteScriptWithDependenciesUsingURL(rawGitHubURLString)
     }
 
     // MARK: - Creating scripts
@@ -420,7 +420,7 @@ class MarathonTests: XCTestCase {
         assert(try run(with: ["edit"]), throwsError: EditError.missingPath)
     }
 
-    func testEditingScriptWithXcode() throws {
+    func testEditingScriptWithXcodeOnMacOS() throws {
         let script = "import Foundation"
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: script)
@@ -710,6 +710,26 @@ class MarathonTests: XCTestCase {
                            "\(file.name) shells out to swift directly, use shellOutToSwiftCommand() instead")
         }
     }
+
+    // MARK: - Test verification
+
+    func testAllTestsRunOnLinux() throws {
+        let source = try File(path: #file).readAsString()
+        let linuxTestNames = Set(MarathonTests.allTests.map({ $0.0 }))
+
+        for line in source.components(separatedBy: .newlines) {
+            let line = line.trimmingCharacters(in: .whitespaces)
+
+            guard line.hasPrefix("func test") && !line.contains("MacOS") else {
+                continue
+            }
+
+            let testName = line.components(separatedBy: "(")[0].components(separatedBy: " ")[1]
+
+            XCTAssertTrue(linuxTestNames.contains(testName),
+                          "Test named \(testName) has not been added to run on Linux. Add it to the 'allTests' array.")
+        }
+    }
 }
 
 // MARK: - Utilities
@@ -755,7 +775,6 @@ fileprivate extension MarathonTests {
 
 // MARK: - Linux
 
-#if os(Linux)
 extension MarathonTests {
     static var allTests : [(String, (MarathonTests) -> () throws -> Void)] {
         return [
@@ -763,9 +782,11 @@ extension MarathonTests {
             ("testAddingAndRemovingRemotePackage", testAddingAndRemovingRemotePackage),
             ("testAddingAndRemovingLocalPackage", testAddingAndRemovingLocalPackage),
             ("testRemovingAllPackages", testRemovingAllPackages),
+            ("testAddingLocalPackage", testAddingLocalPackage),
             ("testAddingLocalPackageWithDependency", testAddingLocalPackageWithDependency),
             ("testAddingLocalPackageWithUnsortedVersionsContainingLetters", testAddingLocalPackageWithUnsortedVersionsContainingLetters),
             ("testAddingAlreadyAddedPackageThrows", testAddingAlreadyAddedPackageThrows),
+            ("testTreatingNestedDependenciesAsAdded", testTreatingNestedDependenciesAsAdded),
             ("testRunningScriptWithoutPathThrows", testRunningScriptWithoutPathThrows),
             ("testRunningScript", testRunningScript),
             ("testRunningScriptWithNewDependency", testRunningScriptWithNewDependency),
@@ -776,6 +797,9 @@ extension MarathonTests {
             ("testPassingArgumentsToScript", testPassingArgumentsToScript),
             ("testCurrentWorkingDirectoryOfScriptIsExecutionFolder", testCurrentWorkingDirectoryOfScriptIsExecutionFolder),
             ("testScriptWithLargeAmountOfOutput", testScriptWithLargeAmountOfOutput),
+            ("testRunningScriptWithVerboseOutput", testRunningScriptWithVerboseOutput),
+            ("testRunningRemoteScriptFromURL", testRunningRemoteScriptFromURL),
+            ("testRunningRemoteScriptFromGitHubRepository", testRunningRemoteScriptFromGitHubRepository),
             ("testInstallingLocalScript", testInstallingLocalScript),
             ("testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL", testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL),
             ("testInstallingRemoteScriptWithDependenciesUsingRawGithubURL", testInstallingRemoteScriptWithDependenciesUsingRawGithubURL),
@@ -794,17 +818,19 @@ extension MarathonTests {
             ("testAddingLocalPackageUsingRelativePathInMarathonfile", testAddingLocalPackageUsingRelativePathInMarathonfile),
             ("testAddingOtherScriptAsDependencyUsingMarathonfile", testAddingOtherScriptAsDependencyUsingMarathonfile),
             ("testIncorrectlyFormattedMarathonfileThrows", testIncorrectlyFormattedMarathonfileThrows),
+            ("testResolvingInlineDependencies", testResolvingInlineDependencies),
+            ("testInlineDependencyWithDifferentCasingAsAlreadyAddedPackageNotAdded", testInlineDependencyWithDifferentCasingAsAlreadyAddedPackageNotAdded),
             ("testNoDirectUsesOfPrintFunction", testNoDirectUsesOfPrintFunction),
-            ("testNoDirectUsesOfShellOut", testNoDirectUsesOfShellOut)
+            ("testNoDirectUsesOfShellOut", testNoDirectUsesOfShellOut),
+            ("testAllTestsRunOnLinux", testAllTestsRunOnLinux)
         ]
     }
 }
-#endif
 
 // MARK: - Abstract Test Cases
 
 fileprivate extension MarathonTests {
-    func testInstallingRemoteScriptWithDependenciesUsingURL(_ urlString: String) throws {
+    func performTestForInstallingRemoteScriptWithDependenciesUsingURL(_ urlString: String) throws {
         try run(with: ["install", urlString, "installed-script"])
         
         // Make a couple of files that we can try the installed script on
