@@ -110,14 +110,14 @@ $ echo "https://github.com/JohnSundell/Files.git" > Marathonfile
 
 Using Make:
 ```
-$ git clone git@github.com:JohnSundell/Marathon.git
+$ git clone https://github.com/JohnSundell/Marathon.git
 $ cd Marathon
 $ make
 ```
 
 Using the Swift Package Manager:
 ```
-$ git clone git@github.com:JohnSundell/Marathon.git
+$ git clone https://github.com/JohnSundell/Marathon.git
 $ cd Marathon
 $ swift build -c release -Xswiftc -static-stdlib
 $ cp -f .build/release/Marathon /usr/local/bin/marathon
@@ -126,7 +126,7 @@ $ cp -f .build/release/Marathon /usr/local/bin/marathon
 ### On Linux
 
 ```
-$ git clone git@github.com:JohnSundell/Marathon.git
+$ git clone https://github.com/JohnSundell/Marathon.git
 $ cd Marathon
 $ swift build -c release
 $ cp -f .build/release/Marathon /usr/local/bin/marathon
@@ -167,9 +167,9 @@ If you prefer to keep your dependency declarations separate, you can create a `M
 
 Here is an example of a `Marathonfile`:
 ```
-git@github.com:JohnSundell/Files.git
-git@github.com:JohnSundell/Unbox.git
-git@github.com:JohnSundell/Wrap.git
+https://github.com/JohnSundell/Files.git
+https://github.com/JohnSundell/Unbox.git
+https://github.com/JohnSundell/Wrap.git
 ~/packages/MyPackage
 otherScript.swift
 ```
