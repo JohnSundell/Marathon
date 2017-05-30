@@ -198,6 +198,16 @@ class MarathonTests: XCTestCase {
                throwsError: PackageManagerError.packageAlreadyAdded("Files"))
     }
 
+    func testTreatingNestedDependenciesAsAdded() throws {
+        // Xgen depends on Files
+        try run(with: ["add", "https://github.com/JohnSundell/Xgen.git"])
+
+        // Make sure both Xgen & Files are indexed by running 'list'
+        let listOutput = try run(with: ["list"])
+        XCTAssertTrue(listOutput.contains("Xgen (https://github.com/JohnSundell/Xgen.git)"))
+        XCTAssertTrue(listOutput.contains("Files (https://github.com/JohnSundell/Files.git)"))
+    }
+
     // MARK: - Running scripts
 
     func testRunningScriptWithoutPathThrows() {

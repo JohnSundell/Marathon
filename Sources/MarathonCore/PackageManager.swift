@@ -112,7 +112,10 @@ internal final class PackageManager {
         let latestVersion = try latestMajorVersionForPackage(at: url)
         let package = Package(name: name, url: absoluteRepositoryURL(from: url), majorVersion: latestVersion)
         try save(package: package)
+
         try updatePackages()
+        addMissingPackageFiles()
+
         return package
     }
 
@@ -292,6 +295,29 @@ internal final class PackageManager {
             try generatedFolder.createSubfolderIfNeeded(withName: "Packages")
         } catch {
             throw Error.failedToUpdatePackages(folder)
+        }
+    }
+
+    private func addMissingPackageFiles() {
+        do {
+            let pinnedPackagesData = try generatedFolder.file(named: "Package.pins").read()
+            let pinnedPackages: [Package.Pinned] = try unbox(data: pinnedPackagesData, atKeyPath: "pins")
+
+            for pinnedPackage in pinnedPackages {
+                guard !folder.containsFile(named: pinnedPackage.name) else {
+                    continue
+                }
+
+                let package = Package(
+                    name: pinnedPackage.name,
+                    url: pinnedPackage.url,
+                    majorVersion: pinnedPackage.version.major
+                )
+
+                try save(package: package)
+            }
+        } catch {
+            // We do "best effort" here, and don't threat errors as criticial
         }
     }
 
