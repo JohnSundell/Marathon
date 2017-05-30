@@ -9,6 +9,7 @@ import MarathonCore
 import Files
 import Unbox
 import Require
+import Assert
 
 class MarathonTests: XCTestCase {
     fileprivate var folder: Folder!
