@@ -47,9 +47,9 @@ public func assert<T, E: Error>(at file: StaticString = #file,
  *  - closure: The closure that should thrown an error
  */
 public func assertErrorThrown<T, E: Error>(at file: StaticString = #file,
-                              line: UInt = #line,
-                              _ errorExpression: @autoclosure () -> E,
-                              by closure: () throws -> T) where E: Equatable {
+                                           line: UInt = #line,
+                                           _ errorExpression: @autoclosure () -> E,
+                                           by closure: () throws -> T) where E: Equatable {
     assert(at: file, line: line, try closure(), throwsError: errorExpression)
 }
 
