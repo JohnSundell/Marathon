@@ -104,5 +104,6 @@ public final class Marathon {
 
     private static func installShellAutocompleteIfNeeded(in folder: Folder) {
         ZshAutocompleteInstaller.installIfNeeded(in: folder)
+        FishAutocompleteInstaller.installIfNeeded(in: folder)
     }
 }
