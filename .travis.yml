@@ -4,6 +4,7 @@ os:
 language: generic
 sudo: required
 dist: trusty
+osx_image: xcode8.3
 before_install:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install swiftlint || true; fi
