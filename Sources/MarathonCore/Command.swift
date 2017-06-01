@@ -45,7 +45,7 @@ extension Command {
     private typealias Error = CommandError
 
     static var all: [Command] {
-        return [.create, .edit, .remove, .run, .install, .add, .list, .update, .test, .help]
+        return [.create, .edit, .remove, .run, .test, .install, .add, .list, .update, .help]
     }
 
     var description: String {
