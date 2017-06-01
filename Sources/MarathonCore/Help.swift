@@ -60,6 +60,9 @@ internal final class HelpTask: Task, Executable {
                    "To remove all packages, pass the '--all-packages' flag"
         case .run:
             return "The script will be compiled and run, and any output generated will be returned"
+        case .test:
+            return "The script will be compiled and tested if tests have been written\n" +
+                   "To create tests, see 'create'"
         case .install:
             return "The script will be compiled, and the resulting binary copied to the install path\n" +
                    "The default install path is '/usr/local/bin/<lowercased-name-of-script>'\n" +
@@ -120,6 +123,8 @@ private extension Command {
             return "🗑"
         case .run:
             return "🏃‍♀️"
+        case .test:
+            return "✅"
         case .install:
             return "💻"
         case .add:

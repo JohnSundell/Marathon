@@ -145,6 +145,10 @@ internal final class Script {
             throw Error.editingFailed(name)
         }
     }
+    
+    func test(arguments: [String], open: Bool) throws {
+        
+    }
 
     func resolveMarathonFile() throws -> MarathonFile? {
         let scriptFile = try File(path: expandSymlink())

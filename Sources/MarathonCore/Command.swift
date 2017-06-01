@@ -33,6 +33,7 @@ internal enum Command: String {
     case edit
     case remove
     case run
+    case test
     case install
     case add
     case list
@@ -44,7 +45,7 @@ extension Command {
     private typealias Error = CommandError
 
     static var all: [Command] {
-        return [.create, .edit, .remove, .run, .install, .add, .list, .update, .help]
+        return [.create, .edit, .remove, .run, .install, .add, .list, .update, .test, .help]
     }
 
     var description: String {
@@ -57,6 +58,8 @@ extension Command {
             return "Remove a package or the cache data for a script at a given path"
         case .run:
             return "Run a script at a given path"
+        case .test:
+            return "Run tests you've written for you scripts"
         case .install:
             return "Install a script at a given path or URL as a binary"
         case .add:
@@ -73,13 +76,15 @@ extension Command {
     var usageText: String {
         switch self {
         case .create:
-            return "<script-path> [<script-content>] [--no-xcode] [--no-open]"
+            return "<script-path> [<script-content>] [--no-xcode] [--no-open] [--test]"
         case .edit:
-            return "<script-path> [--no-xcode] [--no-open]"
+            return "<script-path> [--no-xcode] [--no-open] [--test]"
         case .remove:
             return "<name-of-package-or-path-to-script> [--all-script-data] [--all-packages]"
         case .run:
             return "<script-path> [<script-arguments...>]"
+        case .test:
+            return "<script-path>"
         case .install:
             return "<script-path-or-url> [<install-path>] [--force]"
         case .add:
@@ -105,6 +110,8 @@ extension Command {
             return RemoveTask.init
         case .run:
             return RunTask.init
+        case .test:
+            return TestTask.init
         case .install:
             return InstallTask.init
         case .list:
