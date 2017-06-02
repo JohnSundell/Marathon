@@ -72,6 +72,17 @@ internal final class HelpTask: Task, Executable {
             return ""
         case .help:
             return makeWelcomeMessage()
+        case .export:
+            return "The script will be copied to the export path with following structure:\n" +
+                   "-\n" +
+                   "YourScript/\n" +
+                   "    Sources/\n" +
+                   "        YourScript.swift\n" +
+                   "    Package.swift\n" +
+                   "-\n" +
+                   "The default export path is the current directory\n" +
+                   "To export to another directory pass the directory path as the second argument\n" +
+                   "Marathon will ask before overwriting any existing directory, unless the '--force' flag is passed\n"
         }
     }
 
@@ -130,6 +141,8 @@ private extension Command {
             return "♻️"
         case .help:
             return "ℹ️"
+        case .export:
+            return "🚀"
         }
     }
 }

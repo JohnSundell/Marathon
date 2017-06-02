@@ -38,13 +38,14 @@ internal enum Command: String {
     case list
     case update
     case help
+    case export
 }
 
 extension Command {
     private typealias Error = CommandError
 
     static var all: [Command] {
-        return [.create, .edit, .remove, .run, .install, .add, .list, .update, .help]
+        return [.create, .edit, .remove, .run, .install, .add, .list, .update, .help, .export]
     }
 
     var description: String {
@@ -67,6 +68,8 @@ extension Command {
             return "Update all added packages to their latest versions"
         case .help:
             return "Print these instructions"
+        case .export:
+            return "Export script as Swift package"
         }
     }
 
@@ -90,6 +93,8 @@ extension Command {
             return ""
         case .help:
             return ""
+        case .export:
+            return "<script-path> [<export-path>] [--force]"
         }
     }
 
@@ -113,6 +118,8 @@ extension Command {
             return UpdateTask.init
         case .help:
             return HelpTask.init
+        case .export:
+            return ExportTask.init
         }
     }
 
