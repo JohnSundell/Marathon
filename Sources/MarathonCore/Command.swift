@@ -76,9 +76,9 @@ extension Command {
     var usageText: String {
         switch self {
         case .create:
-            return "<script-path> [<script-content>] [--no-xcode] [--no-open] [--test]"
+            return "<script-path> [<script-content>] [--no-xcode] [--no-open] [--tests]"
         case .edit:
-            return "<script-path> [--no-xcode] [--no-open] [--test]"
+            return "<script-path> [--no-xcode] [--no-open] [--tests]"
         case .remove:
             return "<name-of-package-or-path-to-script> [--all-script-data] [--all-packages]"
         case .run:

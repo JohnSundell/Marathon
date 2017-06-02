@@ -48,7 +48,7 @@ internal final class CreateTask: Task, Executable {
             throw Error.missingName
         }
         
-        if arguments.contains("--test") {
+        if arguments.contains("--tests") {
             if let scriptFile = try? FileSystem().currentFolder.file(atPath: path),
                 let script = try? scriptManager.script(at: scriptFile.path) {
                 try createScriptTests(for: script)
