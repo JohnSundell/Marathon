@@ -35,4 +35,14 @@ internal extension String {
 
         return self
     }
+    
+    func asTestScriptPath() -> String {
+        let suffix = "Tests.swift"
+        
+        guard hasSuffix(suffix) else {
+            return self + suffix
+        }
+        
+        return self
+    }
 }
