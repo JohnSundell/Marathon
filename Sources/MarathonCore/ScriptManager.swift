@@ -13,6 +13,7 @@ import Require
 public enum ScriptManagerError {
     case scriptNotFound(String)
     case failedToCreatePackageFile(Folder)
+    case failedToCreateTestsFile(Folder)
     case failedToAddDependencyScript(String)
     case failedToRemoveScriptFolder(Folder)
     case failedToDownloadScript(URL, Error)
@@ -28,6 +29,8 @@ extension ScriptManagerError: PrintableError {
             return "Could not find a Swift script at '\(path)'"
         case .failedToCreatePackageFile(_):
             return "Failed to create a Package.swift file for the script"
+        case .failedToCreateTestsFile(_):
+            return "Failed to create tests file for the script"
         case .failedToAddDependencyScript(let path):
             return "Failed to add the dependency script at '\(path)'"
         case .failedToRemoveScriptFolder(_):
@@ -48,7 +51,8 @@ extension ScriptManagerError: PrintableError {
         case .scriptNotFound(_):
             return ["Please check that the path is valid and try again"]
         case .failedToCreatePackageFile(let folder),
-             .failedToRemoveScriptFolder(let folder):
+             .failedToRemoveScriptFolder(let folder),
+             .failedToCreateTestsFile(let folder):
             return ["Make sure you have write permissions to the folder '\(folder.path)'"]
         case .failedToAddDependencyScript(_):
             return ["Make sure that the file exists and is readable"]
@@ -131,6 +135,14 @@ internal final class ScriptManager {
     func removeAllScriptData() throws {
         for path in managedScriptPaths {
             try removeDataForScript(at: path)
+        }
+    }
+    
+    func addTest(file testFile: File, to script: Script) throws {
+        do {
+            try createTestsFolderIfNeeded(for: script, file: testFile)
+        } catch {
+            throw Error.failedToCreateTestsFile(script.folder)
         }
     }
 
@@ -241,6 +253,32 @@ internal final class ScriptManager {
         try sourcesFolder.createFile(named: "main.swift", contents: file.read())
 
         return scriptFolder
+    }
+    
+    @discardableResult private func createTestsFolderIfNeeded(for script: Script, file: File) throws -> Folder {
+        if (try? script.folder.file(named: "OriginalTestsFile")) == nil {
+            try script.folder.createSymlink(to: file.path, at: "OriginalTestsFile", printer: printer)
+        }
+        
+        let testsFolder = try script.folder.createSubfolderIfNeeded(withName: "Tests")
+        try testsFolder.empty()
+        
+        let testsModuleFolder = try testsFolder.createSubfolder(named: script.name + "Tests")
+        try testsModuleFolder.empty()
+        try testsModuleFolder.createFile(named: file.name, contents: file.read())
+        
+        // TODO: Determine why LinuxMain.swift is missing from the .xcodeproj when opened.
+        // It might be because I'm not on Linux? See if someone can verify that assumption.
+        let content = "import XCTest\n" +
+                "@testable import \(script.name)\n\n" +
+                "XCTMain([\n" +
+                "\ttestCase(\(script.name).allTests),\n" +
+                "])\n"
+        let data = content.data(using: .utf8)!
+        
+        try testsFolder.createFile(named: "LinuxMain.swift", contents: data)
+        
+        return testsFolder
     }
 
     private func folderForScript(withIdentifier identifier: String) -> Folder? {
