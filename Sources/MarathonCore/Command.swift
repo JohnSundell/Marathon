@@ -59,7 +59,7 @@ extension Command {
         case .run:
             return "Run a script at a given path"
         case .test:
-            return "Run tests you've written for you scripts"
+            return "Run tests you've written for your scripts"
         case .install:
             return "Install a script at a given path or URL as a binary"
         case .add:
