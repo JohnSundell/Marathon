@@ -39,33 +39,31 @@ extension CreateError: PrintableError {
 internal final class CreateTask: Task, Executable {
     private typealias Error = CreateError
     
-    private var shouldOpen: Bool {
-        return !argumentsContainNoOpenFlag
-    }
-    
     func execute() throws {
         guard let path = arguments.first?.asScriptPath() else {
             throw Error.missingName
         }
         
+        let scriptFile = try createScriptIfNeeded(atPath: path)
+        
         if arguments.contains("--tests") {
-            if let scriptFile = try? FileSystem().currentFolder.file(atPath: path),
-                let script = try? scriptManager.script(at: scriptFile.path) {
-                try createScriptTests(for: script)
-                try beginEditing(script, if: shouldOpen)
-            } else {
-                let file = try createScript(at: path)
-                let script = try scriptManager.script(at: file.path)
-                try createScriptTests(for: script)
-                try beginEditing(script, if: shouldOpen)
-            }
-        } else {
-            let file = try createScript(at: path)
-            try beginEditing(file, if: shouldOpen)
+            try createTests(atPath: path)
+        }
+        // TODO: else delete tests if needed?
+        // @johnsundell running create twice will overwrite the first script, right?
+        // If so, we should delete the first script's tests as well (if there were tests)
+        
+        if !argumentsContainNoOpenFlag {
+            let script = try scriptManager.script(at: scriptFile.path)
+            try script.edit(arguments: arguments, open: true)
         }
     }
     
-    private func createScript(at path: String) throws -> File {
+    private func createScriptIfNeeded(atPath path: String) throws -> File {
+        if arguments.contains("--tests"), let file = try? Folder.current.file(atPath: path) {
+            return file
+        }
+        
         guard let data = makeScriptContent().data(using: .utf8) else {
             throw Error.failedToCreateFile(path)
         }
@@ -78,7 +76,9 @@ internal final class CreateTask: Task, Executable {
         return file
     }
     
-    @discardableResult private func createScriptTests(for script: Script) throws -> File {
+    @discardableResult private func createTests(atPath path: String) throws -> File {
+        let script = try scriptManager.script(at: path)
+        
         guard let testPath = arguments.first?.asTestScriptPath() else {
             throw Error.missingName
         }
@@ -90,22 +90,11 @@ internal final class CreateTask: Task, Executable {
         let testFile = try perform(FileSystem().createFile(at: testPath, contents: data),
                                    orThrow: Error.failedToCreateFile(testPath))
         
-        try scriptManager.addTest(file: testFile, to: script)
+        try scriptManager.addTestFile(testFile, to: script)
         
         printer.output("✅  Created tests at \(testPath)")
         
         return testFile
-    }
-    
-    private func beginEditing(_ file: File, if open: Bool) throws {
-        guard open else { return }
-        let script = try scriptManager.script(at: file.path)
-        try script.edit(arguments: arguments, open: true)
-    }
-    
-    private func beginEditing(_ script: Script, if open: Bool) throws {
-        guard open else { return }
-        try script.edit(arguments: arguments, open: true)
     }
 
     private func makeScriptContent() -> String {
