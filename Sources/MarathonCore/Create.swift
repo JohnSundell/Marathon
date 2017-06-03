@@ -44,6 +44,18 @@ internal final class CreateTask: Task, Executable {
             throw Error.missingName
         }
 
+        guard (try? File(path: path)) == nil else {
+            let editTask = EditTask(
+                folder: folder,
+                arguments: arguments,
+                scriptManager: scriptManager,
+                packageManager: packageManager,
+                printer: printer
+            )
+
+            return try editTask.execute()
+        }
+
         guard let data = makeScriptContent().data(using: .utf8) else {
             throw Error.failedToCreateFile(path)
         }
