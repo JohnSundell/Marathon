@@ -78,48 +78,39 @@ internal final class ExportTask: Task, Executable {
             exportFolder = FileSystem().currentFolder
         }
 
-        let scriptName = file.scriptName()
+        let scriptName = file.scriptName
         let exportPath = exportFolder.path.appending(scriptName)
 
         // If directory already exists at path and --force flag not passed, then ask for overwrite permission
-        if exportFolder.containsSubfolder(named: scriptName) {
-            if arguments.contains("--force") {
-                try exportFolder.subfolder(atPath: scriptName).delete()
-            } else {
-                printer.output("⚠️  A directory already exists at \(exportPath)")
-                printer.output("❓  Are you sure you want to overwrite it? (Type 'Y' to confirm)")
-
-                if readLine()?.lowercased() == "y" {
-                    try exportFolder.subfolder(atPath: scriptName).delete()
-                } else {
-                    exit(1)
-                }
+        let existingProjectFolder = try? exportFolder.subfolder(atPath: scriptName)
+        if existingProjectFolder != nil && !arguments.contains("--force") {
+            printer.output("⚠️  A directory already exists at \(exportPath)")
+            printer.output("❓  Are you sure you want to overwrite it? (Type 'Y' to confirm)")
+            if readLine()?.lowercased() == "n" {
+                exit(1)
             }
         }
 
+        try existingProjectFolder?.delete() // Otherwise, delete the existing folder if it exists
         try perform(export(file, to: exportFolder), orThrow: Error.failedToExportScript(file.name))
     }
 
     private func export(_ file: File, to folder: Folder) throws {
-        let projectFolder = try folder.createSubfolder(named: file.scriptName())
-        let sourcesFolder = try projectFolder.createSubfolder(named: "Sources")
-        let scriptFileData = try file.read()
-        try sourcesFolder.createFile(named: file.name, contents: scriptFileData)
+        let projectFolder = try folder.createSubfolder(named: file.scriptName)
 
         let packageFile = try projectFolder.createFile(named: "Package.swift")
         let packages = try resolvePackages(from: file)
-        let packageFileString =  try makePackageFileString(for: file, with: packages)
+        let packageFileString = try makePackageFileString(for: file, with: packages)
         try packageFile.write(string: packageFileString)
+
+        let sourcesFolder = try projectFolder.createSubfolder(named: "Sources")
+        let scriptFileString = try makeFileStringWithInlineDependencies(for: file, using: packages)
+        let scriptFile = try sourcesFolder.createFile(named: file.name)
+        try scriptFile.write(string: scriptFileString)
     }
 
     private func resolvePackages(from file: File) throws -> [Package] {
-        let importLines = try file.readAsString()
-            .components(separatedBy: .newlines)
-            .filter { $0.hasPrefix("import") }
-        let importNames = importLines
-            .flatMap { $0.components(separatedBy: .whitespaces) }
-            .filter { !$0.hasPrefix("import") && !$0.hasPrefix("//") && !$0.hasPrefix("marathon") }
-
+        let importNames = try file.importNames()
         let allManagedPackages = packageManager.addedPackages
         let scriptPackages: [Package] = importNames.flatMap { name in
             if let scriptPackage = allManagedPackages.first(where: { $0.name.lowercased() == name.lowercased() }) {
@@ -132,23 +123,51 @@ internal final class ExportTask: Task, Executable {
     }
 
     private func makePackageFileString(for file: File, with packages: [Package]) throws -> String {
-        var string = "import PackageDescription\n"
-        + "\n"
-        + "let package = Package(\n"
-        + "    name: \"\(file.scriptName())\",\n"
-        + "    dependencies: [\n"
+        let base = "import PackageDescription\n"
+            + "\n"
+            + "let package = Package(\n"
+            + "    name: \"\(file.scriptName)\",\n"
+            + "    dependencies: [\n"
 
-        for package in packages {
-            string.append("        .Package(url: \"\(package.url)\", majorVersion: \(package.majorVersion)),\n")
+        let baseWithPackages = packages.reduce(base) { partialResult, package in
+            let string = "        .Package(url: \"\(package.url)\", majorVersion: \(package.majorVersion)),\n"
+            return partialResult.appending(string)
         }
-        string.append("    ]\n")
-        string.append(")\n")
-        return string
+        return baseWithPackages.appending("    ]\n)\n")
+    }
+
+    private func makeFileStringWithInlineDependencies(for file: File, using packages: [Package]) throws -> String {
+        let importLines = try file.importLines()
+        let tuples: [(current: String, replacement: String)] = importLines.reduce([]) { partialResult, importLine in
+            guard let package = packages.first(where: { package in importLine.contains(package.name) }) else {
+                return partialResult
+            }
+            let tuple: (String, String) = (importLine, "import \(package.name) // marathon:\(package.url)")
+            return partialResult + [tuple]
+        }
+
+        let fileString = tuples.reduce(try file.readAsString()) { partialResult, tuple in
+            return partialResult.replacingOccurrences(of: tuple.current, with: tuple.replacement)
+        }
+
+        return fileString
     }
 }
 
 private extension File {
-    func scriptName() -> String {
+    var scriptName: String {
         return name.replacingOccurrences(of: ".swift", with: "")
+    }
+
+    func importLines() throws -> [String] {
+        return try readAsString()
+            .components(separatedBy: .newlines)
+            .filter { $0.hasPrefix("import") }
+    }
+
+    func importNames() throws -> [String] {
+        return try importLines()
+            .flatMap { $0.components(separatedBy: .whitespaces) }
+            .filter { !$0.hasPrefix("import") && !$0.hasPrefix("//") && !$0.hasPrefix("marathon") }
     }
 }
