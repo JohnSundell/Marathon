@@ -16,6 +16,7 @@ import Require
 
 public enum ScriptError {
     case editingFailed(String)
+    case editingTestsFailed(String)
     case buildFailed([String], missingPackage: String?)
     case installFailed(String)
 }
@@ -25,6 +26,8 @@ extension ScriptError: PrintableError {
         switch self {
         case .editingFailed(let name):
             return "Failed to open script '\(name)' for editing"
+        case .editingTestsFailed(let name):
+            return "Failed to open script '\(name)' tests for editing"
         case .buildFailed(_, _):
             return "Failed to compile script"
         case .installFailed(_):
@@ -36,6 +39,8 @@ extension ScriptError: PrintableError {
         switch self {
         case .editingFailed(_):
             return ["Make sure that it exists and that its file is readable"]
+        case .editingTestsFailed(let name):
+            return ["Make sure that tests exist and the file is readable. You can create tests using 'marathon create \(name) --tests'"]
         case .buildFailed(let errors, let missingPackage):
             guard !errors.isEmpty else {
                 return []
@@ -131,6 +136,35 @@ internal final class Script {
                 printer.output("✏️  Opening \(relativePath)")
 
                 try shellOut(to: "open \"\(path)\"", printer: printer)
+                
+                // This looks bad, but hear me out. First, read the two comments below about opening Xcode to a specific file.
+                // The reason for the sleep is that if you shell out two `open` commands back to back, if Xcode hasn't finished 
+                // opening the first file (which can take upwards of a second) before the second `open` is executed, it will
+                // open the second file in a new window. By sleeping for a second, we give Xcode a reasonable chance to finish opening
+                // the first file before trying to open the second. By sleeping at this point, the user shouldn't notice a difference
+                // except for the "i" message below about commits, since the first open has already been executed.
+                //
+                // Other approaches I've tried for avoiding potentially opening a second window:
+                // 1. Edit the .xcuserstate before opening Xcode to spoof the window state and force Xcode to open to a specific file
+                //
+                // I've asked a question on StackOverflow to try find a better way to do this:
+                // https://stackoverflow.com/questions/44346442/open-xcode-project-and-set-active-file-from-terminal
+                sleep(1)
+                
+                if arguments.contains("--tests") {
+                    // Should we print out a message saying that we're opening tests?
+                    // printer.output("✅  Opening \(name) tests")
+                    
+                    // This opens the tests.swift file in the instance of Xcode that was just opened
+                    let testsPath = try self.testsPath(from: arguments)
+                    try shellOut(to: "open \"\(testsPath)\"", printer: printer)
+                } else {
+                    // This ensures that main.swift will be the active file in the instance of Xcode that was just opened
+                    // If you run `marathon edit Foo --tests` then `marathon edit Foo` without this block, Xcode will open to the test.swift file
+                    // This is to match the user's intentions of which file they'd like to edit
+                    let main = folder.path + "/Sources/main.swift"
+                    try shellOut(to: "open \"\(main)\"", printer: printer)
+                }
 
                 if path.hasSuffix(".xcodeproj/") {
                     printer.output("\nℹ️  Marathon will keep running, in order to commit any changes you make in Xcode back to the original script file")
@@ -142,7 +176,11 @@ internal final class Script {
                 }
             }
         } catch {
-            throw Error.editingFailed(name)
+            if arguments.contains("--tests") {
+                throw Error.editingTestsFailed(name)
+            } else {
+                throw Error.editingFailed(name)
+            }
         }
     }
     
@@ -168,10 +206,18 @@ internal final class Script {
 
     private func editingPath(from arguments: [String]) throws -> String {
         guard !arguments.contains("--no-xcode") else {
-            return try expandSymlink()
+            return try arguments.contains("--tests") ? expandTestsSymlink() : expandSymlink()
         }
 
         return try generateXcodeProject().path
+    }
+    
+    private func testsPath(from arguments: [String]) throws -> String {
+        guard let path = arguments.first else {
+            throw Error.editingTestsFailed(name)
+        }
+        
+        return folder.path + "Tests/" + "\(name)Tests/" + path.asTestScriptPath()
     }
 
     private func generateXcodeProject() throws -> Folder {
@@ -181,6 +227,10 @@ internal final class Script {
 
     private func expandSymlink() throws -> String {
         return try folder.moveToAndPerform(command: "readlink OriginalFile", printer: printer)
+    }
+    
+    private func expandTestsSymlink() throws -> String {
+        return try folder.moveToAndPerform(command: "readlink OriginalTestsFile", printer: printer)
     }
 
     private func startCopyLoop() {
