@@ -414,6 +414,17 @@ class MarathonTests: XCTestCase {
         try run(with: ["run", "script"])
     }
 
+    func testCreatingScriptWithExistingPathRunsEditInstead() throws {
+        let scriptFolder = try folder.createSubfolder(named: "testScript")
+        let script = "import Foundation\nprint(\"I'm a script!\")"
+        let scriptFile = try scriptFolder.createFile(named: "Script.swift")
+        try scriptFile.write(string: script)
+
+        // Running create on the script should edit it instead of overwriting it
+        try run(with: ["create", scriptFile.path, "--no-open"])
+        XCTAssertEqual(try scriptFile.readAsString(), script)
+    }
+
     // MARK: - Editing scripts
 
     func testEditingScriptWithoutPathThrows() {
@@ -820,6 +831,7 @@ extension MarathonTests {
             ("testCreatingScriptWithPath", testCreatingScriptWithPath),
             ("testCreatingScriptWithContent", testCreatingScriptWithContent),
             ("testCreatingAndRunningScriptInFolderWithSpaces", testCreatingAndRunningScriptInFolderWithSpaces),
+            ("testCreatingScriptWithExistingPathRunsEditInstead", testCreatingScriptWithExistingPathRunsEditInstead),
             ("testEditingScriptWithoutPathThrows", testEditingScriptWithoutPathThrows),
             ("testEditingScriptWithoutXcode", testEditingScriptWithoutXcode),
             ("testEditingMissingLocalScriptThrowsProperError", testEditingMissingLocalScriptThrowsProperError),
