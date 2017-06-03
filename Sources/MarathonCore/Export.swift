@@ -11,7 +11,6 @@ import Files
 
 public enum ExportError {
     case missingPath
-    case noMarathonScriptFound
     case failedToExportScript(String)
 }
 
@@ -20,8 +19,6 @@ extension ExportError: PrintableError {
         switch self {
         case .missingPath:
             return "No script name/path given"
-        case .noMarathonScriptFound:
-            return "No marathon scripts found"
         case .failedToExportScript(let name):
             return "Failed to export script \(name)"
         }
@@ -31,8 +28,6 @@ extension ExportError: PrintableError {
         switch self {
         case .missingPath:
             return ["Pass the name/path of a script file to export (for example 'marathon export myScript')"]
-        case .noMarathonScriptFound:
-            return ["Marathon can only export scripts managed by marathon"]
         case .failedToExportScript:
             return ["Remove directory or provide alternate export path"]
         }
@@ -47,27 +42,15 @@ internal final class ExportTask: Task, Executable {
     func execute() throws {
 
         // Required argument given?
-        guard let scriptNameOrPath = arguments.first?.asScriptPath() else {
+        guard let exportScriptPath = arguments.first?.asScriptPath() else {
             throw Error.missingPath
         }
 
-        // Script Name or Full Script Path given?
-        let isScriptName = scriptNameOrPath.components(separatedBy: "/").count == 1
-
-        let file: File
-        if isScriptName {
-            // Does File exist in current directory?
-            file = try FileSystem().currentFolder.file(atPath: scriptNameOrPath)
-        } else {
-            // Does File exist at full path?
-            file = try FileSystem().createFile(at: scriptNameOrPath)
-        }
-
-        // Is the File a script managed by marathon?
-        let isManagedScript = !(scriptManager.managedScriptPaths.filter { $0 == file.path }.isEmpty)
-        guard isManagedScript else {
-            throw Error.noMarathonScriptFound
-        }
+        let script = try scriptManager.script(at: exportScriptPath, allowRemote: false)
+        let pathComponents = exportScriptPath.components(separatedBy: "/")
+        let scriptName = pathComponents.filter({ $0.contains(".swift")}).first?.asScriptName ?? script.name
+        let tempPath = script.folder.path.appending(scriptName.asScriptPath())
+        let tempFile = try FileSystem().createFile(at: tempPath)
 
         let exportFolder: Folder
         if arguments.count > 1 && !arguments[1].contains("--force") {
@@ -78,10 +61,8 @@ internal final class ExportTask: Task, Executable {
             exportFolder = FileSystem().currentFolder
         }
 
-        let scriptName = file.scriptName
-        let exportPath = exportFolder.path.appending(scriptName)
-
         // If directory already exists at path and --force flag not passed, then ask for overwrite permission
+        let exportPath = exportFolder.path.appending(scriptName)
         let existingProjectFolder = try? exportFolder.subfolder(atPath: scriptName)
         if existingProjectFolder != nil && !arguments.contains("--force") {
             printer.output("⚠️  A directory already exists at \(exportPath)")
@@ -92,7 +73,8 @@ internal final class ExportTask: Task, Executable {
         }
 
         try existingProjectFolder?.delete() // Otherwise, delete the existing folder if it exists
-        try perform(export(file, to: exportFolder), orThrow: Error.failedToExportScript(file.name))
+        try perform(export(tempFile, to: exportFolder), orThrow: Error.failedToExportScript(tempFile.name))
+        try tempFile.delete() // clean up temp file
     }
 
     private func export(_ file: File, to folder: Folder) throws {
@@ -151,6 +133,12 @@ internal final class ExportTask: Task, Executable {
         }
 
         return fileString
+    }
+}
+
+private extension String {
+    var asScriptName: String {
+        return replacingOccurrences(of: ".swift", with: "")
     }
 }
 
