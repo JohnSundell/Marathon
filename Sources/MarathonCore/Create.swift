@@ -43,16 +43,25 @@ internal final class CreateTask: Task, Executable {
         guard let path = arguments.first?.asScriptPath() else {
             throw Error.missingName
         }
-        
+      
+        guard (try? File(path: path)) == nil else {
+            let editTask = EditTask(
+                folder: folder,
+                arguments: arguments,
+                scriptManager: scriptManager,
+                packageManager: packageManager,
+                printer: printer
+            )
+
+            return try editTask.execute()
+        }
+      
         let scriptFile = try createScriptIfNeeded(atPath: path)
         
         if arguments.contains("--tests") {
             try createTests(atPath: path)
         }
-        // TODO: else delete tests if needed?
-        // @johnsundell running create twice will overwrite the first script, right?
-        // If so, we should delete the first script's tests as well (if there were tests)
-        
+
         if !argumentsContainNoOpenFlag {
             let script = try scriptManager.script(at: scriptFile.path)
             try script.edit(arguments: arguments, open: true)
@@ -63,7 +72,7 @@ internal final class CreateTask: Task, Executable {
         if arguments.contains("--tests"), let file = try? Folder.current.file(atPath: path) {
             return file
         }
-        
+      
         guard let data = makeScriptContent().data(using: .utf8) else {
             throw Error.failedToCreateFile(path)
         }
@@ -72,7 +81,7 @@ internal final class CreateTask: Task, Executable {
                                orThrow: Error.failedToCreateFile(path))
         
         printer.output("🐣  Created script at \(path)")
-        
+
         return file
     }
     

@@ -31,6 +31,24 @@ To generate an Xcode project to begin development, run `$ swift package generate
 
 It's recommended that you re-generate the Xcode project whenever you pull down new changes, as files might've been added or removed.
 
+Marathon uses [SwiftLint](https://github.com/realm/SwiftLint) to enforce Swift style and conventions. The easiest way to install SwiftLint is using [Homebrew](https://brew.sh/):
+
+```bash
+brew install swiftlint
+```
+
+Make sure there are no linting warnings or errors by running `$ swiftlint` in the Marathon repository before submitting your changes. You can integrate SwiftLint into your generated Xcode project to get warnings and errors displayed inline in the editor, by adding the following as a new "Run Script Phase":
+
+```bash
+if which swiftlint >/dev/null; then
+  swiftlint
+else
+  echo "warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint"
+fi
+```
+
+Unfortunately, you have to add it again if you re-generate the Xcode project for now, so it's recommended to use `$ swiftlint` in the Marathon repository.
+
 ## Running tests
 
 Tests should be added for all functionality, both when adding new behaviors to existing features, and implementing new ones.

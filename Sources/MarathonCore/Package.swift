@@ -6,6 +6,7 @@
 
 import Foundation
 import Unbox
+import Releases
 
 public struct Package {
     public let name: String
@@ -38,5 +39,21 @@ internal extension Package {
         }
 
         return "\(name)-"
+    }
+}
+
+internal extension Package {
+    struct Pinned {
+        let name: String
+        let url: URL
+        let version: Version
+    }
+}
+
+extension Package.Pinned: Unboxable {
+    init(unboxer: Unboxer) throws {
+        name = try unboxer.unbox(key: "package")
+        url = try unboxer.unbox(key: "repositoryURL")
+        version = try unboxer.unbox(key: "version")
     }
 }

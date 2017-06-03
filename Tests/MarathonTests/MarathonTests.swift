@@ -198,6 +198,16 @@ class MarathonTests: XCTestCase {
                throwsError: PackageManagerError.packageAlreadyAdded("Files"))
     }
 
+    func testTreatingNestedDependenciesAsAdded() throws {
+        // Xgen depends on Files
+        try run(with: ["add", "https://github.com/JohnSundell/Xgen.git"])
+
+        // Make sure both Xgen & Files are indexed by running 'list'
+        let listOutput = try run(with: ["list"])
+        XCTAssertTrue(listOutput.contains("Xgen (https://github.com/JohnSundell/Xgen.git)"))
+        XCTAssertTrue(listOutput.contains("Files (https://github.com/JohnSundell/Files.git)"))
+    }
+
     // MARK: - Running scripts
 
     func testRunningScriptWithoutPathThrows() {
@@ -345,15 +355,15 @@ class MarathonTests: XCTestCase {
         let reInstalledOutput = try folder.moveToAndPerform(command: "./installed-script")
         XCTAssertEqual(reInstalledOutput, "Re-installed")
     }
-    
+
     func testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL() throws {
         let gitHubURLString = "https://github.com/JohnSundell/Marathon-Examples/blob/master/AddSuffix/addSuffix.swift"
-        try testInstallingRemoteScriptWithDependenciesUsingURL(gitHubURLString)
+        try performTestForInstallingRemoteScriptWithDependenciesUsingURL(gitHubURLString)
     }
-    
+
     func testInstallingRemoteScriptWithDependenciesUsingRawGithubURL() throws {
         let rawGitHubURLString = "https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/addSuffix.swift"
-        try testInstallingRemoteScriptWithDependenciesUsingURL(rawGitHubURLString)
+        try performTestForInstallingRemoteScriptWithDependenciesUsingURL(rawGitHubURLString)
     }
 
     // MARK: - Creating scripts
@@ -404,13 +414,24 @@ class MarathonTests: XCTestCase {
         try run(with: ["run", "script"])
     }
 
+    func testCreatingScriptWithExistingPathRunsEditInstead() throws {
+        let scriptFolder = try folder.createSubfolder(named: "testScript")
+        let script = "import Foundation\nprint(\"I'm a script!\")"
+        let scriptFile = try scriptFolder.createFile(named: "Script.swift")
+        try scriptFile.write(string: script)
+
+        // Running create on the script should edit it instead of overwriting it
+        try run(with: ["create", scriptFile.path, "--no-open"])
+        XCTAssertEqual(try scriptFile.readAsString(), script)
+    }
+
     // MARK: - Editing scripts
 
     func testEditingScriptWithoutPathThrows() {
         assert(try run(with: ["edit"]), throwsError: EditError.missingPath)
     }
 
-    func testEditingScriptWithXcode() throws {
+    func testEditingScriptWithXcodeOnMacOS() throws {
         let script = "import Foundation"
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: script)
@@ -432,6 +453,18 @@ class MarathonTests: XCTestCase {
         let scriptFolders = try folder.subfolder(atPath: "Scripts/Cache").subfolders
         XCTAssertEqual(scriptFolders.count, 1)
         XCTAssertNil(try? scriptFolders.first.require().subfolder(named: "Script.xcodeproj"))
+    }
+
+    func testEditingMissingLocalScriptThrowsProperError() {
+        assert(try run(with: ["edit", "NotAScript"]),
+               throwsError: ScriptManagerError.scriptNotFound("NotAScript.swift"))
+    }
+
+    func testEditingRemoteScriptThrowsError() {
+        let testDriveURL = "https://raw.githubusercontent.com/JohnSundell/TestDrive/master/Sources/TestDrive.swift"
+
+        assert(try run(with: ["edit", testDriveURL]),
+               throwsError: ScriptManagerError.remoteScriptNotAllowed)
     }
 
     // MARK: - Removing script data
@@ -700,6 +733,26 @@ class MarathonTests: XCTestCase {
                            "\(file.name) shells out to swift directly, use shellOutToSwiftCommand() instead")
         }
     }
+
+    // MARK: - Test verification
+
+    func testAllTestsRunOnLinux() throws {
+        let source = try File(path: #file).readAsString()
+        let linuxTestNames = Set(MarathonTests.allTests.map({ $0.0 }))
+
+        for line in source.components(separatedBy: .newlines) {
+            let line = line.trimmingCharacters(in: .whitespaces)
+
+            guard line.hasPrefix("func test") && !line.contains("MacOS") else {
+                continue
+            }
+
+            let testName = line.components(separatedBy: "(")[0].components(separatedBy: " ")[1]
+
+            XCTAssertTrue(linuxTestNames.contains(testName),
+                          "Test named \(testName) has not been added to run on Linux. Add it to the 'allTests' array.")
+        }
+    }
 }
 
 // MARK: - Utilities
@@ -745,17 +798,18 @@ fileprivate extension MarathonTests {
 
 // MARK: - Linux
 
-#if os(Linux)
 extension MarathonTests {
-    static var allTests : [(String, (MarathonTests) -> () throws -> Void)] {
+    static var allTests: [(String, (MarathonTests) -> () throws -> Void)] {
         return [
             ("testInvalidCommandThrows", testInvalidCommandThrows),
             ("testAddingAndRemovingRemotePackage", testAddingAndRemovingRemotePackage),
             ("testAddingAndRemovingLocalPackage", testAddingAndRemovingLocalPackage),
             ("testRemovingAllPackages", testRemovingAllPackages),
+            ("testAddingLocalPackage", testAddingLocalPackage),
             ("testAddingLocalPackageWithDependency", testAddingLocalPackageWithDependency),
             ("testAddingLocalPackageWithUnsortedVersionsContainingLetters", testAddingLocalPackageWithUnsortedVersionsContainingLetters),
             ("testAddingAlreadyAddedPackageThrows", testAddingAlreadyAddedPackageThrows),
+            ("testTreatingNestedDependenciesAsAdded", testTreatingNestedDependenciesAsAdded),
             ("testRunningScriptWithoutPathThrows", testRunningScriptWithoutPathThrows),
             ("testRunningScript", testRunningScript),
             ("testRunningScriptWithNewDependency", testRunningScriptWithNewDependency),
@@ -766,6 +820,9 @@ extension MarathonTests {
             ("testPassingArgumentsToScript", testPassingArgumentsToScript),
             ("testCurrentWorkingDirectoryOfScriptIsExecutionFolder", testCurrentWorkingDirectoryOfScriptIsExecutionFolder),
             ("testScriptWithLargeAmountOfOutput", testScriptWithLargeAmountOfOutput),
+            ("testRunningScriptWithVerboseOutput", testRunningScriptWithVerboseOutput),
+            ("testRunningRemoteScriptFromURL", testRunningRemoteScriptFromURL),
+            ("testRunningRemoteScriptFromGitHubRepository", testRunningRemoteScriptFromGitHubRepository),
             ("testInstallingLocalScript", testInstallingLocalScript),
             ("testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL", testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL),
             ("testInstallingRemoteScriptWithDependenciesUsingRawGithubURL", testInstallingRemoteScriptWithDependenciesUsingRawGithubURL),
@@ -774,8 +831,11 @@ extension MarathonTests {
             ("testCreatingScriptWithPath", testCreatingScriptWithPath),
             ("testCreatingScriptWithContent", testCreatingScriptWithContent),
             ("testCreatingAndRunningScriptInFolderWithSpaces", testCreatingAndRunningScriptInFolderWithSpaces),
+            ("testCreatingScriptWithExistingPathRunsEditInstead", testCreatingScriptWithExistingPathRunsEditInstead),
             ("testEditingScriptWithoutPathThrows", testEditingScriptWithoutPathThrows),
             ("testEditingScriptWithoutXcode", testEditingScriptWithoutXcode),
+            ("testEditingMissingLocalScriptThrowsProperError", testEditingMissingLocalScriptThrowsProperError),
+            ("testEditingRemoteScriptThrowsError", testEditingRemoteScriptThrowsError),
             ("testRemovingScriptCacheData", testRemovingScriptCacheData),
             ("testRemovingScriptCacheDataForDeletedScript", testRemovingScriptCacheDataForDeletedScript),
             ("testRemovingAllScriptData", testRemovingAllScriptData),
@@ -784,31 +844,33 @@ extension MarathonTests {
             ("testAddingLocalPackageUsingRelativePathInMarathonfile", testAddingLocalPackageUsingRelativePathInMarathonfile),
             ("testAddingOtherScriptAsDependencyUsingMarathonfile", testAddingOtherScriptAsDependencyUsingMarathonfile),
             ("testIncorrectlyFormattedMarathonfileThrows", testIncorrectlyFormattedMarathonfileThrows),
+            ("testResolvingInlineDependencies", testResolvingInlineDependencies),
+            ("testInlineDependencyWithDifferentCasingAsAlreadyAddedPackageNotAdded", testInlineDependencyWithDifferentCasingAsAlreadyAddedPackageNotAdded),
             ("testNoDirectUsesOfPrintFunction", testNoDirectUsesOfPrintFunction),
-            ("testNoDirectUsesOfShellOut", testNoDirectUsesOfShellOut)
+            ("testNoDirectUsesOfShellOut", testNoDirectUsesOfShellOut),
+            ("testAllTestsRunOnLinux", testAllTestsRunOnLinux)
         ]
     }
 }
-#endif
 
 // MARK: - Abstract Test Cases
 
 fileprivate extension MarathonTests {
-    func testInstallingRemoteScriptWithDependenciesUsingURL(_ urlString: String) throws {
+    func performTestForInstallingRemoteScriptWithDependenciesUsingURL(_ urlString: String) throws {
         try run(with: ["install", urlString, "installed-script"])
-        
+
         // Make a couple of files that we can try the installed script on
         let executionFolder = try folder.createSubfolder(named: "TestInstallation")
         try executionFolder.createFile(named: "A.swift")
         try executionFolder.createFile(named: "B.swift")
-        
+
         // Run the installed binary
         try executionFolder.moveToAndPerform(command: "../installed-script -suffix")
         XCTAssertEqual(executionFolder.files.names, ["A-suffix.swift", "B-suffix.swift"])
-        
+
         // List should not contain the script, as it was only added temporarily
         try XCTAssertFalse(run(with: ["list"]).lowercased().contains("addsuffix"))
-        
+
         // Make sure that the temporary folder for the script is cleaned up
         try XCTAssertEqual(folder.subfolder(atPath: "Scripts/Temp").subfolders.count, 0)
     }
