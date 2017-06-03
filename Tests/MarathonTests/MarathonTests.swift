@@ -444,6 +444,18 @@ class MarathonTests: XCTestCase {
         XCTAssertNil(try? scriptFolders.first.require().subfolder(named: "Script.xcodeproj"))
     }
 
+    func testEditingMissingLocalScriptThrowsProperError() {
+        assert(try run(with: ["edit", "NotAScript"]),
+               throwsError: ScriptManagerError.scriptNotFound("NotAScript.swift"))
+    }
+
+    func testEditingRemoteScriptThrowsError() {
+        let testDriveURL = "https://raw.githubusercontent.com/JohnSundell/TestDrive/master/Sources/TestDrive.swift"
+
+        assert(try run(with: ["edit", testDriveURL]),
+               throwsError: ScriptManagerError.remoteScriptNotAllowed)
+    }
+
     // MARK: - Removing script data
 
     func testRemovingScriptCacheData() throws {
@@ -810,6 +822,8 @@ extension MarathonTests {
             ("testCreatingAndRunningScriptInFolderWithSpaces", testCreatingAndRunningScriptInFolderWithSpaces),
             ("testEditingScriptWithoutPathThrows", testEditingScriptWithoutPathThrows),
             ("testEditingScriptWithoutXcode", testEditingScriptWithoutXcode),
+            ("testEditingMissingLocalScriptThrowsProperError", testEditingMissingLocalScriptThrowsProperError),
+            ("testEditingRemoteScriptThrowsError", testEditingRemoteScriptThrowsError),
             ("testRemovingScriptCacheData", testRemovingScriptCacheData),
             ("testRemovingScriptCacheDataForDeletedScript", testRemovingScriptCacheDataForDeletedScript),
             ("testRemovingAllScriptData", testRemovingAllScriptData),

@@ -19,6 +19,7 @@ public enum ScriptManagerError {
     case invalidInlineDependencyURL(String)
     case noSwiftFilesInRepository(URL)
     case multipleSwiftFilesInRepository(URL, [File])
+    case remoteScriptNotAllowed
 }
 
 extension ScriptManagerError: PrintableError {
@@ -40,13 +41,15 @@ extension ScriptManagerError: PrintableError {
             return "No Swift files found in repository at '\(url.absoluteString)'"
         case .multipleSwiftFilesInRepository(let url, _):
             return "Multiple Swift files found in repository at '\(url.absoluteString)'"
+        case .remoteScriptNotAllowed:
+            return "Remote scripts cannot be used with this command"
         }
     }
 
     public var hints: [String] {
         switch self {
-        case .scriptNotFound(_):
-            return ["Please check that the path is valid and try again"]
+        case .scriptNotFound(let path):
+            return ["You can create a script at the given path by running 'marathon create \(path)'"]
         case .failedToCreatePackageFile(let folder),
              .failedToRemoveScriptFolder(let folder):
             return ["Make sure you have write permissions to the folder '\(folder.path)'"]
@@ -59,6 +62,8 @@ extension ScriptManagerError: PrintableError {
         case .multipleSwiftFilesInRepository(_, let files):
             let fileNames = files.map({ $0.name }).joined(separator: "\n- ")
             return ["Please run one of the following scripts using its direct URL instead:\n- \(fileNames)"]
+        case .remoteScriptNotAllowed:
+            return ["You can only run or install remote scripts"]
         }
     }
 }
@@ -94,28 +99,40 @@ internal final class ScriptManager {
 
     // MARK: - API
 
-    func script(at path: String) throws -> Script {
+    func script(at path: String, allowRemote: Bool) throws -> Script {
         if let file = try? File(path: path.asScriptPath()) {
             return try script(from: file)
         }
 
-        if !path.hasPrefix("http") && !path.hasPrefix("git@") && !path.hasPrefix("github") {
-            guard let gitHubURL = URL(string: "https://github.com/\(path).git") else {
+        if path.hasPrefix("http") || path.hasPrefix("git@") {
+            guard allowRemote else {
+                throw Error.remoteScriptNotAllowed
+            }
+
+            guard let url = URL(string: path) else {
                 throw Error.scriptNotFound(path)
             }
 
-            return try downloadScriptFromRepository(at: gitHubURL)
+            if path.hasSuffix(".git") {
+                return try downloadScriptFromRepository(at: url)
+            }
+
+            return try downloadScript(from: url)
         }
 
-        guard let url = URL(string: path) else {
+        guard !path.contains(".") else {
             throw Error.scriptNotFound(path)
         }
 
-        if path.hasSuffix(".git") {
-            return try downloadScriptFromRepository(at: url)
+        guard allowRemote else {
+            throw Error.remoteScriptNotAllowed
         }
 
-        return try downloadScript(from: url)
+        guard let gitHubURL = URL(string: "https://github.com/\(path).git") else {
+            throw Error.scriptNotFound(path)
+        }
+
+        return try downloadScriptFromRepository(at: gitHubURL)
     }
 
     func removeDataForScript(at path: String) throws {
