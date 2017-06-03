@@ -138,7 +138,7 @@ internal final class ScriptManager {
         }
     }
     
-    func addTest(file testFile: File, to script: Script) throws {
+    func addTestFile(_ testFile: File, to script: Script) throws {
         do {
             try createTestsFolderIfNeeded(for: script, file: testFile)
         } catch {
@@ -244,7 +244,7 @@ internal final class ScriptManager {
         let scriptFolder = try cacheFolder.createSubfolderIfNeeded(withName: identifier)
         try packageManager.symlinkPackages(to: scriptFolder)
 
-        if (try? scriptFolder.file(named: "OriginalFile")) == nil {
+        if !scriptFolder.containsFile(named: "OriginalFile") {
             try scriptFolder.createSymlink(to: file.path, at: "OriginalFile", printer: printer)
         }
 
@@ -256,26 +256,19 @@ internal final class ScriptManager {
     }
     
     @discardableResult private func createTestsFolderIfNeeded(for script: Script, file: File) throws -> Folder {
-        if (try? script.folder.file(named: "OriginalTestsFile")) == nil {
+        if !script.folder.containsFile(named: "OriginalTestsFile") {
             try script.folder.createSymlink(to: file.path, at: "OriginalTestsFile", printer: printer)
         }
         
         let testsFolder = try script.folder.createSubfolderIfNeeded(withName: "Tests")
         try testsFolder.empty()
         
-        let testsModuleFolder = try testsFolder.createSubfolder(named: script.name + "Tests")
+        let testsModuleFolder = try testsFolder.createSubfolderIfNeeded(withName: script.name + "Tests")
         try testsModuleFolder.empty()
         try testsModuleFolder.createFile(named: file.name, contents: file.read())
         
-        // TODO: Determine why LinuxMain.swift is missing from the .xcodeproj when opened.
-        // It might be because I'm not on Linux? See if someone can verify that assumption.
-        let content = "import XCTest\n" +
-                "@testable import \(script.name)\n\n" +
-                "XCTMain([\n" +
-                "\ttestCase(\(script.name).allTests),\n" +
-                "])\n"
+        let content = makeLinuxMainTestFileContent(for: script)
         let data = content.data(using: .utf8)!
-        
         try testsFolder.createFile(named: "LinuxMain.swift", contents: data)
         
         return testsFolder
@@ -342,4 +335,14 @@ internal final class ScriptManager {
             return path
         }
     }
+    
+    private func makeLinuxMainTestFileContent(for script: Script) -> String {
+        let content = "import XCTest\n" +
+            "@testable import \(script.name)\n\n" +
+            "XCTMain([\n" +
+            "\ttestCase(\(script.name).allTests),\n" +
+            "])\n"
+        return content
+    }
+    
 }
