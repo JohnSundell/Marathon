@@ -63,7 +63,7 @@ internal final class CreateTask: Task, Executable {
         }
 
         if !argumentsContainNoOpenFlag {
-            let script = try scriptManager.script(at: scriptFile.path)
+            let script = try scriptManager.script(at: scriptFile.path, allowRemote: false)
             try script.edit(arguments: arguments, open: true)
         }
     }
@@ -86,7 +86,7 @@ internal final class CreateTask: Task, Executable {
     }
     
     @discardableResult private func createTests(atPath path: String) throws -> File {
-        let script = try scriptManager.script(at: path)
+        let script = try scriptManager.script(at: path, allowRemote: false)
         
         guard let testPath = arguments.first?.asTestScriptPath() else {
             throw Error.missingName
