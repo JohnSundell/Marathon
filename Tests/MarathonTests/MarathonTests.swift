@@ -734,6 +734,13 @@ class MarathonTests: XCTestCase {
         }
     }
 
+    func testShellAutocompletionsInstallation() throws {
+        try run(with: [])
+        XCTAssertTrue(folder.containsSubfolder(named: "ShellAutocomplete"), "Root folder should contain ShellAutocomplete subfolder")
+        let autocompleteFolder = try folder.subfolder(atPath: "ShellAutocomplete")
+        XCTAssertTrue(autocompleteFolder.subfolders.count > 0, "Autocompletions folder should contain some autocompletion files")
+    }
+    
     // MARK: - Test verification
 
     func testAllTestsRunOnLinux() throws {
@@ -848,6 +855,7 @@ extension MarathonTests {
             ("testInlineDependencyWithDifferentCasingAsAlreadyAddedPackageNotAdded", testInlineDependencyWithDifferentCasingAsAlreadyAddedPackageNotAdded),
             ("testNoDirectUsesOfPrintFunction", testNoDirectUsesOfPrintFunction),
             ("testNoDirectUsesOfShellOut", testNoDirectUsesOfShellOut),
+            ("testShellAutocompletionsInstallation", testShellAutocompletionsInstallation),
             ("testAllTestsRunOnLinux", testAllTestsRunOnLinux)
         ]
     }

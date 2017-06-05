@@ -176,11 +176,15 @@ otherScript.swift
 
 ## Shell autocomplete
 
-Marathon includes autocomplete for the `zsh` shell (PRs adding support for other shells is more than welcome!). To enable it, do the following:
+Marathon includes autocomplete for the `zsh` and `fish` shells (PRs adding support for other shells is more than welcome!). To enable it, do the following:
 
-- Add the line `fpath=(~/.marathon/zsh $fpath)` to your `~/.zshrc` file.
-- Add the line `autoload -Uz compinit && compinit -i` to your `~/.zshrc` file if it doesn't already contain it.
-- Restart your terminal.
++ `zsh`:
+    - Add the line `fpath=(~/.marathon/ShellAutocomplete/zsh $fpath)` to your `~/.zshrc` file.
+    - Add the line `autoload -Uz compinit && compinit -i` to your `~/.zshrc` file if it doesn't already contain it.
+    - Restart your terminal.
+
++ `fish`:
+    - `cp -f ~/.marathon/ShellAutocomplete/fish/marathon.fish ~/.config/fish/completions`
 
 You can now type `marathon r` and have it be autocompleted to `marathon run` 🎉
 

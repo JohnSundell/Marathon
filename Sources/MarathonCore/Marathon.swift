@@ -40,8 +40,9 @@ public final class Marathon {
             let rootFolder = try fileSystem.createFolderIfNeeded(at: folderPath)
             let packageFolder = try rootFolder.createSubfolderIfNeeded(withName: "Packages")
             let scriptFolder = try rootFolder.createSubfolderIfNeeded(withName: "Scripts")
+            let autocompletionsFolder = try rootFolder.createSubfolderIfNeeded(withName: "ShellAutocomplete")
 
-            installShellAutocompleteIfNeeded(in: rootFolder)
+            installShellAutocompleteIfNeeded(in: autocompletionsFolder)
 
             let packageManager = try PackageManager(folder: packageFolder, printer: printer)
             let scriptManager = try ScriptManager(folder: scriptFolder, packageManager: packageManager, printer: printer)
@@ -103,5 +104,6 @@ public final class Marathon {
 
     private static func installShellAutocompleteIfNeeded(in folder: Folder) {
         ZshAutocompleteInstaller.installIfNeeded(in: folder)
+        FishAutocompleteInstaller.installIfNeeded(in: folder)
     }
 }
