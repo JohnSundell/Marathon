@@ -60,18 +60,18 @@ Marathon uses `XCTest` to run its tests, which can either be run through Xcode o
 ### Writing tests
 
 Marathon is available both on macOS and Linux. For that reason there are two CI systems running simultaneously:
-+ buddybuild is a macOS CI
-+ Travis is Linux CI
++ [BuddyBuild](https://buddybuild.com) for macOS
++ [Travis](https://travis-ci.org) for Linux
 
-Respectively, platform specific tests are run on different CI and results from both are integrated into PR. If one fails, you can easily determine platform on which it's impossible to complete tests.
+Platform specific tests are run on each respective CI and results from both are integrated into every PR. If one fails, you can easily determine which platform the tests failed on.
 
-Marathon is mainly based on manipulating file system. For that reasons there are some convenience methods available in test suit which may help you achieve things easily and will keep an eye on what's happening in test suit. Below you may find some _tips_ for writing new test cases:
+Marathon realies heavily on the file system to do its work. For that reason there are some convenience methods available in test suite which may help you achieve things easily and will keep an eye on what's happening in test suite. Here are some tips for writing new test cases:
 
 + Be sure to prefix tests with `test` eg. `testAllTestsRunOnLinux`.
-+ If test is macOS specific, be sure to add `MacOS` in the function's signature eg. `testEditingScriptWithXcodeOnMacOS`.
-+ After writing new test function, make sure you've added it to `allTests` array, otherwise you'll get an error.
-+ Since we run tests on CI, if you want to reference to `~/.marathon` folder you know, plese use property named `folder` as it's the one using properly set up reference to build result.
-+ Be sure you've run Marathon in your test function, otherwise it means Marthon hasn't been installed and isn't present (ergo, you can't use it). For this reason you can use `run(with:)` function which is a cenoveninece wrapper. You just pass and array of arguments and you're good to go.
++ If the test is macOS specific, be sure to add `MacOS` in the function's signature, eg. `testEditingScriptWithXcodeOnMacOS`.
++ After writing a new test function, make sure you've added it to the `allTests` array, otherwise you'll get an error.
++ Since we run tests on CI, if you want to reference the main `~/.marathon` folder in a test, plese use property named `folder` since a special folder is created for each test run.
++ Make sure each test runs Marathon, otherwise it hasn't been installed and isn't present. To do this, simply use the `run(with:)` method, which is a convenience wrapper. You just pass and array of arguments and you're good to go.
 
 ## Architectural overview
 
