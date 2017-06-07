@@ -190,6 +190,18 @@ internal final class PackageManager {
                 try buildFolder.createSymlink(to: workspaceStateFile.path, at: "workspace-state.json", printer: printer)
             }
         }
+
+        if let dependenciesStateFile = try? generatedFolder.file(atPath: ".build/dependencies-state.json") {
+            if !buildFolder.containsFile(named: "dependencies-state.json") {
+                try buildFolder.createSymlink(to: dependenciesStateFile.path, at: "dependencies-state.json", printer: printer)
+            }
+        }
+
+        if let resolvedPackageFile = try? generatedFolder.file(named: "Package.resolved") {
+            if !folder.containsFile(named: "Package.resolved") {
+                try folder.createSymlink(to: resolvedPackageFile.path, at: "Package.resolved", printer: printer)
+            }
+        }
     }
 
     func updateAllPackagesToLatestMajorVersion() throws {
