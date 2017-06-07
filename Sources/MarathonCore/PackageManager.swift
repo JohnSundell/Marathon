@@ -170,8 +170,7 @@ internal final class PackageManager {
 
     func symlinkPackages(to folder: Folder) throws {
         guard let checkoutsFolder = try? generatedFolder.subfolder(atPath: ".build/checkouts"),
-              let repositoriesFolder = try? generatedFolder.subfolder(atPath: ".build/repositories"),
-              let workspaceStateFile = try? generatedFolder.file(atPath: ".build/workspace-state.json") else {
+              let repositoriesFolder = try? generatedFolder.subfolder(atPath: ".build/repositories") else {
             try updatePackages()
             return try symlinkPackages(to: folder)
         }
@@ -186,8 +185,10 @@ internal final class PackageManager {
             try buildFolder.createSymlink(to: repositoriesFolder.path, at: "repositories", printer: printer)
         }
 
-        if !buildFolder.containsFile(named: "workspace-state.json") {
-            try buildFolder.createSymlink(to: workspaceStateFile.path, at: "workspace-state.json", printer: printer)
+        if let workspaceStateFile = try? generatedFolder.file(atPath: ".build/workspace-state.json") {
+            if !buildFolder.containsFile(named: "workspace-state.json") {
+                try buildFolder.createSymlink(to: workspaceStateFile.path, at: "workspace-state.json", printer: printer)
+            }
         }
     }
 
@@ -300,10 +301,7 @@ internal final class PackageManager {
 
     private func addMissingPackageFiles() {
         do {
-            let pinnedPackagesData = try generatedFolder.file(named: "Package.pins").read()
-            let pinnedPackages: [Package.Pinned] = try unbox(data: pinnedPackagesData, atKeyPath: "pins")
-
-            for pinnedPackage in pinnedPackages {
+            for pinnedPackage in try resolvePinnedPackages() {
                 guard !folder.containsFile(named: pinnedPackage.name) else {
                     continue
                 }
@@ -319,6 +317,17 @@ internal final class PackageManager {
         } catch {
             // We do "best effort" here, and don't threat errors as criticial
         }
+    }
+
+    private func resolvePinnedPackages() throws -> [Package.Pinned] {
+        // Look for a Package.resolved file (used by the latest Swift toolchains)
+        if let resolvedPackageFile = try? generatedFolder.file(named: "Package.resolved") {
+            return try unbox(data: resolvedPackageFile.read(), atKeyPath: "object.pins")
+        }
+
+        // Fallback to a 3.1 toolchain Packages.pins file
+        let pinsFile = try generatedFolder.file(named: "Package.pins")
+        return try unbox(data: pinsFile.read(), atKeyPath: "pins")
     }
 
     private func generateMasterPackageDescription() throws {

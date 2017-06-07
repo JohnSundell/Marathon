@@ -307,7 +307,7 @@ internal final class ScriptManager {
     }
 
     private func makeManagedScriptPathList() -> [String] {
-        return cacheFolder.subfolders.flatMap { scriptFolder in
+        return cacheFolder.subfolders.flatMap { (scriptFolder) -> String? in
             guard let path = try? scriptFolder.moveToAndPerform(command: "readlink OriginalFile", printer: printer) else {
                 return nil
             }
