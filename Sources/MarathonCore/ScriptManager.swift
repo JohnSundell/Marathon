@@ -99,7 +99,7 @@ internal final class ScriptManager {
 
     // MARK: - API
 
-    func script(at path: String, allowRemote: Bool) throws -> Script {
+    func script(atPath path: String, allowRemote: Bool) throws -> Script {
         if let file = try? File(path: path.asScriptPath()) {
             return try script(from: file)
         }
