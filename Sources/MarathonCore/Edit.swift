@@ -40,7 +40,7 @@ internal final class EditTask: Task, Executable {
             throw Error.missingPath
         }
 
-        let script = try scriptManager.script(at: path, allowRemote: false)
+        let script = try scriptManager.script(atPath: path, allowRemote: false)
         try script.edit(arguments: arguments, open: !argumentsContainNoOpenFlag)
     }
 }
