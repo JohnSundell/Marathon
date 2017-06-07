@@ -54,6 +54,11 @@ extension Package.Pinned: Unboxable {
     init(unboxer: Unboxer) throws {
         name = try unboxer.unbox(key: "package")
         url = try unboxer.unbox(key: "repositoryURL")
-        version = try unboxer.unbox(key: "version")
+
+        if let legacyVersion: Version = unboxer.unbox(key: "version") {
+            version = legacyVersion
+        } else {
+            version = try unboxer.unbox(keyPath: "state.version")
+        }
     }
 }
