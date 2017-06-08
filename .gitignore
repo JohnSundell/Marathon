@@ -73,3 +73,6 @@ fastlane/test_output
 
 ## AppCode
 .idea/
+
+## Ruby-related
+Gemfile.lock
