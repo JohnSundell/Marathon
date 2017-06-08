@@ -22,6 +22,7 @@ public enum PackageManagerError {
     case failedToUpdatePackages(Folder)
     case unknownPackageForRemoval(String)
     case failedToRemovePackage(String, Folder)
+    case failedToResolveSwiftToolsVersion
 }
 
 extension PackageManagerError: PrintableError {
@@ -43,6 +44,8 @@ extension PackageManagerError: PrintableError {
             return "Cannot remove package '\(name)' - no such package has been added"
         case .failedToRemovePackage(let name, _):
             return "Could not remove package '\(name)'"
+        case .failedToResolveSwiftToolsVersion:
+            return "Failed to resolve the version of the current Swift toolchain"
         }
     }
 
@@ -72,6 +75,8 @@ extension PackageManagerError: PrintableError {
                    "To list all added packages run 'marathon list'"]
         case .failedToRemovePackage(_, let folder):
             return ["Make sure you have write permissions to the folder '\(folder.path)'"]
+        case .failedToResolveSwiftToolsVersion:
+            return ["Please open a GitHub issue and attach the output of 'swift --version'"]
         }
     }
 }
@@ -162,6 +167,14 @@ internal final class PackageManager {
     func makePackageDescription(for script: Script) throws -> String {
         guard let masterDescription = try? generatedFolder.file(named: "Package.swift").readAsString() else {
             try updatePackages()
+            return try makePackageDescription(for: script)
+        }
+
+        let toolsVersion = try resolveSwiftToolsVersion()
+        let expectedHeader = makePackageDescriptionHeader(forSwiftToolsVersion: toolsVersion)
+
+        guard masterDescription.hasPrefix(expectedHeader) else {
+            try generateMasterPackageDescription(forSwiftToolsVersion: toolsVersion)
             return try makePackageDescription(for: script)
         }
 
@@ -303,7 +316,8 @@ internal final class PackageManager {
         printer.reportProgress("Updating packages...")
 
         do {
-            try generateMasterPackageDescription()
+            let toolsVersion = try resolveSwiftToolsVersion()
+            try generateMasterPackageDescription(forSwiftToolsVersion: toolsVersion)
             try shellOutToSwiftCommand("package --enable-prefetching update", in: generatedFolder, printer: printer)
             try generatedFolder.createSubfolderIfNeeded(withName: "Packages")
         } catch {
@@ -342,24 +356,40 @@ internal final class PackageManager {
         return try unbox(data: pinsFile.read(), atKeyPath: "pins")
     }
 
-    private func generateMasterPackageDescription() throws {
-        var description = "import PackageDescription\n\n" +
+    private func generateMasterPackageDescription(forSwiftToolsVersion toolsVersion: Version) throws {
+        let header = makePackageDescriptionHeader(forSwiftToolsVersion: toolsVersion)
+        let packages = makePackageList()
+
+        var description = "\(header)\n\n" +
+                          "import PackageDescription\n\n" +
                           "let package = Package(\n" +
                           "    name: \"\(masterPackageName)\",\n" +
                           "    dependencies: [\n"
 
-        for (index, file) in folder.files.enumerated() {
-            let package = try perform(unbox(data: file.read()) as Package,
-                                      orThrow: Error.failedToReadPackageFile(file.name))
-
+        for (index, package) in packages.enumerated() {
             if index > 0 {
                 description += ",\n"
             }
 
-            description += "        " + package.dependencyString
+            let dependencyString = package.dependencyString(forSwiftToolsVersion: toolsVersion)
+            description.append("        \(dependencyString)")
         }
 
-        description += "\n    ]\n)"
+        description.append("\n    ],\n")
+
+        if toolsVersion.major > 3 {
+            description.append("    targets: [.target(name: \"\(masterPackageName)\", dependencies: [")
+
+            if !packages.isEmpty {
+                description.append("\"")
+                description.append(packages.map({ $0.name }).joined(separator: "\", \""))
+                description.append("\"")
+            }
+
+            description.append("])],\n")
+        }
+
+        description.append("    swiftLanguageVersions: [\(toolsVersion.major)]\n)")
 
         try generatedFolder.createFile(named: "Package.swift",
                                        contents: description.data(using: .utf8).require())
@@ -369,5 +399,19 @@ internal final class PackageManager {
         return folder.files.flatMap { file in
             return try? unbox(data: file.read())
         }
+    }
+
+    private func resolveSwiftToolsVersion() throws -> Version {
+        var versionString = try shellOutToSwiftCommand("--version", printer: printer)
+        versionString = versionString.components(separatedBy: "(").first.require()
+        versionString = versionString.components(separatedBy: "version ").last.require()
+
+        return try perform(Version(string: versionString),
+                           orThrow: Error.failedToResolveSwiftToolsVersion)
+    }
+
+    private func makePackageDescriptionHeader(forSwiftToolsVersion toolsVersion: Version) -> String {
+        let versionString = toolsVersion.string.trimmingCharacters(in: .whitespaces)
+        return "// swift-tools-version:\(versionString)"
     }
 }

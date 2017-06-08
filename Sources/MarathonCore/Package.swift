@@ -29,16 +29,20 @@ extension Package: Unboxable {
 }
 
 internal extension Package {
-    var dependencyString: String {
-        return ".Package(url: \"\(url.absoluteString)\", majorVersion: \(majorVersion))"
-    }
-
     var folderPrefix: String {
         if url.isForRemoteRepository {
             return "\(name).git-"
         }
 
         return "\(name)-"
+    }
+
+    func dependencyString(forSwiftToolsVersion toolsVersion: Version) -> String {
+        if toolsVersion.major == 3 {
+            return ".Package(url: \"\(url.absoluteString)\", majorVersion: \(majorVersion))"
+        }
+
+        return ".package(url: \"\(url.absoluteString)\", from: \"\(majorVersion).0.0\")"
     }
 }
 
