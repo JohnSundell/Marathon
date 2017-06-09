@@ -174,6 +174,22 @@ https://github.com/JohnSundell/Wrap.git
 otherScript.swift
 ```
 
+## Using Marathon with Swift 4
+
+Marathon supports writing scripts using Swift 4 and the Xcode 9 beta. To do this you'll need to switch your Xcode command line tools to use the Xcode 9 beta using `xcode-select`, like this:
+
+```
+$ sudo xcode-select -s /Applications/Xcode-beta.app/Contents/Developer/
+```
+
+If you've installed the Xcode 9 beta at some other path than the one above, simply switch out the path when running the command.
+
+**Important note:** Doing the above will switch your Xcode command line tools to Xcode 9 beta across your entire system, which may cause problems with other tooling that relies on the latest stable version of Xcode. If you encounter any such problems and want to switch back, you simply run `xcode-select` again to return to the latest stable version of Xcode:
+
+```
+$ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer/
+```
+
 ## Shell autocomplete
 
 Marathon includes autocomplete for the `zsh` and `fish` shells (PRs adding support for other shells is more than welcome!). To enable it, do the following:
