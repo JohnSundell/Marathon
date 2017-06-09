@@ -155,13 +155,12 @@ internal final class ScriptManager {
 
     private func script(from file: File) throws -> Script {
         let identifier = scriptIdentifier(from: file.path)
-        let name = scriptName(from: identifier)
         let folder = try createFolderIfNeededForScript(withIdentifier: identifier, file: file)
-        let script = Script(name: name, folder: folder, printer: printer)
+        let script = Script(name: file.nameExcludingExtension, folder: folder, printer: printer)
 
         if let marathonFile = try script.resolveMarathonFile() {
             try packageManager.addPackagesIfNeeded(from: marathonFile.packageURLs)
-            try addDependencyScripts(fromMarathonFile: marathonFile, toFolder: folder)
+            try addDependencyScripts(fromMarathonFile: marathonFile, for: script)
         }
 
         try resolveInlineDependencies(from: file)
@@ -255,7 +254,9 @@ internal final class ScriptManager {
 
         let sourcesFolder = try scriptFolder.createSubfolderIfNeeded(withName: "Sources")
         try sourcesFolder.empty()
-        try sourcesFolder.createFile(named: "main.swift", contents: file.read())
+
+        let moduleFolder = try sourcesFolder.createSubfolder(named: file.nameExcludingExtension)
+        try moduleFolder.createFile(named: "main.swift", contents: file.read())
 
         return scriptFolder
     }
@@ -264,13 +265,13 @@ internal final class ScriptManager {
         return try? cacheFolder.subfolder(named: identifier)
     }
 
-    private func addDependencyScripts(fromMarathonFile file: MarathonFile, toFolder folder: Folder) throws {
+    private func addDependencyScripts(fromMarathonFile file: MarathonFile, for script: Script) throws {
         for url in file.scriptURLs {
             do {
-                let script = try File(path: url.absoluteString)
-                let sourcesFolder = try folder.subfolder(named: "Sources")
-                let copy = try sourcesFolder.createFile(named: script.name)
-                try copy.write(data: script.read())
+                let dependencyScriptFile = try File(path: url.absoluteString)
+                let moduleFolder = try script.folder.subfolder(atPath: "Sources/\(script.name)")
+                let copy = try moduleFolder.createFile(named: dependencyScriptFile.name)
+                try copy.write(data: dependencyScriptFile.read())
             } catch {
                 throw Error.failedToAddDependencyScript(url.absoluteString)
             }

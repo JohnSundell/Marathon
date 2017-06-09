@@ -67,6 +67,7 @@ internal final class Script {
 
     private let printer: Printer
     private var copyLoopDispatchQueue: DispatchQueue?
+    private var localPath: String { return "Sources/\(name)/main.swift"  }
 
     // MARK: - Init
 
@@ -197,7 +198,7 @@ internal final class Script {
     }
 
     private func copyChangesToSymlinkedFile() throws {
-        let data = try folder.file(atPath: "Sources/main.swift").read()
+        let data = try folder.file(atPath: localPath).read()
         try File(path: expandSymlink()).write(data: data)
     }
 
@@ -205,7 +206,7 @@ internal final class Script {
         var messages = [String]()
 
         for outputComponent in error.output.components(separatedBy: "\n") {
-            let lineComponents = outputComponent.components(separatedBy: folder.path + "Sources/main.swift:")
+            let lineComponents = outputComponent.components(separatedBy: folder.path + "\(localPath):")
 
             guard lineComponents.count > 1 else {
                 continue
