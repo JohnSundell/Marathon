@@ -11,6 +11,11 @@ import Unbox
 import Require
 
 class MarathonTests: XCTestCase {
+    fileprivate static var rootFolder: Folder = {
+        let parentFolder = (try? Folder.home.createSubfolderIfNeeded(withName: ".marathonTests"))
+                                            .require(hint: "Could not set up '.marathonTests' root folder")
+        return parentFolder
+    }()
     fileprivate var folder: Folder!
 
     // MARK: - XCTestCase
@@ -24,6 +29,10 @@ class MarathonTests: XCTestCase {
     override func tearDown() {
         try! folder.delete()
         super.tearDown()
+    }
+    
+    override class func tearDown() {
+        try! rootFolder.delete()
     }
 
     // MARK: - Command parsing
@@ -766,11 +775,8 @@ class MarathonTests: XCTestCase {
 
 fileprivate extension MarathonTests {
     func createFolder() -> Folder {
-        let parentFolder = (try? Folder.home.createSubfolderIfNeeded(withName: ".marathonTests"))
-                               .require(hint: "Could not set up '.marathonTests' root folder")
-
         let folderName = UUID().uuidString
-        let folder = (try? parentFolder.createSubfolderIfNeeded(withName: folderName)).require(hint: "Could not setup child test folder")
+        let folder = (try? MarathonTests.rootFolder.createSubfolderIfNeeded(withName: folderName)).require(hint: "Could not setup child test folder")
         try! folder.empty(includeHidden: true)
         return folder
     }
