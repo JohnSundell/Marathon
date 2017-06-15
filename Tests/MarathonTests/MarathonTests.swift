@@ -467,6 +467,65 @@ class MarathonTests: XCTestCase {
                throwsError: ScriptManagerError.remoteScriptNotAllowed)
     }
 
+    // MARK: - Exporting scripts
+
+    func testExportingScriptWithoutPathThrows() {
+        assert(try run(with: ["export"]), throwsError: ExportError.missingPath)
+    }
+
+    func testExportingScriptWithNameThrows() {
+        assert(try run(with: ["export", "script"]), throwsError: ScriptManagerError.scriptNotFound("script.swift"))
+    }
+
+    func testExportngScriptWithPathThrows() {
+        let path = folder.path + "script.swift"
+        assert(try run(with: ["export", path]), throwsError: ScriptManagerError.scriptNotFound(path))
+    }
+
+    func testExportingScriptWithName() throws {
+        let _ = try folder.createFile(named: "script.swift")
+        try run(with: ["export", "script"])
+        try assertExport(to: folder)
+    }
+
+    func testExportingScriptWithPath() throws {
+        let file = try folder.createFile(named: "script.swift")
+        try run(with: ["export", file.path])
+        try assertExport(to: folder)
+    }
+
+    func testExportingScriptWithExportPath() throws {
+        let _ = try folder.createFile(named: "script.swift")
+        let exportFolder = try folder.createSubfolder(named: "temp")
+        try run(with: ["export", "script", exportFolder.path])
+        try assertExport(to: exportFolder)
+    }
+
+    func testExportingScriptWithForce() throws {
+        let _ = try folder.createFile(named: "script.swift")
+        try run(with: ["export", "script"])
+
+        let output = try run(with: ["export", "script", "--force"])
+        assert(output.isEmpty)
+    }
+
+    private func assertExport(to folder: Folder) throws {
+        let projectFolder = try folder.subfolder(named: "script")
+        let sourcesFolder = try projectFolder.subfolder(named: "Sources")
+        let exportedScriptFile = try sourcesFolder.file(named: "script.swift")
+        assert(try! exportedScriptFile.readAsString().isEmpty)
+
+        let packageFile = try projectFolder.file(named: "Package.swift")
+        let expected = "import PackageDescription\n"
+            + "\n"
+            + "let package = Package(\n"
+            + "    name: \"script\",\n"
+            + "    dependencies: [\n"
+            + "    ]\n"
+            + ")\n"
+        assert(try! packageFile.readAsString() == expected)
+    }
+
     // MARK: - Removing script data
 
     func testRemovingScriptCacheData() throws {
@@ -856,7 +915,13 @@ extension MarathonTests {
             ("testNoDirectUsesOfPrintFunction", testNoDirectUsesOfPrintFunction),
             ("testNoDirectUsesOfShellOut", testNoDirectUsesOfShellOut),
             ("testShellAutocompletionsInstallation", testShellAutocompletionsInstallation),
-            ("testAllTestsRunOnLinux", testAllTestsRunOnLinux)
+            ("testAllTestsRunOnLinux", testAllTestsRunOnLinux),
+            ("testExportingScriptWithoutPathThrows", testExportingScriptWithoutPathThrows),
+            ("testExportingScriptWithNameThrows", testExportingScriptWithNameThrows),
+            ("testExportngScriptWithPathThrows", testExportngScriptWithPathThrows),
+            ("testExportingScriptWithName", testExportingScriptWithName),
+            ("testExportingScriptWithPath", testExportingScriptWithPath),
+            ("testExportingScriptWithForce", testExportingScriptWithForce),
         ]
     }
 }

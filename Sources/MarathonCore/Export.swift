@@ -46,7 +46,7 @@ internal final class ExportTask: Task, Executable {
             throw Error.missingPath
         }
 
-        let script = try scriptManager.script(at: exportScriptPath, allowRemote: false)
+        let script = try scriptManager.script(atPath: exportScriptPath, allowRemote: false)
         let pathComponents = exportScriptPath.components(separatedBy: "/")
         let scriptName = pathComponents.filter({ $0.contains(".swift")}).first?.asScriptName ?? script.name
         let tempPath = script.folder.path.appending(scriptName.asScriptPath())
