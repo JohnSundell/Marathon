@@ -921,6 +921,7 @@ extension MarathonTests {
             ("testExportngScriptWithPathThrows", testExportngScriptWithPathThrows),
             ("testExportingScriptWithName", testExportingScriptWithName),
             ("testExportingScriptWithPath", testExportingScriptWithPath),
+            ("testExportingScriptWithExportPath", testExportingScriptWithExportPath),
             ("testExportingScriptWithForce", testExportingScriptWithForce),
         ]
     }
