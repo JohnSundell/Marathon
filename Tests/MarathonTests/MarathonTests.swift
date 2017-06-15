@@ -483,7 +483,7 @@ class MarathonTests: XCTestCase {
     }
 
     func testExportingScriptWithName() throws {
-        let _ = try folder.createFile(named: "script.swift")
+        _ = try folder.createFile(named: "script.swift")
         try run(with: ["export", "script"])
         try assertExport(to: folder)
     }
@@ -495,14 +495,14 @@ class MarathonTests: XCTestCase {
     }
 
     func testExportingScriptWithExportPath() throws {
-        let _ = try folder.createFile(named: "script.swift")
+        _ = try folder.createFile(named: "script.swift")
         let exportFolder = try folder.createSubfolder(named: "temp")
         try run(with: ["export", "script", exportFolder.path])
         try assertExport(to: exportFolder)
     }
 
     func testExportingScriptWithForce() throws {
-        let _ = try folder.createFile(named: "script.swift")
+        _ = try folder.createFile(named: "script.swift")
         try run(with: ["export", "script"])
 
         let output = try run(with: ["export", "script", "--force"])
