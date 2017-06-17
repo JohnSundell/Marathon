@@ -506,7 +506,7 @@ class MarathonTests: XCTestCase {
         try run(with: ["export", "script"])
 
         let output = try run(with: ["export", "script", "--force"])
-        assert(output.isEmpty)
+        XCTAssertTrue(output.isEmpty)
     }
 
     func testExportingScriptWithDependencies() throws {
@@ -520,13 +520,13 @@ class MarathonTests: XCTestCase {
 
         let sourcesFolder = try projFolder.subfolder(named: "Sources")
         let scriptFileContents = try sourcesFolder.file(named: "script.swift").readAsString()
-        assert(scriptFileContents == "import Files // marathon:https://github.com/JohnSundell/Files.git\n")
+        XCTAssertTrue(scriptFileContents == "import Files // marathon:https://github.com/JohnSundell/Files.git\n")
 
         let packageFile = try projFolder.file(named: "Package.swift")
         let contents = try packageFile.readAsString()
         let components = contents.components(separatedBy: .newlines)
         let dependencyLine = components[5]
-        assert(dependencyLine.contains(".Package(url: \"https://github.com/JohnSundell/Files.git\", majorVersion: 1)"))
+        XCTAssertTrue(dependencyLine.contains(".Package(url: \"https://github.com/JohnSundell/Files.git\", majorVersion: 1)"))
     }
 
     private func makeExportTestFile() throws -> File {
@@ -540,7 +540,7 @@ class MarathonTests: XCTestCase {
         let sourcesFolder = try projectFolder.subfolder(named: "Sources")
         let exportedScriptFile = try sourcesFolder.file(named: "script.swift")
         let contents = try exportedScriptFile.readAsString()
-        assert(contents == "import Foundation\n")
+        XCTAssertTrue(contents == "import Foundation\n")
 
         let packageFile = try projectFolder.file(named: "Package.swift")
         let expected = "import PackageDescription\n"
@@ -550,7 +550,7 @@ class MarathonTests: XCTestCase {
             + "    dependencies: [\n"
             + "    ]\n"
             + ")\n"
-        assert(try! packageFile.readAsString() == expected)
+        XCTAssertTrue(try! packageFile.readAsString() == expected)
     }
 
     // MARK: - Removing script data
