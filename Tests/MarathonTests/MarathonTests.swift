@@ -509,6 +509,26 @@ class MarathonTests: XCTestCase {
         assert(output.isEmpty)
     }
 
+    func testExportingScriptWithDependencies() throws {
+        let file = try folder.createFile(named: "script.swift")
+        try file.write(string: "import Files\n")
+
+        try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
+        try run(with: ["export", "script"])
+
+        let projFolder = try folder.subfolder(named: "script")
+
+        let sourcesFolder = try projFolder.subfolder(named: "Sources")
+        let scriptFileContents = try sourcesFolder.file(named: "script.swift").readAsString()
+        assert(scriptFileContents == "import Files // marathon:https://github.com/JohnSundell/Files.git\n")
+
+        let packageFile = try projFolder.file(named: "Package.swift")
+        let contents = try packageFile.readAsString()
+        let components = contents.components(separatedBy: .newlines)
+        let dependencyLine = components[5]
+        assert(dependencyLine.contains(".Package(url: \"https://github.com/JohnSundell/Files.git\", majorVersion: 1)"))
+    }
+
     private func makeExportTestFile() throws -> File {
         let file = try folder.createFile(named: "script.swift")
         try file.write(string: "import Foundation\n")
@@ -930,6 +950,7 @@ extension MarathonTests {
             ("testExportingScriptWithPath", testExportingScriptWithPath),
             ("testExportingScriptWithExportPath", testExportingScriptWithExportPath),
             ("testExportingScriptWithForce", testExportingScriptWithForce),
+            ("testExportingScriptWithDependencies", testExportingScriptWithDependencies),
         ]
     }
 }
