@@ -41,7 +41,6 @@ internal final class ExportTask: Task, Executable {
 
     func execute() throws {
 
-        // Required argument given?
         guard let exportScriptPath = arguments.first?.asScriptPath() else {
             throw Error.missingPath
         }
@@ -51,19 +50,10 @@ internal final class ExportTask: Task, Executable {
         let scriptName = pathComponents.filter({ $0.contains(".swift") }).first?.asScriptName ?? script.name
         let tempPath = script.folder.path.appending(scriptName.asScriptPath())
         let tempFile = try FileSystem().createFile(at: tempPath)
+        let destination = try destinationFolder()
+        let exportPath = destination.path.appending(scriptName)
+        let existingProjectFolder = try? destination.subfolder(atPath: scriptName)
 
-        let exportFolder: Folder
-        if arguments.count > 1 && !arguments[1].contains("--force") {
-            // If more than one argument, try to create Folder at export-path
-            exportFolder = try FileSystem().createFolderIfNeeded(at: arguments[1])
-        } else {
-            // Otherwise use default export path
-            exportFolder = FileSystem().currentFolder
-        }
-
-        // If directory already exists at path and --force flag not passed, then ask for overwrite permission
-        let exportPath = exportFolder.path.appending(scriptName)
-        let existingProjectFolder = try? exportFolder.subfolder(atPath: scriptName)
         if existingProjectFolder != nil && !arguments.contains("--force") {
             printer.output("⚠️  A directory already exists at \(exportPath)")
             printer.output("❓  Are you sure you want to overwrite it? (Type 'Y' to confirm)")
@@ -72,9 +62,19 @@ internal final class ExportTask: Task, Executable {
             }
         }
 
-        try existingProjectFolder?.delete() // Otherwise, delete the existing folder if it exists
-        try perform(export(tempFile, to: exportFolder), orThrow: Error.failedToExportScript(tempFile.name))
-        try tempFile.delete() // clean up temp file
+        try existingProjectFolder?.delete()
+        try perform(export(tempFile, to: destination), orThrow: Error.failedToExportScript(tempFile.name))
+        try tempFile.delete()
+    }
+
+    private func destinationFolder() throws -> Folder {
+        let folder: Folder
+        if arguments.count > 1 && !arguments[1].contains("--force") {
+            folder = try FileSystem().createFolderIfNeeded(at: arguments[1])
+        } else {
+            folder = FileSystem().currentFolder
+        }
+        return folder
     }
 
     private func export(_ file: File, to folder: Folder) throws {
