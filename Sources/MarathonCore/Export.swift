@@ -46,23 +46,13 @@ internal final class ExportTask: Task, Executable {
         }
 
         let script = try scriptManager.script(atPath: exportScriptPath, allowRemote: false)
-        let pathComponents = exportScriptPath.components(separatedBy: "/")
-        let scriptName = pathComponents.filter({ $0.contains(".swift") }).first?.asScriptName ?? script.name
-        let tempPath = script.folder.path.appending(scriptName.asScriptPath())
-        let tempFile = try FileSystem().createFile(at: tempPath)
+
         let destination = try destinationFolder()
-        let exportPath = destination.path.appending(scriptName)
-        let existingProjectFolder = try? destination.subfolder(atPath: scriptName)
+        try overwriteIfNeeded(destination: destination, scriptName: script.name)
 
-        if existingProjectFolder != nil && !arguments.contains("--force") {
-            printer.output("⚠️  A directory already exists at \(exportPath)")
-            printer.output("❓  Are you sure you want to overwrite it? (Type 'Y' to confirm)")
-            if readLine()?.lowercased() == "n" {
-                exit(1)
-            }
-        }
+        let tempFile = try script.folder.createFile(named: script.name.asScriptPath())
+        try tempFile.write(data: try script.folder.file(named: "OriginalFile").read())
 
-        try existingProjectFolder?.delete()
         try perform(export(tempFile, to: destination), orThrow: Error.failedToExportScript(tempFile.name))
         try tempFile.delete()
     }
@@ -75,6 +65,20 @@ internal final class ExportTask: Task, Executable {
             folder = FileSystem().currentFolder
         }
         return folder
+    }
+
+    private func overwriteIfNeeded(destination: Folder, scriptName: String) throws {
+        let exportPath = destination.path.appending(scriptName)
+        let existingProjectFolder = try? destination.subfolder(atPath: scriptName)
+
+        if existingProjectFolder != nil && !arguments.contains("--force") {
+            printer.output("⚠️  A directory already exists at \(exportPath)")
+            printer.output("❓  Are you sure you want to overwrite it? (Type 'Y' to confirm)")
+            if readLine()?.lowercased() == "n" {
+                exit(1)
+            }
+        }
+        try existingProjectFolder?.delete()
     }
 
     private func export(_ file: File, to folder: Folder) throws {
