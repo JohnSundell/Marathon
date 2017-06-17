@@ -483,37 +483,44 @@ class MarathonTests: XCTestCase {
     }
 
     func testExportingScriptWithName() throws {
-        _ = try folder.createFile(named: "script.swift")
+        _ = try makeExportTestFile()
         try run(with: ["export", "script"])
         try assertExport(to: folder)
     }
 
     func testExportingScriptWithPath() throws {
-        let file = try folder.createFile(named: "script.swift")
+        let file = try makeExportTestFile()
         try run(with: ["export", file.path])
         try assertExport(to: folder)
     }
 
     func testExportingScriptWithExportPath() throws {
-        _ = try folder.createFile(named: "script.swift")
+        _ = try makeExportTestFile()
         let exportFolder = try folder.createSubfolder(named: "temp")
         try run(with: ["export", "script", exportFolder.path])
         try assertExport(to: exportFolder)
     }
 
     func testExportingScriptWithForce() throws {
-        _ = try folder.createFile(named: "script.swift")
+        _ = try makeExportTestFile()
         try run(with: ["export", "script"])
 
         let output = try run(with: ["export", "script", "--force"])
         assert(output.isEmpty)
     }
 
+    private func makeExportTestFile() throws -> File {
+        let file = try folder.createFile(named: "script.swift")
+        try file.write(string: "import Foundation\n")
+        return file
+    }
+
     private func assertExport(to folder: Folder) throws {
         let projectFolder = try folder.subfolder(named: "script")
         let sourcesFolder = try projectFolder.subfolder(named: "Sources")
         let exportedScriptFile = try sourcesFolder.file(named: "script.swift")
-        assert(try! exportedScriptFile.readAsString().isEmpty)
+        let contents = try exportedScriptFile.readAsString()
+        assert(contents == "import Foundation\n")
 
         let packageFile = try projectFolder.file(named: "Package.swift")
         let expected = "import PackageDescription\n"
