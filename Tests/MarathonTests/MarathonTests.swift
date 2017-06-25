@@ -525,7 +525,7 @@ class MarathonTests: XCTestCase {
         let packageFile = try projFolder.file(named: "Package.swift")
         let contents = try packageFile.readAsString()
         let components = contents.components(separatedBy: .newlines)
-        let dependencyLine = components[5]
+        let dependencyLine = components[7]
         XCTAssertTrue(dependencyLine.contains(".Package(url: \"https://github.com/JohnSundell/Files.git\", majorVersion: 1)"))
     }
 

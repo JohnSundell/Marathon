@@ -84,8 +84,8 @@ internal final class ExportTask: Task, Executable {
 
         let packageFile = try projectFolder.createFile(named: "Package.swift")
         let packages = try resolvePackages(from: file)
-        let packageFileString = try makePackageFileString(for: file, with: packages)
-        try packageFile.write(string: packageFileString)
+        let packageManifestString = try packageManager.makePackageManifestString(forScriptWithName: file.name, packages: packages)
+        try packageFile.write(string: packageManifestString)
 
         let sourcesFolder = try projectFolder.createSubfolder(named: "Sources")
         let scriptFileString = try makeFileStringWithInlineDependencies(for: file, using: packages)
@@ -97,20 +97,6 @@ internal final class ExportTask: Task, Executable {
         let importNames = try Set(file.importNames())
         let scriptPackages = packageManager.addedPackages.filter { importNames.contains($0.name) }
         return scriptPackages
-    }
-
-    private func makePackageFileString(for file: File, with packages: [Package]) throws -> String {
-        let base = "import PackageDescription\n"
-            + "\n"
-            + "let package = Package(\n"
-            + "    name: \"\(file.scriptName)\",\n"
-            + "    dependencies: [\n"
-
-        let baseWithPackages = packages.reduce(base) { partialResult, package in
-            let string = "        .Package(url: \"\(package.url)\", majorVersion: \(package.majorVersion)),\n"
-            return partialResult.appending(string)
-        }
-        return baseWithPackages.appending("    ]\n)\n")
     }
 
     private func makeFileStringWithInlineDependencies(for file: File, using packages: [Package]) throws -> String {

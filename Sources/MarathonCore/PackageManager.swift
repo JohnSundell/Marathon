@@ -232,6 +232,10 @@ internal final class PackageManager {
         try updatePackages()
     }
 
+    func makePackageManifestString(forScriptWithName name: String, packages: [Package]) throws -> String {
+        return try makePackageManifestString(forMasterPackageWithName: name, packages: packages)
+    }
+
     // MARK: - Private
 
     private func latestMajorVersionForPackage(at url: URL) throws -> Int {
@@ -357,40 +361,8 @@ internal final class PackageManager {
     }
 
     private func generateMasterPackageDescription(forSwiftToolsVersion toolsVersion: Version) throws {
-        let header = makePackageDescriptionHeader(forSwiftToolsVersion: toolsVersion)
         let packages = makePackageList()
-
-        var description = "\(header)\n\n" +
-                          "import PackageDescription\n\n" +
-                          "let package = Package(\n" +
-                          "    name: \"\(masterPackageName)\",\n" +
-                          "    dependencies: [\n"
-
-        for (index, package) in packages.enumerated() {
-            if index > 0 {
-                description += ",\n"
-            }
-
-            let dependencyString = package.dependencyString(forSwiftToolsVersion: toolsVersion)
-            description.append("        \(dependencyString)")
-        }
-
-        description.append("\n    ],\n")
-
-        if toolsVersion.major > 3 {
-            description.append("    targets: [.target(name: \"\(masterPackageName)\", dependencies: [")
-
-            if !packages.isEmpty {
-                description.append("\"")
-                description.append(packages.map({ $0.name }).joined(separator: "\", \""))
-                description.append("\"")
-            }
-
-            description.append("])],\n")
-        }
-
-        description.append("    swiftLanguageVersions: [\(toolsVersion.major)]\n)")
-
+        let description = try makePackageManifestString(forMasterPackageWithName: masterPackageName, packages: packages)
         try generatedFolder.createFile(named: "Package.swift",
                                        contents: description.data(using: .utf8).require())
     }
@@ -413,5 +385,43 @@ internal final class PackageManager {
     private func makePackageDescriptionHeader(forSwiftToolsVersion toolsVersion: Version) -> String {
         let versionString = toolsVersion.string.trimmingCharacters(in: .whitespaces)
         return "// swift-tools-version:\(versionString)"
+    }
+
+    private func makePackageManifestString(forMasterPackageWithName name: String, packages: [Package]) throws -> String {
+        let version = try resolveSwiftToolsVersion()
+        let header = makePackageDescriptionHeader(forSwiftToolsVersion: version)
+
+        var description = "\(header)\n\n" +
+            "import PackageDescription\n\n" +
+            "let package = Package(\n" +
+            "    name: \"\(name)\",\n" +
+        "    dependencies: [\n"
+
+        for (index, package) in packages.enumerated() {
+            if index > 0 {
+                description += ",\n"
+            }
+
+            let dependencyString = package.dependencyString(forSwiftToolsVersion: version)
+            description.append("        \(dependencyString)")
+        }
+
+        description.append("\n    ],\n")
+
+        if version.major > 3 {
+            description.append("    targets: [.target(name: \"\(name)\", dependencies: [")
+
+            if !packages.isEmpty {
+                description.append("\"")
+                description.append(packages.map({ $0.name }).joined(separator: "\", \""))
+                description.append("\"")
+            }
+
+            description.append("])],\n")
+        }
+
+        description.append("    swiftLanguageVersions: [\(version.major)]\n)")
+
+        return description
     }
 }
