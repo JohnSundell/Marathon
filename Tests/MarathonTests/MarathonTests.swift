@@ -543,13 +543,15 @@ class MarathonTests: XCTestCase {
         XCTAssertEqual(contents, "import Foundation\n")
 
         let packageFile = try projectFolder.file(named: "Package.swift")
-        let expected = "import PackageDescription\n"
+        let expected = "// swift-tools-version:3.1\n\n"
+            + "import PackageDescription\n"
             + "\n"
             + "let package = Package(\n"
             + "    name: \"script\",\n"
-            + "    dependencies: [\n"
-            + "    ]\n"
-            + ")\n"
+            + "    dependencies: [\n\n"
+            + "    ],\n"
+            + "    swiftLanguageVersions: [3]\n"
+            + ")"
         XCTAssertEqual(try packageFile.readAsString(), expected)
     }
 

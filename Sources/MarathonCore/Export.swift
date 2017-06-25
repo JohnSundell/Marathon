@@ -84,7 +84,7 @@ internal final class ExportTask: Task, Executable {
 
         let packageFile = try projectFolder.createFile(named: "Package.swift")
         let packages = try resolvePackages(from: file)
-        let packageManifestString = try packageManager.makePackageManifestString(forScriptWithName: file.name, packages: packages)
+        let packageManifestString = try packageManager.makePackageManifestString(forScriptWithName: file.scriptName, packages: packages)
         try packageFile.write(string: packageManifestString)
 
         let sourcesFolder = try projectFolder.createSubfolder(named: "Sources")
