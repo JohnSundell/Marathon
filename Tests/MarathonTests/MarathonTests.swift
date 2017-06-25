@@ -473,7 +473,7 @@ class MarathonTests: XCTestCase {
         assert(try run(with: ["export"]), throwsError: ExportError.missingPath)
     }
 
-    func testExportingScriptWithNameThrows() {
+    func testExportingMissingScriptThrows() {
         assert(try run(with: ["export", "script"]), throwsError: ScriptManagerError.scriptNotFound("script.swift"))
     }
 
@@ -520,7 +520,7 @@ class MarathonTests: XCTestCase {
 
         let sourcesFolder = try projFolder.subfolder(named: "Sources")
         let scriptFileContents = try sourcesFolder.file(named: "script.swift").readAsString()
-        XCTAssertTrue(scriptFileContents == "import Files // marathon:https://github.com/JohnSundell/Files.git\n")
+        XCTAssertEqual(scriptFileContents, "import Files // marathon:https://github.com/JohnSundell/Files.git\n")
 
         let packageFile = try projFolder.file(named: "Package.swift")
         let contents = try packageFile.readAsString()
@@ -540,7 +540,7 @@ class MarathonTests: XCTestCase {
         let sourcesFolder = try projectFolder.subfolder(named: "Sources")
         let exportedScriptFile = try sourcesFolder.file(named: "script.swift")
         let contents = try exportedScriptFile.readAsString()
-        XCTAssertTrue(contents == "import Foundation\n")
+        XCTAssertEqual(contents, "import Foundation\n")
 
         let packageFile = try projectFolder.file(named: "Package.swift")
         let expected = "import PackageDescription\n"
@@ -550,7 +550,7 @@ class MarathonTests: XCTestCase {
             + "    dependencies: [\n"
             + "    ]\n"
             + ")\n"
-        XCTAssertTrue(try! packageFile.readAsString() == expected)
+        XCTAssertEqual(try packageFile.readAsString(), expected)
     }
 
     // MARK: - Removing script data
@@ -944,7 +944,7 @@ extension MarathonTests {
             ("testShellAutocompletionsInstallation", testShellAutocompletionsInstallation),
             ("testAllTestsRunOnLinux", testAllTestsRunOnLinux),
             ("testExportingScriptWithoutPathThrows", testExportingScriptWithoutPathThrows),
-            ("testExportingScriptWithNameThrows", testExportingScriptWithNameThrows),
+            ("testExportingMissingScriptThrows", testExportingMissingScriptThrows),
             ("testExportngScriptWithPathThrows", testExportngScriptWithPathThrows),
             ("testExportingScriptWithName", testExportingScriptWithName),
             ("testExportingScriptWithPath", testExportingScriptWithPath),

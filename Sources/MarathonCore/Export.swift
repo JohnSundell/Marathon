@@ -47,8 +47,8 @@ internal final class ExportTask: Task, Executable {
 
         let script = try scriptManager.script(atPath: exportScriptPath, allowRemote: false)
 
-        let destination = try destinationFolder()
-        try overwriteIfNeeded(destination: destination, scriptName: script.name)
+        let destination = try makeDestinationFolder()
+        try overwriteDestinationIfNeeded(destination: destination, scriptName: script.name)
 
         let tempFile = try script.folder.createFile(named: script.name.asScriptPath())
         try tempFile.write(data: try script.folder.file(named: "OriginalFile").read())
@@ -57,24 +57,22 @@ internal final class ExportTask: Task, Executable {
         try tempFile.delete()
     }
 
-    private func destinationFolder() throws -> Folder {
-        let folder: Folder
-        if arguments.count > 1 && !arguments[1].contains("--force") {
-            folder = try FileSystem().createFolderIfNeeded(at: arguments[1])
+    private func makeDestinationFolder() throws -> Folder {
+        if let path = arguments.element(at: 1), path != "--force" {
+            return try FileSystem().createFolderIfNeeded(at: path)
         } else {
-            folder = FileSystem().currentFolder
+            return FileSystem().currentFolder
         }
-        return folder
     }
 
-    private func overwriteIfNeeded(destination: Folder, scriptName: String) throws {
+    private func overwriteDestinationIfNeeded(destination: Folder, scriptName: String) throws {
         let exportPath = destination.path.appending(scriptName)
         let existingProjectFolder = try? destination.subfolder(atPath: scriptName)
 
         if existingProjectFolder != nil && !arguments.contains("--force") {
             printer.output("⚠️  A directory already exists at \(exportPath)")
             printer.output("❓  Are you sure you want to overwrite it? (Type 'Y' to confirm)")
-            if readLine()?.lowercased() == "n" {
+            if readLine()?.lowercased() != "y" {
                 exit(1)
             }
         }
@@ -96,15 +94,8 @@ internal final class ExportTask: Task, Executable {
     }
 
     private func resolvePackages(from file: File) throws -> [Package] {
-        let importNames = try file.importNames()
-        let allManagedPackages = packageManager.addedPackages
-        let scriptPackages: [Package] = importNames.flatMap { name in
-            if let scriptPackage = allManagedPackages.first(where: { $0.name.lowercased() == name.lowercased() }) {
-                return scriptPackage
-            } else {
-                return nil
-            }
-        }
+        let importNames = try Set(file.importNames())
+        let scriptPackages = packageManager.addedPackages.filter { importNames.contains($0.name) }
         return scriptPackages
     }
 
@@ -137,12 +128,6 @@ internal final class ExportTask: Task, Executable {
         }
 
         return fileString
-    }
-}
-
-private extension String {
-    var asScriptName: String {
-        return replacingOccurrences(of: ".swift", with: "")
     }
 }
 
