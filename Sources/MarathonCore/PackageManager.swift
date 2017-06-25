@@ -395,7 +395,7 @@ internal final class PackageManager {
             "import PackageDescription\n\n" +
             "let package = Package(\n" +
             "    name: \"\(name)\",\n" +
-        "    dependencies: [\n"
+            "    dependencies: [\n"
 
         for (index, package) in packages.enumerated() {
             if index > 0 {
