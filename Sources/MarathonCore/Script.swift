@@ -90,7 +90,12 @@ internal final class Script {
 
     func run(in executionFolder: Folder, with arguments: [String]) throws -> String {
         let scriptPath = folder.path + ".build/debug/" + name
-        let command = scriptPath + " " + arguments.joined(separator: " ")
+        var command = scriptPath
+
+        if !arguments.isEmpty {
+            command += " \"" + arguments.joined(separator: "\" \"") + "\""
+        }
+
         return try executionFolder.moveToAndPerform(command: command, printer: printer)
     }
 
