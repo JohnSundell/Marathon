@@ -332,6 +332,14 @@ class MarathonTests: XCTestCase {
         XCTAssertTrue(output.hasPrefix("🚘"))
     }
 
+    func testRunningScriptWithArgumentContainingSpace() throws {
+        let scriptFile = try folder.createFile(named: "script.swift")
+        try scriptFile.write(string: "print(CommandLine.arguments[1])")
+
+        let output = try run(with: ["run", scriptFile.path, "Hello world"])
+        XCTAssertEqual(output, "Hello world")
+    }
+
     // MARK: - Installing scripts
 
     func testInstallingLocalScript() throws {
@@ -830,6 +838,7 @@ extension MarathonTests {
             ("testRunningScriptWithVerboseOutput", testRunningScriptWithVerboseOutput),
             ("testRunningRemoteScriptFromURL", testRunningRemoteScriptFromURL),
             ("testRunningRemoteScriptFromGitHubRepository", testRunningRemoteScriptFromGitHubRepository),
+            ("testRunningScriptWithArgumentContainingSpace", testRunningScriptWithArgumentContainingSpace),
             ("testInstallingLocalScript", testInstallingLocalScript),
             ("testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL", testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL),
             ("testInstallingRemoteScriptWithDependenciesUsingRawGithubURL", testInstallingRemoteScriptWithDependenciesUsingRawGithubURL),
