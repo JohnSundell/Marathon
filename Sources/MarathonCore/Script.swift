@@ -81,7 +81,7 @@ internal final class Script {
 
     func build(withArguments arguments: [String] = []) throws {
         do {
-            let command = "build -C \(folder.path) --enable-prefetching " + arguments.joined(separator: " ")
+            let command = "build --package-path \(folder.path) --enable-prefetching " + arguments.joined(separator: " ")
             try shellOutToSwiftCommand(command, in: folder, printer: printer)
         } catch {
             throw formatBuildError(error as! ShellOutError)
