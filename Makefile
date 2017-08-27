@@ -1,4 +1,5 @@
-INSTALL_PATH = /usr/local/bin/marathon
+PREFIX?=/usr/local
+INSTALL_NAME = marathon
 
 install: build install_bin
 
@@ -7,7 +8,9 @@ build:
 	swift build --enable-prefetching -c release -Xswiftc -static-stdlib
 
 install_bin:
-	cp -f .build/release/Marathon $(INSTALL_PATH)
+	mkdir -p $(PREFIX)/bin
+	mv .build/Release/Marathon .build/Release/$(INSTALL_NAME)
+	/usr/bin/install -s -m 0755 .build/Release/$(INSTALL_NAME) $(PREFIX)/bin
 
 uninstall:
 	rm -f $(INSTALL_PATH)
