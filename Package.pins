@@ -1,0 +1,42 @@
+{
+  "autoPin": true,
+  "pins": [
+    {
+      "package": "Files",
+      "reason": null,
+      "repositoryURL": "https://github.com/JohnSundell/Files.git",
+      "version": "1.11.0"
+    },
+    {
+      "package": "Releases",
+      "reason": null,
+      "repositoryURL": "https://github.com/JohnSundell/Releases.git",
+      "version": "1.0.6"
+    },
+    {
+      "package": "Require",
+      "reason": null,
+      "repositoryURL": "https://github.com/JohnSundell/Require.git",
+      "version": "1.0.2"
+    },
+    {
+      "package": "ShellOut",
+      "reason": null,
+      "repositoryURL": "https://github.com/JohnSundell/ShellOut.git",
+      "version": "1.1.0"
+    },
+    {
+      "package": "Unbox",
+      "reason": null,
+      "repositoryURL": "https://github.com/JohnSundell/Unbox.git",
+      "version": "2.5.0"
+    },
+    {
+      "package": "Wrap",
+      "reason": null,
+      "repositoryURL": "https://github.com/JohnSundell/Wrap.git",
+      "version": "2.1.1"
+    }
+  ],
+  "version": 1
+}
