@@ -108,15 +108,20 @@ $ echo "https://github.com/JohnSundell/Files.git" > Marathonfile
 
 ### On macOS
 
-Using Make:
+Using Homebrew:
+```sh
+brew install marathon-swift
 ```
+
+Using Make:
+```sh
 $ git clone https://github.com/JohnSundell/Marathon.git
 $ cd Marathon
 $ make
 ```
 
 Using the Swift Package Manager:
-```
+```sh
 $ git clone https://github.com/JohnSundell/Marathon.git
 $ cd Marathon
 $ swift build -c release -Xswiftc -static-stdlib
@@ -125,7 +130,7 @@ $ cp -f .build/release/Marathon /usr/local/bin/marathon
 
 ### On Linux
 
-```
+```sh
 $ git clone https://github.com/JohnSundell/Marathon.git
 $ cd Marathon
 $ swift build -c release
