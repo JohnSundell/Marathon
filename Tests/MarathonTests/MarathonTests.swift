@@ -332,6 +332,11 @@ class MarathonTests: XCTestCase {
         XCTAssertTrue(output.hasPrefix("🚘"))
     }
 
+    func testRunningRemoteSwiftPackageAsScript() throws {
+        let output = try run(with: ["run", "johnsundell/marathon"])
+        XCTAssertTrue(output.hasPrefix("Welcome to Marathon"))
+    }
+
     func testRunningScriptWithArgumentContainingSpace() throws {
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: "print(CommandLine.arguments[1])")
@@ -372,6 +377,15 @@ class MarathonTests: XCTestCase {
     func testInstallingRemoteScriptWithDependenciesUsingRawGithubURL() throws {
         let rawGitHubURLString = "https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/addSuffix.swift"
         try performTestForInstallingRemoteScriptWithDependenciesUsingURL(rawGitHubURLString)
+    }
+
+    func testInstallingRemoteSwiftPackageAsScript() throws {
+        // Install Marathon itself as a script
+        try run(with: ["install", "johnsundell/marathon", "installed-script"])
+
+        // Run the installed binary
+        let output = try folder.moveToAndPerform(command: "./installed-script")
+        XCTAssertTrue(output.hasPrefix("Welcome to Marathon"))
     }
 
     // MARK: - Creating scripts
@@ -838,10 +852,12 @@ extension MarathonTests {
             ("testRunningScriptWithVerboseOutput", testRunningScriptWithVerboseOutput),
             ("testRunningRemoteScriptFromURL", testRunningRemoteScriptFromURL),
             ("testRunningRemoteScriptFromGitHubRepository", testRunningRemoteScriptFromGitHubRepository),
+            ("testRunningRemoteSwiftPackageAsScript", testRunningRemoteSwiftPackageAsScript),
             ("testRunningScriptWithArgumentContainingSpace", testRunningScriptWithArgumentContainingSpace),
             ("testInstallingLocalScript", testInstallingLocalScript),
             ("testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL", testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL),
             ("testInstallingRemoteScriptWithDependenciesUsingRawGithubURL", testInstallingRemoteScriptWithDependenciesUsingRawGithubURL),
+            ("testInstallingRemoteSwiftPackageAsScript", testInstallingRemoteSwiftPackageAsScript),
             ("testCreatingScriptWithoutNameThrows", testCreatingScriptWithoutNameThrows),
             ("testCreatingScriptWithName", testCreatingScriptWithName),
             ("testCreatingScriptWithPath", testCreatingScriptWithPath),
