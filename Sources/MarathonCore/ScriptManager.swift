@@ -220,6 +220,14 @@ internal final class ScriptManager {
 
         let cloneFolder = try folder.subfolder(named: "clone")
 
+        if let packageName = try? packageManager.nameOfPackage(in: cloneFolder) {
+            let cloneFiles = cloneFolder.makeFileSequence(recursive: true)
+
+            if cloneFiles.contains(where: { $0.name == "main.swift" }) {
+                return Script(name: packageName, folder: cloneFolder, printer: printer)
+            }
+        }
+
         let swiftFiles = cloneFolder.makeFileSequence(recursive: true).filter { file in
             return file.extension == "swift" && file.nameExcludingExtension != "Package"
         }
