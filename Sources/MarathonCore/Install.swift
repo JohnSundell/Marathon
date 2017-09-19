@@ -39,7 +39,10 @@ internal class InstallTask: Task, Executable {
         }
 
         let script = try scriptManager.script(atPath: path, allowRemote: true)
-        let installPath = makeInstallPath(for: script)
+
+        let isCI = ProcessInfo.processInfo.environment["CI"] != nil
+        let getPath = isCI ? makeCIInstallPath : makeInstallPath
+        let installPath =  getPath(script)
 
         printer.reportProgress("Compiling script...")
         #if os(Linux)
@@ -55,6 +58,18 @@ internal class InstallTask: Task, Executable {
         }
 
         printer.output("💻  \(path) installed at \(installPath)")
+        if(isCI) {
+            
+        }
+    }
+
+
+    private func makeCIInstallPath(for script: Script) -> String {
+        let ciFolder = ".bin"
+        if !FileManager.default.fileExists(atPath: ciFolder) {
+            try? FileManager.default.createDirectory(atPath: ciFolder, withIntermediateDirectories: true, attributes: nil)
+        }
+        return "\(ciFolder)/\(script.name.lowercased())"
     }
 
     private func makeInstallPath(for script: Script) -> String {

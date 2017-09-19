@@ -11,4 +11,4 @@ script:
 
   - swiftenv install https://swift.org/builds/swift-4.0-branch/ubuntu1404/swift-4.0-DEVELOPMENT-SNAPSHOT-2017-09-07-a/swift-4.0-DEVELOPMENT-SNAPSHOT-2017-09-07-a-ubuntu14.04.tar.gz
   - ./.build/debug/Marathon install danger/danger-swift
-  - danger process danger-swift
+  - danger process ./bin/danger-swift
