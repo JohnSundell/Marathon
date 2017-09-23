@@ -59,7 +59,7 @@ internal class InstallTask: Task, Executable {
 
     private func makeInstallPath(for script: Script) -> String {
         if let argument = arguments.element(at: 1) {
-            if argument != "--force" {
+            if argument != "--force" && argument != "--verbose" {
                 return argument
             }
         }
