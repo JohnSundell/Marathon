@@ -108,6 +108,11 @@ $ echo "https://github.com/JohnSundell/Files.git" > Marathonfile
 
 ### On macOS
 
+Using [Mint](https://github.com/yonaskolb/mint):
+```sh
+$ mint run JohnSundell/Marathon
+```
+
 Using Homebrew:
 ```sh
 brew install marathon-swift
