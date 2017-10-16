@@ -2,6 +2,15 @@ os: linux
 language: generic
 sudo: required
 dist: trusty
+before_install:
+  # Install Linuxbrew
+  - test -d $HOME/.linuxbrew/bin || git clone https://github.com/Linuxbrew/brew.git $HOME/.linuxbrew
+  - PATH="$HOME/.linuxbrew/bin:$PATH"
+  - echo 'export PATH="$HOME/.linuxbrew/bin:$PATH"' >>~/.bash_profile
+  - export MANPATH="$(brew --prefix)/share/man:$MANPATH"
+  - export INFOPATH="$(brew --prefix)/share/info:$INFOPATH"
+  - brew --version
+
 install:
   - eval "$(curl -sL https://gist.githubusercontent.com/kylef/5c0475ff02b7c7671d2a/raw/9f442512a46d7a2af7b850d65a7e9bd31edfb09b/swiftenv-install.sh)"
   - npm install -g danger@alpha
@@ -10,5 +19,6 @@ script:
   - swift build
 
   - swiftenv install https://swift.org/builds/swift-4.0-branch/ubuntu1404/swift-4.0-DEVELOPMENT-SNAPSHOT-2017-09-07-a/swift-4.0-DEVELOPMENT-SNAPSHOT-2017-09-07-a-ubuntu14.04.tar.gz
-  - ./.build/debug/Marathon install danger/danger-swift
+
+  - brew install danger/tap/danger-swift
   - danger process danger-swift
