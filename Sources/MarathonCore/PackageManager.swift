@@ -402,9 +402,9 @@ internal final class PackageManager {
     }
 
     private func resolveSwiftToolsVersion() throws -> Version {
-        var versionString = try shellOutToSwiftCommand("--version", printer: printer)
-        versionString = versionString.components(separatedBy: "(").first.require()
-        versionString = versionString.components(separatedBy: "version ").last.require()
+		var versionString = try shellOutToSwiftCommand("package --version", printer: printer)
+		versionString = versionString.replacingOccurrences(of: "Apple Swift Package Manager - Swift ", with: "")
+		versionString = versionString.components(separatedBy: "-").first.require()
 
         return try perform(Version(string: versionString),
                            orThrow: Error.failedToResolveSwiftToolsVersion)
