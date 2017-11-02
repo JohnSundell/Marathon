@@ -14,6 +14,9 @@ import Require
                                           printer: Printer) throws -> String {
     do {
         printer.verboseOutput("$ cd \"\(folder.path)\" && \(command)")
+		
+		// TRY NEXT: create a pipe for each shellOut.
+		
         let output = try shellOut(to: command, at: folder.path)
         printer.verboseOutput(output)
 
