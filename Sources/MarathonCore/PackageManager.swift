@@ -406,6 +406,12 @@ internal final class PackageManager {
         versionString = versionString.components(separatedBy: "(").first.require()
         versionString = versionString.components(separatedBy: "version ").last.require()
 
+        let versionComponents = versionString.components(separatedBy: ".")
+
+        if versionComponents.count > 2 {
+            versionString = "\(versionComponents[0]).\(versionComponents[1])"
+        }
+
         return try perform(Version(string: versionString),
                            orThrow: Error.failedToResolveSwiftToolsVersion)
     }
