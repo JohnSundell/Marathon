@@ -1,3 +1,5 @@
+// swift-tools-version:4.0
+
 /**
  *  Marathon
  *  Copyright (c) John Sundell 2017
@@ -8,16 +10,30 @@ import PackageDescription
 
 let package = Package(
     name: "Marathon",
-    targets: [
-        Target(name: "Marathon", dependencies: ["MarathonCore"]),
-        Target(name: "MarathonCore")
+    products: [
+        .executable(name: "Marathon", targets: ["Marathon"]),
+        .library(name: "MarathonCore", targets: ["MarathonCore"])
     ],
     dependencies: [
-        .Package(url: "https://github.com/JohnSundell/Files.git", majorVersion: 1),
-        .Package(url: "https://github.com/JohnSundell/Unbox.git", majorVersion: 2),
-        .Package(url: "https://github.com/JohnSundell/Wrap.git", majorVersion: 2),
-        .Package(url: "https://github.com/JohnSundell/ShellOut.git", majorVersion: 1),
-        .Package(url: "https://github.com/JohnSundell/Require.git", majorVersion: 1),
-        .Package(url: "https://github.com/JohnSundell/Releases.git", majorVersion: 1)
+        .package(url: "https://github.com/JohnSundell/Files.git", from: "2.0.0"),
+        .package(url: "https://github.com/JohnSundell/Unbox.git", from: "2.0.0"),
+        .package(url: "https://github.com/JohnSundell/Wrap.git", from: "3.0.0"),
+        .package(url: "https://github.com/JohnSundell/ShellOut.git", from: "2.0.0"),
+        .package(url: "https://github.com/JohnSundell/Require.git", from: "2.0.0"),
+        .package(url: "https://github.com/JohnSundell/Releases.git", from: "2.0.0")
+    ],
+    targets: [
+        .target(
+            name: "Marathon",
+            dependencies: ["MarathonCore"]
+        ),
+        .target(
+            name: "MarathonCore",
+            dependencies: ["Files", "Unbox", "Wrap", "ShellOut", "Require", "Releases"]
+        ),
+        .testTarget(
+            name: "MarathonTests",
+            dependencies: ["MarathonCore"]
+        )
     ]
 )
