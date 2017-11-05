@@ -221,7 +221,7 @@ internal final class Script {
             messages.append(message)
 
             if let range = message.range(of: "'[A-Za-z]+'", options: .regularExpression), message.contains("no such module") {
-                let missingPackage = message[range].replacingOccurrences(of: "'", with: "")
+                let missingPackage = String(message[range]).replacingOccurrences(of: "'", with: "")
                 return Error.buildFailed(messages, missingPackage: missingPackage)
             }
         }
