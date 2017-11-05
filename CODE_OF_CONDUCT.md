@@ -1,4 +1,7 @@
-# Contributor Covenant Code of Conduct
+# Marathon Code of Conduct
+
+Below is the Code of Conduct that all contributors and participants in the Marathon community are expected to adhere to.
+It's adopted from the [Contributor Covenant Code of Conduct][homepage].
 
 ## Our Pledge
 
@@ -55,7 +58,7 @@ further defined and clarified by project maintainers.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at [INSERT EMAIL ADDRESS]. All
+reported by contacting the project leader at john@sundell.co. All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
