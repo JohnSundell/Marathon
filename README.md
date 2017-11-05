@@ -8,6 +8,7 @@
     <a href="https://travis-ci.org/JohnSundell/Marathon/branches">
         <img src="https://img.shields.io/travis/JohnSundell/Marathon/master.svg" alt="Travis status" />
     </a>
+    <img src="https://img.shields.io/badge/Swift-4.0-orange.svg" />
     </a>
     <a href="https://swift.org/package-manager">
         <img src="https://img.shields.io/badge/spm-compatible-brightgreen.svg?style=flat" alt="Swift Package Manager" />
@@ -184,21 +185,10 @@ https://github.com/JohnSundell/Wrap.git
 otherScript.swift
 ```
 
-## Using Marathon with Swift 4
+## Supported Swift versions
 
-Marathon supports writing scripts using Swift 4 and the Xcode 9 beta. To do this you'll need to switch your Xcode command line tools to use the Xcode 9 beta using `xcode-select`, like this:
-
-```
-$ sudo xcode-select -s /Applications/Xcode-beta.app/Contents/Developer/
-```
-
-If you've installed the Xcode 9 beta at some other path than the one above, simply switch out the path when running the command.
-
-**Important note:** Doing the above will switch your Xcode command line tools to Xcode 9 beta across your entire system, which may cause problems with other tooling that relies on the latest stable version of Xcode. If you encounter any such problems and want to switch back, you simply run `xcode-select` again to return to the latest stable version of Xcode:
-
-```
-$ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer/
-```
+- The latest version of Marathon supports Swift 4.0 and later.
+- To use Marathon with Swift 3.1, use version 1.0.1.
 
 ## Shell autocomplete
 
