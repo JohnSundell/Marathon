@@ -240,12 +240,12 @@ internal final class PackageManager {
                 continue
             }
 
-            var line = line.substring(from: nameTokenRange.upperBound)
+            var line = String(line[nameTokenRange.upperBound...])
 
             if let range = line.range(of: ",") {
-                line = line.substring(to: range.lowerBound)
+                line = String(line[..<range.lowerBound])
             } else if let range = line.range(of: ")") {
-                line = line.substring(to: range.lowerBound)
+                line = String(line[..<range.lowerBound])
             }
 
             line = line.trimmingCharacters(in: .whitespacesAndNewlines)
