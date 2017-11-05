@@ -402,12 +402,16 @@ internal final class PackageManager {
     }
 
     private func resolveSwiftToolsVersion() throws -> Version {
-        var versionString = try shellOutToSwiftCommand("--version", printer: printer)
-        versionString = versionString.components(separatedBy: "(").first.require()
-        versionString = versionString.components(separatedBy: "version ").last.require()
-
-        return try perform(Version(string: versionString),
-                           orThrow: Error.failedToResolveSwiftToolsVersion)
+        let versionString = try shellOutToSwiftCommand("package --version", printer: printer)
+        do {
+            let versionRegex = try NSRegularExpression(pattern: "\\d+\\.\\d+\\.\\d+")
+            let nsRange = versionRegex.rangeOfFirstMatch(in: versionString,
+                                                         range: NSRange(location: 0, length: versionString.count))
+            let range = Range(nsRange, in: versionString).require()
+            return try Version(string: versionString[range])
+        } catch {
+            throw Error.failedToResolveSwiftToolsVersion
+        }
     }
 
     private func makePackageDescriptionHeader(forSwiftToolsVersion toolsVersion: Version) -> String {
