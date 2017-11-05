@@ -150,7 +150,7 @@ To update Marathon, simply repeat any of the above two series of commands, excep
 
 Marathon requires the following to be installed on your system:
 
-- Swift 3.1 or later (bundled with Xcode 8.3 or later)
+- Swift 4.0 or later (bundled with Xcode 9.0 or later)
 - Git
 - Xcode (if you want to edit scripts using it)
 
@@ -184,11 +184,6 @@ https://github.com/JohnSundell/Wrap.git
 ~/packages/MyPackage
 otherScript.swift
 ```
-
-## Supported Swift versions
-
-- The latest version of Marathon supports Swift 4.0 and later.
-- To use Marathon with Swift 3.1, use version 1.0.1.
 
 ## Shell autocomplete
 
