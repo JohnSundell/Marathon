@@ -166,14 +166,14 @@ internal final class Script {
     }
 
 
-    func resolveMarathonFile() throws -> MarathonFile? {
+    func resolveMarathonFile(fileName: String) throws -> MarathonFile? {
         let scriptFile = try File(path: expandSymlink())
 
         guard let parentFolder = scriptFile.parent else {
             return nil
         }
 
-        guard let file = try? parentFolder.file(named: "Marathonfile") else {
+        guard let file = try? parentFolder.file(named: fileName) else {
             return nil
         }
 
