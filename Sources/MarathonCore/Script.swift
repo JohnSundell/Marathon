@@ -16,6 +16,7 @@ import Require
 
 public enum ScriptError {
     case editingFailed(String)
+    case watchingFailed(String)
     case buildFailed([String], missingPackage: String?)
     case installFailed(String)
 }
@@ -29,6 +30,8 @@ extension ScriptError: PrintableError {
             return "Failed to compile script"
         case .installFailed(_):
             return "Failed to install script"
+        case .watchingFailed(let name):
+            return "Failed to start watcher for \(name)"
         }
     }
 
@@ -36,6 +39,8 @@ extension ScriptError: PrintableError {
         switch self {
         case .editingFailed(_):
             return ["Make sure that it exists and that its file is readable"]
+        case .watchingFailed(_):
+            return ["Check the error message for more information"]
         case .buildFailed(let errors, let missingPackage):
             guard !errors.isEmpty else {
                 return []
@@ -128,38 +133,47 @@ internal final class Script {
         }
     }
 
-    func edit(arguments: [String], open: Bool) throws {
+    @discardableResult
+    func setupForEdit(arguments: [String]) throws -> String {
         do {
-            let path = try editingPath(from: arguments)
-
-            if open {
-                let relativePath = path.replacingOccurrences(of: folder.path, with: "")
-                printer.output("✏️  Opening \(relativePath)")
-
-                try shellOut(to: "open \"\(path)\"", printer: printer)
-
-                if path.hasSuffix(".xcodeproj/") {
-                    printer.output("\nℹ️  Marathon will keep running, in order to commit any changes you make in Xcode back to the original script file")
-                    printer.output("   Press the return key once you're done")
-
-                    startCopyLoop()
-                    _ = FileHandle.standardInput.availableData
-                    try copyChangesToSymlinkedFile()
-                }
-            }
+            try generateXcodeProject()
+            return try editingPath(from: arguments)
         } catch {
             throw Error.editingFailed(name)
         }
     }
 
-    func resolveMarathonFile() throws -> MarathonFile? {
+    func watch(arguments: [String]) throws {
+        do {
+            let path = try editingPath(from: arguments)
+            let relativePath = path.replacingOccurrences(of: folder.path, with: "")
+            printer.output("✏️  Opening \(relativePath)")
+
+            try shellOut(to: "open \"\(path)\"", printer: printer)
+
+            if path.hasSuffix(".xcodeproj/") {
+                printer.output("\nℹ️  Marathon will keep running, in order to commit any changes you make in Xcode back to the original script file")
+                printer.output("   Press the return key once you're done")
+
+                startCopyLoop()
+                _ = FileHandle.standardInput.availableData
+                try copyChangesToSymlinkedFile()
+
+            }
+        } catch {
+            throw Error.watchingFailed(name)
+        }
+    }
+
+
+    func resolveMarathonFile(fileName: String) throws -> MarathonFile? {
         let scriptFile = try File(path: expandSymlink())
 
         guard let parentFolder = scriptFile.parent else {
             return nil
         }
 
-        guard let file = try? parentFolder.file(named: "Marathonfile") else {
+        guard let file = try? parentFolder.file(named: fileName) else {
             return nil
         }
 
@@ -173,12 +187,11 @@ internal final class Script {
             return try expandSymlink()
         }
 
-        return try generateXcodeProject().path
+        return try folder.subfolder(named: name + ".xcodeproj").path
     }
 
-    private func generateXcodeProject() throws -> Folder {
+    private func generateXcodeProject() throws {
         try shellOutToSwiftCommand("package generate-xcodeproj", in: folder, printer: printer)
-        return try folder.subfolder(named: name + ".xcodeproj")
     }
 
     private func expandSymlink() throws -> String {
