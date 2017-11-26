@@ -70,13 +70,13 @@ extension ScriptManagerError: PrintableError {
 
 // MARK: - ScriptManager
 
-internal final class ScriptManager {
+public final class ScriptManager {
 
-    internal struct Config {
+    public struct Config {
         let dependencyPrefix: String
         let dependencyFile: String
 
-        init(prefix: String = "marathon:", file: String = "Marathonfile") {
+        public init(prefix: String = "marathon:", file: String = "Marathonfile") {
             dependencyPrefix = prefix
             dependencyFile = file
         }
@@ -95,7 +95,7 @@ internal final class ScriptManager {
 
     // MARK: - Lifecycle
 
-    init(folder: Folder, packageManager: PackageManager, printer: Printer, config: Config = ScriptManager.Config()) throws {
+    public init(folder: Folder, packageManager: PackageManager, printer: Printer, config: Config = ScriptManager.Config()) throws {
         self.cacheFolder = try folder.createSubfolderIfNeeded(withName: "Cache")
         self.temporaryFolder = try folder.createSubfolderIfNeeded(withName: "Temp")
         self.packageManager = packageManager
@@ -112,7 +112,7 @@ internal final class ScriptManager {
 
     // MARK: - API
 
-    func script(atPath path: String, allowRemote: Bool) throws -> Script {
+    public func script(atPath path: String, allowRemote: Bool) throws -> Script {
         if let file = try? File(path: path.asScriptPath()) {
             return try script(from: file)
         }
@@ -148,7 +148,7 @@ internal final class ScriptManager {
         return try downloadScriptFromRepository(at: gitHubURL)
     }
 
-    func removeDataForScript(at path: String) throws {
+    public func removeDataForScript(at path: String) throws {
         let identifier = scriptIdentifier(from: path)
 
         guard let folder = folderForScript(withIdentifier: identifier) else {
@@ -158,7 +158,7 @@ internal final class ScriptManager {
         try perform(folder.delete(), orThrow: Error.failedToRemoveScriptFolder(folder))
     }
 
-    func removeAllScriptData() throws {
+    public func removeAllScriptData() throws {
         for path in managedScriptPaths {
             try removeDataForScript(at: path)
         }
