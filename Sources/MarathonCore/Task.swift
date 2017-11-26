@@ -7,7 +7,7 @@
 import Foundation
 import Files
 
-internal class Task {
+public class Task {
     let folder: Folder
     let arguments: [String]
     let scriptManager: ScriptManager

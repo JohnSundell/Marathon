@@ -62,13 +62,13 @@ extension ScriptError: PrintableError {
 
 // MARK: - Script
 
-internal final class Script {
+public final class Script {
     private typealias Error = ScriptError
 
     // MARK: - Properties
 
-    let name: String
-    let folder: Folder
+    public let name: String
+    public let folder: Folder
 
     private let printer: Printer
     private var copyLoopDispatchQueue: DispatchQueue?
@@ -84,7 +84,7 @@ internal final class Script {
 
     // MARK: - API
 
-    func build(withArguments arguments: [String] = []) throws {
+    public func build(withArguments arguments: [String] = []) throws {
         do {
             let command = "build -C \(folder.path) --enable-prefetching " + arguments.joined(separator: " ")
             try shellOutToSwiftCommand(command, in: folder, printer: printer)
@@ -93,7 +93,7 @@ internal final class Script {
         }
     }
 
-    func run(in executionFolder: Folder, with arguments: [String]) throws -> String {
+    public func run(in executionFolder: Folder, with arguments: [String]) throws -> String {
         let scriptPath = folder.path + ".build/debug/" + name
         var command = scriptPath
 
@@ -104,7 +104,7 @@ internal final class Script {
         return try executionFolder.moveToAndPerform(command: command, printer: printer)
     }
 
-    func install(at path: String, confirmBeforeOverwriting: Bool) throws -> Bool {
+    public func install(at path: String, confirmBeforeOverwriting: Bool) throws -> Bool {
         do {
             var pathComponents = path.components(separatedBy: "/")
             let installName = pathComponents.removeLast()
@@ -134,7 +134,7 @@ internal final class Script {
     }
 
     @discardableResult
-    func setupForEdit(arguments: [String]) throws -> String {
+    public func setupForEdit(arguments: [String]) throws -> String {
         do {
             try generateXcodeProject()
             return try editingPath(from: arguments)
@@ -143,7 +143,7 @@ internal final class Script {
         }
     }
 
-    func watch(arguments: [String]) throws {
+    public func watch(arguments: [String]) throws {
         do {
             let path = try editingPath(from: arguments)
             let relativePath = path.replacingOccurrences(of: folder.path, with: "")
