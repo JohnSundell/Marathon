@@ -70,7 +70,18 @@ extension ScriptManagerError: PrintableError {
 
 // MARK: - ScriptManager
 
-internal final class ScriptManager {
+public final class ScriptManager {
+
+    public struct Config {
+        let dependencyPrefix: String
+        let dependencyFile: String
+
+        public init(prefix: String = "marathon:", file: String = "Marathonfile") {
+            dependencyPrefix = prefix
+            dependencyFile = file
+        }
+    }
+
     private typealias Error = ScriptManagerError
 
     var managedScriptPaths: [String] { return makeManagedScriptPathList() }
@@ -80,14 +91,16 @@ internal final class ScriptManager {
     private lazy var temporaryScriptFiles = [File]()
     private let packageManager: PackageManager
     private let printer: Printer
+    private let config: Config
 
     // MARK: - Lifecycle
 
-    init(folder: Folder, packageManager: PackageManager, printer: Printer) throws {
+    public init(folder: Folder, packageManager: PackageManager, printer: Printer, config: Config = ScriptManager.Config()) throws {
         self.cacheFolder = try folder.createSubfolderIfNeeded(withName: "Cache")
         self.temporaryFolder = try folder.createSubfolderIfNeeded(withName: "Temp")
         self.packageManager = packageManager
         self.printer = printer
+        self.config = config
     }
 
     deinit {
@@ -99,7 +112,7 @@ internal final class ScriptManager {
 
     // MARK: - API
 
-    func script(atPath path: String, allowRemote: Bool) throws -> Script {
+    public func script(atPath path: String, allowRemote: Bool) throws -> Script {
         if let file = try? File(path: path.asScriptPath()) {
             return try script(from: file)
         }
@@ -135,7 +148,7 @@ internal final class ScriptManager {
         return try downloadScriptFromRepository(at: gitHubURL)
     }
 
-    func removeDataForScript(at path: String) throws {
+    public func removeDataForScript(at path: String) throws {
         let identifier = scriptIdentifier(from: path)
 
         guard let folder = folderForScript(withIdentifier: identifier) else {
@@ -145,7 +158,7 @@ internal final class ScriptManager {
         try perform(folder.delete(), orThrow: Error.failedToRemoveScriptFolder(folder))
     }
 
-    func removeAllScriptData() throws {
+    public func removeAllScriptData() throws {
         for path in managedScriptPaths {
             try removeDataForScript(at: path)
         }
@@ -158,7 +171,7 @@ internal final class ScriptManager {
         let folder = try createFolderIfNeededForScript(withIdentifier: identifier, file: file)
         let script = Script(name: file.nameExcludingExtension, folder: folder, printer: printer)
 
-        if let marathonFile = try script.resolveMarathonFile() {
+        if let marathonFile = try script.resolveMarathonFile(fileName: config.dependencyFile) {
             try packageManager.addPackagesIfNeeded(from: marathonFile.packageURLs)
             try addDependencyScripts(fromMarathonFile: marathonFile, for: script)
         }
@@ -189,13 +202,13 @@ internal final class ScriptManager {
             let file = try folder.createFile(named: fileName, contents: data)
             temporaryScriptFiles.append(file)
 
-            printer.reportProgress("Resolving Marathonfile...")
+            printer.reportProgress("Resolving \(config.dependencyFile)...")
             if let parentURL = url.parent {
-                let marathonFileURL = URL(string: parentURL.absoluteString + "Marathonfile").require()
+                let marathonFileURL = URL(string: parentURL.absoluteString + config.dependencyFile).require()
 
                 if let marathonFileData = try? Data(contentsOf: marathonFileURL) {
-                    printer.reportProgress("Saving Marathonfile...")
-                    try folder.createFile(named: "Marathonfile", contents: marathonFileData)
+                    printer.reportProgress("Saving \(config.dependencyFile)...")
+                    try folder.createFile(named: config.dependencyFile, contents: marathonFileData)
                 }
             }
 
@@ -252,6 +265,7 @@ internal final class ScriptManager {
         return identifier.components(separatedBy: "-").last.require().capitalized
     }
 
+
     private func createFolderIfNeededForScript(withIdentifier identifier: String, file: File) throws -> Folder {
         let scriptFolder = try cacheFolder.createSubfolderIfNeeded(withName: identifier)
         try packageManager.symlinkPackages(to: scriptFolder)
@@ -292,7 +306,7 @@ internal final class ScriptManager {
 
         for line in lines {
             if line.hasPrefix("import ") {
-                let components = line.components(separatedBy: "marathon:")
+                let components = line.components(separatedBy: config.dependencyPrefix)
 
                 guard components.count > 1 else {
                     continue

@@ -83,7 +83,7 @@ extension PackageManagerError: PrintableError {
 
 // MARK: - PackageManager
 
-internal final class PackageManager {
+public final class PackageManager {
     private typealias Error = PackageManagerError
 
     var addedPackages: [Package] { return makePackageList() }
@@ -96,7 +96,7 @@ internal final class PackageManager {
 
     // MARK: - Init
 
-    init(folder: Folder, printer: Printer) throws {
+    public init(folder: Folder, printer: Printer) throws {
         self.folder = folder
         self.generatedFolder = try folder.createSubfolderIfNeeded(withName: "Generated")
         self.temporaryFolder = try folder.createSubfolderIfNeeded(withName: "Temp")

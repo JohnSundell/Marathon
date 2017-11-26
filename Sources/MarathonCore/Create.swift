@@ -67,7 +67,8 @@ internal final class CreateTask: Task, Executable {
 
         if !argumentsContainNoOpenFlag {
             let script = try scriptManager.script(atPath: file.path, allowRemote: false)
-            try script.edit(arguments: arguments, open: true)
+            try script.setupForEdit(arguments: arguments)
+            try script.watch(arguments: arguments)
         }
     }
 
