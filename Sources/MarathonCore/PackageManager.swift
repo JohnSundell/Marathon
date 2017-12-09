@@ -364,6 +364,7 @@ public final class PackageManager {
                           "import PackageDescription\n\n" +
                           "let package = Package(\n" +
                           "    name: \"\(masterPackageName)\",\n" +
+                          "    products: [.library(name: \"Dependencies\", type: .dynamic, targets: [\"\(masterPackageName)\"])]," +
                           "    dependencies: [\n"
 
         for (index, package) in packages.enumerated() {
