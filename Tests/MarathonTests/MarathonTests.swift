@@ -455,7 +455,7 @@ class MarathonTests: XCTestCase {
 
     func testEditingScriptWithXcodeOnMacOS() throws {
         let script = "import Foundation"
-        let scriptFile = try folder.createFile(named: "script.swift")
+        let scriptFile = try folder.createFile(named: "Script.swift")
         try scriptFile.write(string: script)
 
         try run(with: ["edit", scriptFile.path, "--no-open"])
