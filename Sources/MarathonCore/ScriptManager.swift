@@ -117,7 +117,7 @@ public final class ScriptManager {
             return try script(from: file)
         }
 
-        if path.hasPrefix("http") || path.hasPrefix("git@") {
+        if path.hasPrefix("http") || path.hasPrefix("git@") || path.hasPrefix("ssh") {
             guard allowRemote else {
                 throw Error.remoteScriptNotAllowed
             }
