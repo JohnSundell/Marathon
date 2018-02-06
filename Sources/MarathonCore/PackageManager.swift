@@ -403,9 +403,9 @@ public final class PackageManager {
     }
 
     private func resolveSwiftToolsVersion() throws -> Version {
-        var versionString = try shellOutToSwiftCommand("--version", printer: printer)
-        versionString = versionString.components(separatedBy: "(").first.require()
-        versionString = versionString.components(separatedBy: "version ").last.require()
+        var versionString = try shellOutToSwiftCommand("package --version", printer: printer)
+        versionString = versionString.components(separatedBy: " (swiftpm").first.require()
+        versionString = versionString.components(separatedBy: "Swift Package Manager - Swift ").last.require()
 
         let versionComponents = versionString.components(separatedBy: ".")
 
