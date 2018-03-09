@@ -86,7 +86,7 @@ extension PackageManagerError: PrintableError {
 public final class PackageManager {
     private typealias Error = PackageManagerError
 
-    var addedPackages: [Package] { return makePackageList() }
+    public var addedPackages: [Package] { return makePackageList() }
 
     private let folder: Folder
     private let generatedFolder: Folder
@@ -105,7 +105,7 @@ public final class PackageManager {
 
     // MARK: - API
 
-    @discardableResult func addPackage(at url: URL, throwIfAlreadyAdded: Bool = true) throws -> Package {
+    @discardableResult public func addPackage(at url: URL, throwIfAlreadyAdded: Bool = true) throws -> Package {
         let name = try nameOfPackage(at: url)
 
         if throwIfAlreadyAdded {
@@ -124,7 +124,7 @@ public final class PackageManager {
         return package
     }
 
-    func addPackagesIfNeeded(from packageURLs: [URL]) throws {
+    public func addPackagesIfNeeded(from packageURLs: [URL]) throws {
         let existingPackageURLs = Set(makePackageList().map { package in
             return package.url.absoluteString.lowercased()
         })
@@ -138,7 +138,7 @@ public final class PackageManager {
         }
     }
 
-    @discardableResult func removePackage(named name: String, shouldUpdatePackages: Bool = true) throws -> Package {
+    @discardableResult public func removePackage(named name: String, shouldUpdatePackages: Bool = true) throws -> Package {
         printer.reportProgress("Removing \(name)...")
 
         let packageFile = try perform(folder.file(named: name),
@@ -156,7 +156,7 @@ public final class PackageManager {
         return package
     }
 
-    func removeAllPackages() throws {
+    public func removeAllPackages() throws {
         for package in addedPackages {
             try removePackage(named: package.name)
         }
@@ -164,7 +164,7 @@ public final class PackageManager {
         try updatePackages()
     }
 
-    func makePackageDescription(for script: Script) throws -> String {
+    public func makePackageDescription(for script: Script) throws -> String {
         guard let masterDescription = try? generatedFolder.file(named: "Package.swift").readAsString() else {
             try updatePackages()
             return try makePackageDescription(for: script)
@@ -181,7 +181,7 @@ public final class PackageManager {
         return masterDescription.replacingOccurrences(of: masterPackageName, with: script.name)
     }
 
-    func symlinkPackages(to folder: Folder) throws {
+    public func symlinkPackages(to folder: Folder) throws {
         guard let checkoutsFolder = try? generatedFolder.subfolder(atPath: ".build/checkouts"),
               let repositoriesFolder = try? generatedFolder.subfolder(atPath: ".build/repositories") else {
             try updatePackages()
@@ -217,7 +217,7 @@ public final class PackageManager {
         }
     }
 
-    func updateAllPackagesToLatestMajorVersion() throws {
+    public func updateAllPackagesToLatestMajorVersion() throws {
         for var package in addedPackages {
             let latestMajorVersion = try latestMajorVersionForPackage(at: package.url)
 
@@ -232,7 +232,7 @@ public final class PackageManager {
         try updatePackages()
     }
 
-    func nameOfPackage(in folder: Folder) throws -> String {
+    public func nameOfPackage(in folder: Folder) throws -> String {
         let packageFile = try folder.file(named: "Package.swift")
 
         for line in try packageFile.readAsString().components(separatedBy: .newlines) {
