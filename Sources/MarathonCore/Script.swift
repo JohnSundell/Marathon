@@ -26,9 +26,9 @@ extension ScriptError: PrintableError {
         switch self {
         case .editingFailed(let name):
             return "Failed to open script '\(name)' for editing"
-        case .buildFailed(_, _):
+        case .buildFailed:
             return "Failed to compile script"
-        case .installFailed(_):
+        case .installFailed:
             return "Failed to install script"
         case .watchingFailed(let name):
             return "Failed to start watcher for \(name)"
@@ -37,9 +37,9 @@ extension ScriptError: PrintableError {
 
     public var hints: [String] {
         switch self {
-        case .editingFailed(_):
+        case .editingFailed:
             return ["Make sure that it exists and that its file is readable"]
-        case .watchingFailed(_):
+        case .watchingFailed:
             return ["Check the error message for more information"]
         case .buildFailed(let errors, let missingPackage):
             guard !errors.isEmpty else {
@@ -164,7 +164,6 @@ public final class Script {
             throw Error.watchingFailed(name)
         }
     }
-
 
     func resolveMarathonFile(fileName: String) throws -> MarathonFile? {
         let scriptFile = try File(path: expandSymlink())

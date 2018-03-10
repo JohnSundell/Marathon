@@ -19,8 +19,8 @@ public class Printer {
     let verboseOutput: VerbosePrintFunction
 
     public init(outputFunction: @escaping PrintFunction,
-         progressFunction: @escaping VerbosePrintFunction,
-         verboseFunction: @escaping VerbosePrintFunction) {
+                progressFunction: @escaping VerbosePrintFunction,
+                verboseFunction: @escaping VerbosePrintFunction) {
         output = outputFunction
         reportProgress = progressFunction
         verboseOutput = verboseFunction
