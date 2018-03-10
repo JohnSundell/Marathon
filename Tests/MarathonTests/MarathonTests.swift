@@ -10,6 +10,7 @@ import Files
 import Unbox
 import Require
 
+//swiftlint:disable type_body_length file_length
 class MarathonTests: XCTestCase {
     fileprivate var folder: Folder!
 
@@ -762,7 +763,7 @@ class MarathonTests: XCTestCase {
         let autocompleteFolder = try folder.subfolder(atPath: "ShellAutocomplete")
         XCTAssertTrue(autocompleteFolder.subfolders.count > 0, "Autocompletions folder should contain some autocompletion files")
     }
-    
+
     // MARK: - Test verification
 
     func testAllTestsRunOnLinux() throws {

@@ -27,11 +27,11 @@ extension ScriptManagerError: PrintableError {
         switch self {
         case .scriptNotFound(let path):
             return "Could not find a Swift script at '\(path)'"
-        case .failedToCreatePackageFile(_):
+        case .failedToCreatePackageFile:
             return "Failed to create a Package.swift file for the script"
         case .failedToAddDependencyScript(let path):
             return "Failed to add the dependency script at '\(path)'"
-        case .failedToRemoveScriptFolder(_):
+        case .failedToRemoveScriptFolder:
             return "Failed to remove script folder"
         case .failedToDownloadScript(let url, let error):
             return "Failed to download script from '\(url.absoluteString)' (\(error))"
@@ -53,9 +53,9 @@ extension ScriptManagerError: PrintableError {
         case .failedToCreatePackageFile(let folder),
              .failedToRemoveScriptFolder(let folder):
             return ["Make sure you have write permissions to the folder '\(folder.path)'"]
-        case .failedToAddDependencyScript(_):
+        case .failedToAddDependencyScript:
             return ["Make sure that the file exists and is readable"]
-        case .failedToDownloadScript(_):
+        case .failedToDownloadScript:
             return ["Make sure that the URL is reachable, and that it contains a valid Swift script"]
         case .invalidInlineDependencyURL, .noSwiftFilesInRepository:
             return ["Please verify that the URL is correct and try again"]
@@ -264,7 +264,6 @@ public final class ScriptManager {
     private func scriptName(from identifier: String) -> String {
         return identifier.components(separatedBy: "-").last.require().capitalized
     }
-
 
     private func createFolderIfNeededForScript(withIdentifier identifier: String, file: File) throws -> Folder {
         let scriptFolder = try cacheFolder.createSubfolderIfNeeded(withName: identifier)

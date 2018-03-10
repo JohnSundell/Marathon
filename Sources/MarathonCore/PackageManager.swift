@@ -38,7 +38,7 @@ extension PackageManagerError: PrintableError {
             return "Could not save file for package '\(name)'"
         case .failedToReadPackageFile(let name):
             return "Could not read file for package '\(name)'"
-        case .failedToUpdatePackages(_):
+        case .failedToUpdatePackages:
             return "Failed to update packages"
         case .unknownPackageForRemoval(let name):
             return "Cannot remove package '\(name)' - no such package has been added"
@@ -59,7 +59,7 @@ extension PackageManagerError: PrintableError {
             }
 
             return [hint]
-        case .failedToResolveName(_):
+        case .failedToResolveName:
             return ["Make sure that the package you're trying to add is reachable, and has a Package.swift file"]
         case .packageAlreadyAdded(let name):
             return ["Did you mean to update it? If so, run 'marathon update'\n" +
@@ -70,7 +70,7 @@ extension PackageManagerError: PrintableError {
             return ["The file may have become corrupted. Try removing the package using 'marathon remove \(name)' and then add it back again"]
         case .failedToUpdatePackages(let folder):
             return ["Make sure you have write permissions to the folder '\(folder.path)'"]
-        case .unknownPackageForRemoval(_):
+        case .unknownPackageForRemoval:
             return ["Did you mean to remove the cache data for a script? If so, add '.swift' to its path\n" +
                    "To list all added packages run 'marathon list'"]
         case .failedToRemovePackage(_, let folder):
