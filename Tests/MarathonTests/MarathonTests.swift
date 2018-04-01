@@ -334,8 +334,8 @@ class MarathonTests: XCTestCase {
     }
 
     func testRunningRemoteSwiftPackageAsScript() throws {
-        let output = try run(with: ["run", "johnsundell/marathon"])
-        XCTAssertTrue(output.hasPrefix("Welcome to Marathon"))
+        let output = try run(with: ["run", "johnsundell/marathonTestPackage"])
+        XCTAssertEqual(output, "Hello, world!")
     }
 
     func testRunningScriptWithArgumentContainingSpace() throws {
