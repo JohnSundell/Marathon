@@ -323,8 +323,8 @@ class MarathonTests: XCTestCase {
     }
 
     func testRunningRemoteScriptFromGitHubRepository() throws {
-        let output = try run(with: ["run", "johnsundell/playground", "-h"])
-        XCTAssertTrue(output.hasPrefix("Playground"))
+        let output = try run(with: ["run", "johnsundell/MarathonTestScript"])
+        XCTAssertEqual(output, "Hello, world!")
     }
 
     func testRunningRemoteSwiftPackageAsScript() throws {
