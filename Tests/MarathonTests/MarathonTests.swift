@@ -322,15 +322,9 @@ class MarathonTests: XCTestCase {
         XCTAssertTrue(output.contains("🏃"))
     }
 
-    func testRunningRemoteScriptFromURL() throws {
-        let testDriveURL = "https://raw.githubusercontent.com/JohnSundell/TestDrive/master/Sources/TestDrive.swift"
-        let output = try run(with: ["run", testDriveURL])
-        XCTAssertTrue(output.hasPrefix("🚘"))
-    }
-
     func testRunningRemoteScriptFromGitHubRepository() throws {
-        let output = try run(with: ["run", "johnsundell/testdrive"])
-        XCTAssertTrue(output.hasPrefix("🚘"))
+        let output = try run(with: ["run", "johnsundell/playground", "-h"])
+        XCTAssertTrue(output.hasPrefix("Playground"))
     }
 
     func testRunningRemoteSwiftPackageAsScript() throws {
@@ -851,7 +845,6 @@ extension MarathonTests {
             ("testCurrentWorkingDirectoryOfScriptIsExecutionFolder", testCurrentWorkingDirectoryOfScriptIsExecutionFolder),
             ("testScriptWithLargeAmountOfOutput", testScriptWithLargeAmountOfOutput),
             ("testRunningScriptWithVerboseOutput", testRunningScriptWithVerboseOutput),
-            ("testRunningRemoteScriptFromURL", testRunningRemoteScriptFromURL),
             ("testRunningRemoteScriptFromGitHubRepository", testRunningRemoteScriptFromGitHubRepository),
             ("testRunningRemoteSwiftPackageAsScript", testRunningRemoteSwiftPackageAsScript),
             ("testRunningScriptWithArgumentContainingSpace", testRunningScriptWithArgumentContainingSpace),
