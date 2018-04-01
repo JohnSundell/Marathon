@@ -382,11 +382,11 @@ class MarathonTests: XCTestCase {
 
     func testInstallingRemoteSwiftPackageAsScript() throws {
         // Install Marathon itself as a script
-        try run(with: ["install", "johnsundell/marathon", "installed-script"])
+        try run(with: ["install", "johnsundell/marathonTestPackage", "installed-script"])
 
         // Run the installed binary
         let output = try folder.moveToAndPerform(command: "./installed-script")
-        XCTAssertTrue(output.hasPrefix("Welcome to Marathon"))
+        XCTAssertEqual(output, "Hello, world!")
     }
 
     // MARK: - Creating scripts
