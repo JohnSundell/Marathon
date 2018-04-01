@@ -86,7 +86,7 @@ public final class Script {
 
     public func build(withArguments arguments: [String] = []) throws {
         do {
-            let command = "build -C \(folder.path) --enable-prefetching " + arguments.joined(separator: " ")
+            let command = "build -C \(folder.path) " + arguments.joined(separator: " ")
             try shellOutToSwiftCommand(command, in: folder, printer: printer)
         } catch {
             throw formatBuildError(error as! ShellOutError)
@@ -136,7 +136,10 @@ public final class Script {
     @discardableResult
     public func setupForEdit(arguments: [String]) throws -> String {
         do {
-            try generateXcodeProject()
+            if !arguments.contains("--no-xcode") {
+                try generateXcodeProject()
+            }
+
             return try editingPath(from: arguments)
         } catch {
             throw Error.editingFailed(name)
