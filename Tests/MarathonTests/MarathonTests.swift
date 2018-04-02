@@ -365,12 +365,12 @@ class MarathonTests: XCTestCase {
     }
 
     func testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL() throws {
-        let gitHubURLString = "https://github.com/JohnSundell/Marathon-Examples/blob/master/AddSuffix/addSuffix.swift"
+        let gitHubURLString = "https://github.com/JohnSundell/TestDrive/blob/master/Sources/main.swift"
         try performTestForInstallingRemoteScriptWithDependenciesUsingURL(gitHubURLString)
     }
 
     func testInstallingRemoteScriptWithDependenciesUsingRawGithubURL() throws {
-        let rawGitHubURLString = "https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/addSuffix.swift"
+        let rawGitHubURLString = "https://raw.githubusercontent.com/JohnSundell/TestDrive/master/Sources/main.swift"
         try performTestForInstallingRemoteScriptWithDependenciesUsingURL(rawGitHubURLString)
     }
 
@@ -886,17 +886,12 @@ fileprivate extension MarathonTests {
     func performTestForInstallingRemoteScriptWithDependenciesUsingURL(_ urlString: String) throws {
         try run(with: ["install", urlString, "installed-script"])
 
-        // Make a couple of files that we can try the installed script on
-        let executionFolder = try folder.createSubfolder(named: "TestInstallation")
-        try executionFolder.createFile(named: "A.swift")
-        try executionFolder.createFile(named: "B.swift")
-
         // Run the installed binary
-        try executionFolder.moveToAndPerform(command: "../installed-script -suffix")
-        XCTAssertEqual(executionFolder.files.names, ["A-suffix.swift", "B-suffix.swift"])
+        let output = try folder.moveToAndPerform(command: "./installed-script")
+        XCTAssertTrue(output.starts(with: "🚘"))
 
         // List should not contain the script, as it was only added temporarily
-        try XCTAssertFalse(run(with: ["list"]).lowercased().contains("addsuffix"))
+        try XCTAssertFalse(run(with: ["list"]).lowercased().contains("testdrive"))
 
         // Make sure that the temporary folder for the script is cleaned up
         try XCTAssertEqual(folder.subfolder(atPath: "Scripts/Temp").subfolders.count, 0)
