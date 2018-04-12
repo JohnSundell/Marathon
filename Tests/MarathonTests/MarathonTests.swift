@@ -522,8 +522,8 @@ class MarathonTests: XCTestCase {
     func testRemovingAllScriptData() throws {
         var scriptFiles: [File] = []
 
-        for i in 0..<3 {
-            let scriptFile = try folder.createFile(named: "script_\(i).swift")
+        for index in 0..<3 {
+            let scriptFile = try folder.createFile(named: "script_\(index).swift")
             try scriptFile.write(string: "import Foundation")
             try run(with: ["run", scriptFile.path])
             scriptFiles.append(scriptFile)
