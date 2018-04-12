@@ -365,12 +365,12 @@ class MarathonTests: XCTestCase {
     }
 
     func testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL() throws {
-        let gitHubURLString = "https://github.com/JohnSundell/TestDrive/blob/master/Sources/main.swift"
+        let gitHubURLString = "https://github.com/JohnSundell/MarathonTestScriptWithDependencies/blob/master/Script.swift"
         try performTestForInstallingRemoteScriptWithDependenciesUsingURL(gitHubURLString)
     }
 
     func testInstallingRemoteScriptWithDependenciesUsingRawGithubURL() throws {
-        let rawGitHubURLString = "https://raw.githubusercontent.com/JohnSundell/TestDrive/master/Sources/main.swift"
+        let rawGitHubURLString = "https://raw.githubusercontent.com/JohnSundell/MarathonTestScriptWithDependencies/master/Script.swift"
         try performTestForInstallingRemoteScriptWithDependenciesUsingURL(rawGitHubURLString)
     }
 
@@ -888,10 +888,10 @@ fileprivate extension MarathonTests {
 
         // Run the installed binary
         let output = try folder.moveToAndPerform(command: "./installed-script")
-        XCTAssertTrue(output.starts(with: "🚘"))
+        XCTAssertEqual(output, folder.path)
 
         // List should not contain the script, as it was only added temporarily
-        try XCTAssertFalse(run(with: ["list"]).lowercased().contains("testdrive"))
+        try XCTAssertFalse(run(with: ["list"]).lowercased().contains(folder.path))
 
         // Make sure that the temporary folder for the script is cleaned up
         try XCTAssertEqual(folder.subfolder(atPath: "Scripts/Temp").subfolders.count, 0)
