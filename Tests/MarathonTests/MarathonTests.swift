@@ -888,7 +888,7 @@ fileprivate extension MarathonTests {
 
         // Run the installed binary
         let output = try folder.moveToAndPerform(command: "./installed-script")
-        XCTAssertEqual(output, folder.path)
+        XCTAssertEqual(output, "Hello, world!")
 
         // List should not contain the script, as it was only added temporarily
         try XCTAssertFalse(run(with: ["list"]).lowercased().contains(folder.path))
