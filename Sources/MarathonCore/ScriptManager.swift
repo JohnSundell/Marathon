@@ -197,7 +197,7 @@ public final class ScriptManager {
             let folder = try temporaryFolder.createSubfolderIfNeeded(withName: identifier)
             let fileName = scriptName(from: identifier) + ".swift"
             printer.reportProgress("Saving script...")
-            let file = try saveFile(from: url, destinationDirectory: folder, fileName: fileName)
+            let file = try saveFile(from: url, to: folder, fileName: fileName)
             temporaryScriptFiles.append(file)
 
             printer.reportProgress("Resolving \(config.dependencyFile)...")
@@ -205,7 +205,7 @@ public final class ScriptManager {
                 let marathonFileURL = URL(string: parentURL.absoluteString + config.dependencyFile).require()
 
                 printer.reportProgress("Saving \(config.dependencyFile)...")
-                try saveFile(from: marathonFileURL, destinationDirectory: folder, fileName: config.dependencyFile)
+                try saveFile(from: marathonFileURL, to: folder, fileName: config.dependencyFile)
             }
 
             return try script(from: file)
@@ -215,17 +215,17 @@ public final class ScriptManager {
     }
 
     @discardableResult
-    private func saveFile(from url: URL, destinationDirectory: Folder, fileName: String) throws -> File {
+    private func saveFile(from url: URL, to folder: Folder, fileName: String) throws -> File {
         // Basically on Linux we can't use `Data(contentsOf:)` for getting the file
         // from a remote location. It just returns an empty data (on macOS works fine).
         // rdar://39621032
         #if os(Linux)
             let downloadCommand = "wget -O \"\(fileName)\" \"\(url.absoluteString)\""
-            try destinationDirectory.moveToAndPerform(command: downloadCommand, printer: printer)
-            return try destinationDirectory.file(named: fileName)
+            try folder.moveToAndPerform(command: downloadCommand, printer: printer)
+            return try folder.file(named: fileName)
         #else
             let data = try Data(contentsOf: url)
-            return try destinationDirectory.createFile(named: fileName, contents: data)
+            return try folder.createFile(named: fileName, contents: data)
         #endif
     }
 
