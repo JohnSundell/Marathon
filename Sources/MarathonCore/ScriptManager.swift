@@ -193,13 +193,14 @@ public final class ScriptManager {
             let url = url.transformIfNeeded()
 
             printer.reportProgress("Downloading script...")
-            let data = try Data(contentsOf: url)
-
-            printer.reportProgress("Saving script...")
             let identifier = scriptIdentifier(from: url.absoluteString)
             let folder = try temporaryFolder.createSubfolderIfNeeded(withName: identifier)
             let fileName = scriptName(from: identifier) + ".swift"
-            let file = try folder.createFile(named: fileName, contents: data)
+            let downloadCommand = "wget -O \"\(fileName)\" \"\(url)\""
+            try folder.moveToAndPerform(command: downloadCommand, printer: printer)
+
+            printer.reportProgress("Saving script...")
+            let file = try folder.file(named: fileName)
             temporaryScriptFiles.append(file)
 
             printer.reportProgress("Resolving \(config.dependencyFile)...")
