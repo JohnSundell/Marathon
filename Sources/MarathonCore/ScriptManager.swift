@@ -216,6 +216,9 @@ public final class ScriptManager {
 
     @discardableResult
     private func saveFile(from url: URL, destinationDirectory: Folder, fileName: String) throws -> File {
+        // Basically on Linux we can't use `Data(contentsOf:)` for getting the file
+        // from a remote location. It just returns an empty data (on macOS works fine).
+        // rdar://39621032
         #if os(Linux)
             let downloadCommand = "wget -O \"\(fileName)\" \"\(url.absoluteString)\""
             try destinationDirectory.moveToAndPerform(command: downloadCommand, printer: printer)
