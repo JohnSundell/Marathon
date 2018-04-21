@@ -109,17 +109,7 @@ $ echo "https://github.com/JohnSundell/Files.git" > Marathonfile
 
 ### On macOS
 
-Using Homebrew:
-```sh
-brew install marathon-swift
-```
-
-Using [Mint](https://github.com/yonaskolb/mint):
-```sh
-$ mint run JohnSundell/Marathon
-```
-
-Using Make:
+Using Make **(recommended)**:
 ```sh
 $ git clone https://github.com/JohnSundell/Marathon.git
 $ cd Marathon
@@ -132,6 +122,16 @@ $ git clone https://github.com/JohnSundell/Marathon.git
 $ cd Marathon
 $ swift build -c release -Xswiftc -static-stdlib
 $ cp -f .build/release/Marathon /usr/local/bin/marathon
+```
+
+Using [Mint](https://github.com/yonaskolb/mint):
+```sh
+$ mint run JohnSundell/Marathon
+```
+
+Using Homebrew **(not recommended, due to slow update cycle)**:
+```sh
+brew install marathon-swift
 ```
 
 ### On Linux
