@@ -322,20 +322,14 @@ class MarathonTests: XCTestCase {
         XCTAssertTrue(output.contains("🏃"))
     }
 
-    func testRunningRemoteScriptFromURL() throws {
-        let testDriveURL = "https://raw.githubusercontent.com/JohnSundell/TestDrive/master/Sources/TestDrive.swift"
-        let output = try run(with: ["run", testDriveURL])
-        XCTAssertTrue(output.hasPrefix("🚘"))
-    }
-
     func testRunningRemoteScriptFromGitHubRepository() throws {
-        let output = try run(with: ["run", "johnsundell/testdrive"])
-        XCTAssertTrue(output.hasPrefix("🚘"))
+        let output = try run(with: ["run", "johnsundell/MarathonTestScript"])
+        XCTAssertEqual(output, "Hello, world!")
     }
 
     func testRunningRemoteSwiftPackageAsScript() throws {
-        let output = try run(with: ["run", "johnsundell/marathon"])
-        XCTAssertTrue(output.hasPrefix("Welcome to Marathon"))
+        let output = try run(with: ["run", "johnsundell/marathonTestPackage"])
+        XCTAssertEqual(output, "Hello, world!")
     }
 
     func testRunningScriptWithArgumentContainingSpace() throws {
@@ -371,22 +365,22 @@ class MarathonTests: XCTestCase {
     }
 
     func testInstallingRemoteScriptWithDependenciesUsingRegularGithubURL() throws {
-        let gitHubURLString = "https://github.com/JohnSundell/Marathon-Examples/blob/master/AddSuffix/addSuffix.swift"
+        let gitHubURLString = "https://github.com/JohnSundell/MarathonTestScriptWithDependencies/blob/master/Script.swift"
         try performTestForInstallingRemoteScriptWithDependenciesUsingURL(gitHubURLString)
     }
 
     func testInstallingRemoteScriptWithDependenciesUsingRawGithubURL() throws {
-        let rawGitHubURLString = "https://raw.githubusercontent.com/JohnSundell/Marathon-Examples/master/AddSuffix/addSuffix.swift"
+        let rawGitHubURLString = "https://raw.githubusercontent.com/JohnSundell/MarathonTestScriptWithDependencies/master/Script.swift"
         try performTestForInstallingRemoteScriptWithDependenciesUsingURL(rawGitHubURLString)
     }
 
     func testInstallingRemoteSwiftPackageAsScript() throws {
         // Install Marathon itself as a script
-        try run(with: ["install", "johnsundell/marathon", "installed-script"])
+        try run(with: ["install", "johnsundell/marathonTestPackage", "installed-script"])
 
         // Run the installed binary
         let output = try folder.moveToAndPerform(command: "./installed-script")
-        XCTAssertTrue(output.hasPrefix("Welcome to Marathon"))
+        XCTAssertEqual(output, "Hello, world!")
     }
 
     // MARK: - Creating scripts
@@ -528,8 +522,8 @@ class MarathonTests: XCTestCase {
     func testRemovingAllScriptData() throws {
         var scriptFiles: [File] = []
 
-        for i in 0..<3 {
-            let scriptFile = try folder.createFile(named: "script_\(i).swift")
+        for index in 0..<3 {
+            let scriptFile = try folder.createFile(named: "script_\(index).swift")
             try scriptFile.write(string: "import Foundation")
             try run(with: ["run", scriptFile.path])
             scriptFiles.append(scriptFile)
@@ -851,7 +845,6 @@ extension MarathonTests {
             ("testCurrentWorkingDirectoryOfScriptIsExecutionFolder", testCurrentWorkingDirectoryOfScriptIsExecutionFolder),
             ("testScriptWithLargeAmountOfOutput", testScriptWithLargeAmountOfOutput),
             ("testRunningScriptWithVerboseOutput", testRunningScriptWithVerboseOutput),
-            ("testRunningRemoteScriptFromURL", testRunningRemoteScriptFromURL),
             ("testRunningRemoteScriptFromGitHubRepository", testRunningRemoteScriptFromGitHubRepository),
             ("testRunningRemoteSwiftPackageAsScript", testRunningRemoteSwiftPackageAsScript),
             ("testRunningScriptWithArgumentContainingSpace", testRunningScriptWithArgumentContainingSpace),
@@ -893,17 +886,12 @@ fileprivate extension MarathonTests {
     func performTestForInstallingRemoteScriptWithDependenciesUsingURL(_ urlString: String) throws {
         try run(with: ["install", urlString, "installed-script"])
 
-        // Make a couple of files that we can try the installed script on
-        let executionFolder = try folder.createSubfolder(named: "TestInstallation")
-        try executionFolder.createFile(named: "A.swift")
-        try executionFolder.createFile(named: "B.swift")
-
         // Run the installed binary
-        try executionFolder.moveToAndPerform(command: "../installed-script -suffix")
-        XCTAssertEqual(executionFolder.files.names, ["A-suffix.swift", "B-suffix.swift"])
+        let output = try folder.moveToAndPerform(command: "./installed-script")
+        XCTAssertEqual(output, "Hello, world!")
 
         // List should not contain the script, as it was only added temporarily
-        try XCTAssertFalse(run(with: ["list"]).lowercased().contains("addsuffix"))
+        try XCTAssertFalse(run(with: ["list"]).lowercased().contains(folder.path))
 
         // Make sure that the temporary folder for the script is cleaned up
         try XCTAssertEqual(folder.subfolder(atPath: "Scripts/Temp").subfolders.count, 0)

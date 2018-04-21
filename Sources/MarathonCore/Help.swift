@@ -24,7 +24,7 @@ internal final class HelpTask: Task, Executable {
             output.append("\n" + command.description + "\n\n")
             output.append("👉  Usage: 'marathon \(command.rawValue)")
 
-            if command.usageText.length > 0 {
+            if !command.usageText.isEmpty {
                 output.append(" \(command.usageText)")
             }
 
@@ -101,7 +101,7 @@ private extension Command {
             return title
         }
 
-        let paddingNeeded = 10 - rawValue.length
+        let paddingNeeded = 10 - rawValue.count
 
         guard paddingNeeded > 0 else {
             return title

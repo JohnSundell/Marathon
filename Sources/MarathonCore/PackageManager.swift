@@ -318,7 +318,7 @@ public final class PackageManager {
         do {
             let toolsVersion = try resolveSwiftToolsVersion()
             try generateMasterPackageDescription(forSwiftToolsVersion: toolsVersion)
-            try shellOutToSwiftCommand("package --enable-prefetching update", in: generatedFolder, printer: printer)
+            try shellOutToSwiftCommand("package update", in: generatedFolder, printer: printer)
             try generatedFolder.createSubfolderIfNeeded(withName: "Packages")
         } catch {
             throw Error.failedToUpdatePackages(folder)
@@ -397,7 +397,7 @@ public final class PackageManager {
     }
 
     private func makePackageList() -> [Package] {
-        return folder.files.flatMap { file in
+        return folder.files.compactMap { file in
             return try? unbox(data: file.read())
         }
     }

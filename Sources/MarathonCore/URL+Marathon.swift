@@ -46,7 +46,7 @@ internal extension URL {
             return nil
         }
 
-        let parentEndIndex = string.index(string.endIndex, offsetBy: -lastComponent.length)
+        let parentEndIndex = string.index(string.endIndex, offsetBy: -lastComponent.count)
         let parentString = String(string[..<parentEndIndex])
 
         guard parentString != schemeWithSuffix else {
