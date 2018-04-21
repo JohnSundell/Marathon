@@ -8,7 +8,7 @@
     <a href="https://travis-ci.org/JohnSundell/Marathon/branches">
         <img src="https://img.shields.io/travis/JohnSundell/Marathon/master.svg" alt="Travis status" />
     </a>
-    <img src="https://img.shields.io/badge/Swift-4.0-orange.svg" />
+    <img src="https://img.shields.io/badge/Swift-4.1-orange.svg" />
     </a>
     <a href="https://swift.org/package-manager">
         <img src="https://img.shields.io/badge/spm-compatible-brightgreen.svg?style=flat" alt="Swift Package Manager" />
@@ -150,7 +150,7 @@ To update Marathon, simply repeat any of the above two series of commands, excep
 
 Marathon requires the following to be installed on your system:
 
-- Swift 4.0 or later (bundled with Xcode 9.0 or later)
+- Swift 4.1 or later (bundled with Xcode 9.3 or later)
 - Git
 - Xcode (if you want to edit scripts using it)
 
