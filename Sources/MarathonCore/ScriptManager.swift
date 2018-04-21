@@ -196,11 +196,8 @@ public final class ScriptManager {
             let identifier = scriptIdentifier(from: url.absoluteString)
             let folder = try temporaryFolder.createSubfolderIfNeeded(withName: identifier)
             let fileName = scriptName(from: identifier) + ".swift"
-            let downloadCommand = "wget -O \"\(fileName)\" \"\(url.absoluteString)\""
-            try folder.moveToAndPerform(command: downloadCommand, printer: printer)
-
             printer.reportProgress("Saving script...")
-            let file = try folder.file(named: fileName)
+            let file = try saveFile(from: url, to: folder, fileName: fileName)
             temporaryScriptFiles.append(file)
 
             printer.reportProgress("Resolving \(config.dependencyFile)...")
@@ -208,14 +205,28 @@ public final class ScriptManager {
                 let marathonFileURL = URL(string: parentURL.absoluteString + config.dependencyFile).require()
 
                 printer.reportProgress("Saving \(config.dependencyFile)...")
-                let downloadCommand = "wget -O \"\(config.dependencyFile)\" \"\(marathonFileURL.absoluteString)\""
-                try folder.moveToAndPerform(command: downloadCommand, printer: printer)
+                try saveFile(from: marathonFileURL, to: folder, fileName: config.dependencyFile)
             }
 
             return try script(from: file)
         } catch {
             throw Error.failedToDownloadScript(url, error)
         }
+    }
+
+    @discardableResult
+    private func saveFile(from url: URL, to folder: Folder, fileName: String) throws -> File {
+        // Basically on Linux we can't use `Data(contentsOf:)` for getting the file
+        // from a remote location. It just returns an empty data (on macOS works fine).
+        // rdar://39621032
+        #if os(Linux)
+            let downloadCommand = "wget -O \"\(fileName)\" \"\(url.absoluteString)\""
+            try folder.moveToAndPerform(command: downloadCommand, printer: printer)
+            return try folder.file(named: fileName)
+        #else
+            let data = try Data(contentsOf: url)
+            return try folder.createFile(named: fileName, contents: data)
+        #endif
     }
 
     private func downloadScriptFromRepository(at url: URL) throws -> Script {
