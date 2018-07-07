@@ -16,7 +16,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/JohnSundell/Files.git", from: "2.0.0"),
-        .package(url: "https://github.com/JohnSundell/Unbox.git", from: "2.0.0"),
+        .package(url: "https://github.com/JohnSundell/Unbox.git", from: "3.0.0"),
         .package(url: "https://github.com/JohnSundell/Wrap.git", from: "3.0.0"),
         .package(url: "https://github.com/JohnSundell/ShellOut.git", from: "2.0.0"),
         .package(url: "https://github.com/JohnSundell/Require.git", from: "2.0.0"),
