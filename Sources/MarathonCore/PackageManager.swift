@@ -390,7 +390,11 @@ public final class PackageManager {
             description.append("])],\n")
         }
 
-        description.append("    swiftLanguageVersions: [\(toolsVersion.major)]\n)")
+        if toolsVersion.major >= 4 && toolsVersion.minor >= 2 {
+            description.append("    swiftLanguageVersions: [.version(\"\(toolsVersion.major).\(toolsVersion.minor)\")]\n)")
+        } else {
+            description.append("    swiftLanguageVersions: [\(toolsVersion.major)]\n)")
+        }
 
         try generatedFolder.createFile(named: "Package.swift",
                                        contents: description.data(using: .utf8).require())
@@ -418,7 +422,10 @@ public final class PackageManager {
     }
 
     private func makePackageDescriptionHeader(forSwiftToolsVersion toolsVersion: Version) -> String {
-        let versionString = toolsVersion.string.trimmingCharacters(in: .whitespaces)
-        return "// swift-tools-version:\(versionString)"
+        let swiftVersion = toolsVersion.string.trimmingCharacters(in: .whitespaces)
+        let generationVersion = 1
+
+        return "// swift-tools-version:\(swiftVersion)\n" +
+               "// marathon-generation-version:\(generationVersion)"
     }
 }
