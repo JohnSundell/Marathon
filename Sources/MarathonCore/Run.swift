@@ -37,7 +37,7 @@ extension RunError: PrintableError {
 
 // MARK: - Task
 
-internal class RunTask: Task, Executable {
+final class RunTask: Task, Executable {
     
     private typealias Error = RunError
     

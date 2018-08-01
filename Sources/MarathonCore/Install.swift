@@ -30,7 +30,7 @@ extension InstallError: PrintableError {
 
 // MARK: - Task
 
-internal class InstallTask: Task, Executable {
+final class InstallTask: Task, Executable {
     
     private typealias Error = InstallError
 
