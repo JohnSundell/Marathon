@@ -239,7 +239,7 @@ public final class ScriptManager {
         // rdar://39621032
         #if os(Linux)
             let downloadCommand = "wget -O \"\(fileName)\" \"\(url.absoluteString)\""
-            try folder.moveToAndPerform(command: downloadCommand, printer: printer)
+            try folder.moveToAndPerform(command: downloadCommand, printer: output)
             return try folder.file(named: fileName)
         #else
             let data = try Data(contentsOf: url)
