@@ -730,7 +730,7 @@ class MarathonTests: XCTestCase {
                     continue
                 }
 
-                XCTAssertTrue(line.contains("printer:"),
+                XCTAssertTrue(line.contains("output:"),
                               "\(file.name) uses ShellOut directly. Use ShellOut+Marathon instead.")
             }
         }
@@ -798,7 +798,7 @@ fileprivate extension MarathonTests {
 
         var output = ""
 
-        let printFunction: PrintFunction = { message in
+        let printFunction: Printer.PrintFunction = { message in
             output.append(message)
         }
 

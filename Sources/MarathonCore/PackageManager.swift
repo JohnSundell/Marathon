@@ -91,16 +91,21 @@ public final class PackageManager {
     private let folder: Folder
     private let generatedFolder: Folder
     private let temporaryFolder: Folder
-    private let printer: Printer
+    private let output: Printer
     private var masterPackageName: String { return "MARATHON_PACKAGES" }
 
     // MARK: - Init
 
-    public init(folder: Folder, printer: Printer) throws {
+    public init(folder: Folder, output: Printer) throws {
         self.folder = folder
         self.generatedFolder = try folder.createSubfolderIfNeeded(withName: "Generated")
         self.temporaryFolder = try folder.createSubfolderIfNeeded(withName: "Temp")
-        self.printer = printer
+        self.output = output
+    }
+    
+    static func assemble(with rootPath: String, using printer: Printer) throws -> PackageManager {
+        let packageFolder = try Locations.packages.folder(rootPath: rootPath)
+        return try PackageManager(folder: packageFolder, output: printer)
     }
 
     // MARK: - API
@@ -139,7 +144,7 @@ public final class PackageManager {
     }
 
     @discardableResult public func removePackage(named name: String, shouldUpdatePackages: Bool = true) throws -> Package {
-        printer.reportProgress("Removing \(name)...")
+        output.progress("Removing \(name)...")
 
         let packageFile = try perform(folder.file(named: name),
                                       orThrow: Error.unknownPackageForRemoval(name))
@@ -191,28 +196,28 @@ public final class PackageManager {
         let buildFolder = try folder.createSubfolderIfNeeded(withName: ".build")
 
         if !buildFolder.containsSubfolder(named: "checkouts") {
-            try buildFolder.createSymlink(to: checkoutsFolder.path, at: "checkouts", printer: printer)
+            try buildFolder.createSymlink(to: checkoutsFolder.path, at: "checkouts", output: output)
         }
 
         if !buildFolder.containsSubfolder(named: "repositories") {
-            try buildFolder.createSymlink(to: repositoriesFolder.path, at: "repositories", printer: printer)
+            try buildFolder.createSymlink(to: repositoriesFolder.path, at: "repositories", output: output)
         }
 
         if let workspaceStateFile = try? generatedFolder.file(atPath: ".build/workspace-state.json") {
             if !buildFolder.containsFile(named: "workspace-state.json") {
-                try buildFolder.createSymlink(to: workspaceStateFile.path, at: "workspace-state.json", printer: printer)
+                try buildFolder.createSymlink(to: workspaceStateFile.path, at: "workspace-state.json", output: output)
             }
         }
 
         if let dependenciesStateFile = try? generatedFolder.file(atPath: ".build/dependencies-state.json") {
             if !buildFolder.containsFile(named: "dependencies-state.json") {
-                try buildFolder.createSymlink(to: dependenciesStateFile.path, at: "dependencies-state.json", printer: printer)
+                try buildFolder.createSymlink(to: dependenciesStateFile.path, at: "dependencies-state.json", output: output)
             }
         }
 
         if let resolvedPackageFile = try? generatedFolder.file(named: "Package.resolved") {
             if !folder.containsFile(named: "Package.resolved") {
-                try folder.createSymlink(to: resolvedPackageFile.path, at: "Package.resolved", printer: printer)
+                try folder.createSymlink(to: resolvedPackageFile.path, at: "Package.resolved", output: output)
             }
         }
     }
@@ -258,7 +263,7 @@ public final class PackageManager {
     // MARK: - Private
 
     private func latestMajorVersionForPackage(at url: URL) throws -> Int {
-        printer.reportProgress("Resolving latest major version for \(url.absoluteString)...")
+        output.progress("Resolving latest major version for \(url.absoluteString)...")
 
         let releases = try perform(Releases.versions(for: url).withoutPreReleases(),
                                    orThrow: Error.failedToResolveLatestVersion(url))
@@ -288,9 +293,9 @@ public final class PackageManager {
             try existingClone.delete()
         }
 
-        printer.reportProgress("Cloning \(url.absoluteString)...")
+        output.progress("Cloning \(url.absoluteString)...")
 
-        try temporaryFolder.moveToAndPerform(command: "git clone \(url.absoluteString) Clone -q", printer: printer)
+        try temporaryFolder.moveToAndPerform(command: "git clone \(url.absoluteString) Clone -q", output: output)
         let clone = try temporaryFolder.subfolder(named: "Clone")
         let name = try nameOfPackage(in: clone)
         try clone.delete()
@@ -313,12 +318,12 @@ public final class PackageManager {
     }
 
     private func updatePackages() throws {
-        printer.reportProgress("Updating packages...")
+        output.progress("Updating packages...")
 
         do {
             let toolsVersion = try resolveSwiftToolsVersion()
             try generateMasterPackageDescription(forSwiftToolsVersion: toolsVersion)
-            try shellOutToSwiftCommand("package update", in: generatedFolder, printer: printer)
+            try shellOutToSwiftCommand("package update", in: generatedFolder, output: output)
             try generatedFolder.createSubfolderIfNeeded(withName: "Packages")
         } catch {
             throw Error.failedToUpdatePackages(folder)
@@ -407,7 +412,7 @@ public final class PackageManager {
     }
 
     private func resolveSwiftToolsVersion() throws -> Version {
-        var versionString = try shellOutToSwiftCommand("package --version", printer: printer)
+        var versionString = try shellOutToSwiftCommand("package --version", output: output)
         versionString = versionString.components(separatedBy: " (swiftpm").first.require()
         versionString = versionString.components(separatedBy: "Swift Package Manager - Swift ").last.require()
 

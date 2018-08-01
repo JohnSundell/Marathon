@@ -8,13 +8,13 @@ import Foundation
 import Files
 
 internal extension Folder {
-    @discardableResult func moveToAndPerform(command: String, printer: Printer) throws -> String {
-        return try shellOut(to: command, in: self, printer: printer)
+    @discardableResult func moveToAndPerform(command: String, output: Printer) throws -> String {
+        return try shellOut(to: command, in: self, output: output)
     }
 }
 
 internal extension Folder {
-    func createSymlink(to originalPath: String, at linkPath: String, printer: Printer) throws {
-        try shellOut(to: "ln -s \"\(originalPath)\" \"\(linkPath)\"", in: self, printer: printer)
+    func createSymlink(to originalPath: String, at linkPath: String, output: Printer) throws {
+        try shellOut(to: "ln -s \"\(originalPath)\" \"\(linkPath)\"", in: self, output: output)
     }
 }

@@ -11,21 +11,21 @@ import Require
 
 @discardableResult internal func shellOut(to command: String,
                                           in folder: Folder = Folder.current,
-                                          printer: Printer) throws -> String {
+                                          output: Printer) throws -> String {
     do {
-        printer.verboseOutput("$ cd \"\(folder.path)\" && \(command)")
-        let output = try shellOut(to: command, at: folder.path)
-        printer.verboseOutput(output)
+        output.debug("$ cd \"\(folder.path)\" && \(command)")
+        let feedback = try shellOut(to: command, at: folder.path)
+        output.debug(feedback)
 
-        return output
+        return feedback
     } catch {
         let error = (error as? ShellOutError).require()
 
         if !error.output.isEmpty {
-            printer.verboseOutput(error.output)
+            output.debug(error.output)
         }
 
-        printer.verboseOutput(error.message)
+        output.debug(error.message)
 
         throw error
     }
@@ -33,7 +33,7 @@ import Require
 
 @discardableResult internal func shellOutToSwiftCommand(_ command: String,
                                                         in folder: Folder = Folder.current,
-                                                        printer: Printer) throws -> String {
+                                                        output: Printer) throws -> String {
     func resolveSwiftPath() -> String {
         #if os(Linux)
         return "swift"
@@ -43,5 +43,5 @@ import Require
     }
 
     let swiftPath = resolveSwiftPath()
-    return try shellOut(to: "\(swiftPath) \(command)", in: folder, printer: printer)
+    return try shellOut(to: "\(swiftPath) \(command)", in: folder, output: output)
 }

@@ -6,6 +6,6 @@
 
 import Foundation
 
-internal protocol Executable {
+protocol Executable {
     func execute() throws
 }
