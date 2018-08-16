@@ -5,8 +5,8 @@
  */
 
 import Foundation
-import Files
 import ShellOut
+import Files
 
 // MARK: - Error
 
@@ -37,24 +37,43 @@ extension RunError: PrintableError {
 
 // MARK: - Task
 
-internal class RunTask: Task, Executable {
+final class RunTask: Task, Executable {
+    
     private typealias Error = RunError
-
-    // MARK: - Executable
-
+    
+    private let name: String?
+    private let arguments: [String]
+    
+    init(arguments: [String], rootFolderPath: String, printer: Printer) {
+        switch arguments.first {
+        case .some(let name):
+            self.name = name
+            self.arguments = Array(arguments.dropFirst())
+        case .none:
+            self.name = nil
+            self.arguments = arguments
+        }
+        super.init(rootFolderPath: rootFolderPath, printer: printer)
+    }
+    
     func execute() throws {
-        guard let path = arguments.first else {
+        if let name = name {
+            try continueExecution(name)
+        } else {
             throw Error.missingPath
         }
-
-        let script = try scriptManager.script(atPath: path, allowRemote: true)
-        try script.build()
-
+    }
+    
+    private func continueExecution(_ name: String) throws {
+        let scriptManager = try ScriptManager.assemble(with: rootPath, using: output)
+        let script = try scriptManager.script(withName: name, allowRemote: true)
+        try script.build(for: .debug(environment: .unspecified))
         do {
-            let output = try script.run(in: folder, with: Array(arguments.dropFirst()))
-            printer.output(output)
+            let feedback = try script.run(in: FileSystem().currentFolder, with: arguments)
+            output.conclusion(feedback)
         } catch {
-            throw Error.failedToRunScript((error as! ShellOutError).message)
+            let error = (error as? ShellOutError).require()
+            throw Error.failedToRunScript(error.message)
         }
     }
 }

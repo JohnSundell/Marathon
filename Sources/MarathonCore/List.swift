@@ -5,45 +5,50 @@
  */
 
 import Foundation
+import Files
 
-internal final class ListTask: Task, Executable {
+final class ListTask: Task, Executable {
+    
     func execute() throws {
-        let packages = packageManager.addedPackages
+        
+        let scriptManager = try ScriptManager.assemble(with: rootPath, using: output)
+        
+        let packages = scriptManager.addedPackages
         let scriptPaths = scriptManager.managedScriptPaths
 
-        var output = ""
+        var feedback = ""
         var listIsEmpty = true
 
         if !packages.isEmpty {
             let title = "📦  Packages"
-            output.append(title + "\n" + title.dashesWithMatchingLength + "\n")
+            feedback.append(title + "\n" + title.dashesWithMatchingLength + "\n")
 
-            for package in packageManager.addedPackages {
-                output.append("\(package.name) (\(package.url.absoluteString))\n")
+            for package in packages {
+                feedback.append("\(package.name) (\(package.url.absoluteString))\n")
             }
 
-            output.append("\n")
+            feedback.append("\n")
             listIsEmpty = false
         }
 
         if !scriptPaths.isEmpty {
             let title = "📄  Scripts"
-            output.append(title + "\n" + title.dashesWithMatchingLength + "\n")
+            feedback.append(title + "\n" + title.dashesWithMatchingLength + "\n")
 
             for path in scriptPaths {
-                output.append("\(path)\n")
+                feedback.append("\(path)\n")
             }
 
-            output.append("\n")
+            feedback.append("\n")
             listIsEmpty = false
         }
 
         if listIsEmpty {
-            output.append("ℹ️  No packages or script data has been added to Marathon yet")
+            feedback.append("ℹ️  No packages or script data has been added to Marathon yet")
         } else {
-            output.append("👉  To remove either a package or the cached data for a script, use 'marathon remove'")
+            feedback.append("👉  To remove either a package or the cached data for a script, use 'marathon remove'")
         }
 
-        printer.output(output)
+        output.conclusion(feedback)
     }
 }

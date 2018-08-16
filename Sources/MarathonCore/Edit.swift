@@ -5,6 +5,7 @@
  */
 
 import Foundation
+import Files
 
 // MARK: - Error
 
@@ -30,20 +31,49 @@ extension EditError: PrintableError {
 
 // MARK: - Task
 
-internal final class EditTask: Task, Executable {
+final class EditTask: Task, Executable {
+    
     private typealias Error = EditError
-
-    // MARK: - Executable
-
+    
+    private let name: String?
+    private let options: [Option]
+    
+    private var shouldGenerateXcodeProject: Bool {
+        return options.contains(.noXcode) == false
+    }
+    
+    private var shouldLaunchEditor: Bool {
+        return options.contains(.noOpen) == false
+    }
+    
+    init(arguments: [String], rootFolderPath: String, printer: Printer, options: [Option]) {
+        self.options = options
+        switch arguments.first {
+        case .some(let name):
+            self.name = name
+        case .none:
+            self.name = nil
+        }
+        super.init(rootFolderPath: rootFolderPath, printer: printer)
+    }
+    
     func execute() throws {
-        guard let path = arguments.first?.asScriptPath() else {
+        if let name = name {
+            try launchIfNeeded(name.asScriptPath())
+        } else {
             throw Error.missingPath
         }
-
-        let script = try scriptManager.script(atPath: path, allowRemote: false)
-        try script.setupForEdit(arguments: arguments)
-        if !argumentsContainNoOpenFlag {
-            try script.watch(arguments: arguments)
+    }
+    
+    private func launchIfNeeded(_ name: String) throws {
+        let scriptManager = try ScriptManager.assemble(with: rootPath, using: output)
+        let script = try scriptManager.script(withName: name, allowRemote: false)
+        if shouldGenerateXcodeProject {
+            try script.generateXcodeProject()
+            _ = try script.editingPath(shouldGenerateXcodeProject)
+        }
+        if shouldLaunchEditor {
+            try script.watch(shouldGenerateXcodeProject)
         }
     }
 }

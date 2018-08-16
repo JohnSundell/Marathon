@@ -37,21 +37,46 @@ extension AddError: PrintableError {
 
 // MARK: - Task
 
-internal final class AddTask: Task, Executable {
+final class AddTask: Task, Executable {
+  
     private typealias Error = AddError
-
-    // MARK: - Executable
-
+    
+    private let name: String?
+    private let options: [Option]
+    
+    init(arguments: [String], rootFolderPath: String, printer: Printer, options: [Option]) {
+        self.options = options
+        switch arguments.first {
+        case .some(let name):
+            self.name = name
+        case .none:
+            self.name = nil
+        }
+        super.init(rootFolderPath: rootFolderPath, printer: printer)
+    }
+    
     func execute() throws {
-        guard let identifier = arguments.first else {
+        if let name = name {
+            try continueExecution(name)
+        } else {
             throw Error.missingIdentifier
         }
-
-        guard let url = URL(string: identifier) else {
-            throw Error.invalidURL(identifier)
+    }
+    
+    private func continueExecution(_ name: String) throws {
+        switch URL(string: name) {
+        case .some(let url):
+            try continueExecution(url)
+        case .none:
+            throw Error.invalidURL(name)
         }
-
+        
+    }
+    
+    private func continueExecution(_ url: URL) throws {
+        let packageManager = try PackageManager.assemble(with: rootPath, using: output)
         let package = try packageManager.addPackage(at: url)
-        printer.output("📦  \(package.name) added")
+        let feedback = "📦  \(package.name) added"
+        output.conclusion(feedback)
     }
 }

@@ -8,6 +8,7 @@ import Foundation
 import Files
 import ShellOut
 import Require
+
 #if os(Linux)
     import Dispatch
 #endif
@@ -63,6 +64,7 @@ extension ScriptError: PrintableError {
 // MARK: - Script
 
 public final class Script {
+  
     private typealias Error = ScriptError
 
     // MARK: - Properties
@@ -70,29 +72,43 @@ public final class Script {
     public let name: String
     public let folder: Folder
 
-    private let printer: Printer
+    private let output: Printer
     private var copyLoopDispatchQueue: DispatchQueue?
     private var localPath: String { return "Sources/\(name)/main.swift"  }
 
     // MARK: - Init
 
-    init(name: String, folder: Folder, printer: Printer) {
+    init(name: String, folder: Folder, output: Printer) {
         self.name = name
         self.folder = folder
-        self.printer = printer
+        self.output = output
     }
 
     // MARK: - API
-
-    public func build(withArguments arguments: [String] = []) throws {
-        do {
-            let command = "build -C \(folder.path) " + arguments.joined(separator: " ")
-            try shellOutToSwiftCommand(command, in: folder, printer: printer)
-        } catch {
-            throw formatBuildError(error as! ShellOutError)
+    
+    public enum OperatingSystem {
+        case linux, unspecified
+    }
+    
+    public enum Configuration {
+        case debug(environment: OperatingSystem)
+        case release(environment: OperatingSystem)
+    }
+    
+    public func build(for configuration: Configuration) throws {
+        switch configuration {
+        case .debug(_):
+            try build(withArguments: [])
+        case .release(let environment):
+            switch environment {
+            case .linux:
+                try build(withArguments: ["-c", "release"])
+            case .unspecified:
+                try build(withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
+            }
         }
     }
-
+    
     public func run(in executionFolder: Folder, with arguments: [String]) throws -> String {
         let scriptPath = folder.path + ".build/debug/" + name
         var command = scriptPath
@@ -101,7 +117,7 @@ public final class Script {
             command += " \"" + arguments.joined(separator: "\" \"") + "\""
         }
 
-        return try executionFolder.moveToAndPerform(command: command, printer: printer)
+        return try executionFolder.moveToAndPerform(command: command, output: output)
     }
 
     public func install(at path: String, confirmBeforeOverwriting: Bool) throws -> Bool {
@@ -113,8 +129,8 @@ public final class Script {
 
             if confirmBeforeOverwriting {
                 if (try? parentFolder.file(named: installName)) != nil {
-                    printer.output("⚠️  A binary already exists at \(path)")
-                    printer.output("❓  Are you sure you want to overwrite it? (Type 'Y' to confirm)")
+                    output.conclusion("⚠️  A binary already exists at \(path)")
+                    output.conclusion("❓  Are you sure you want to overwrite it? (Type 'Y' to confirm)")
 
                     let input = readLine()?.lowercased()
 
@@ -125,7 +141,7 @@ public final class Script {
             }
 
             let buildFolder = try folder.subfolder(atPath: ".build/release")
-            try buildFolder.moveToAndPerform(command: "cp -f \(name) \(path)", printer: printer)
+            try buildFolder.moveToAndPerform(command: "cp -f \(name) \(path)", output: output)
 
             return true
         } catch {
@@ -133,30 +149,17 @@ public final class Script {
         }
     }
 
-    @discardableResult
-    public func setupForEdit(arguments: [String]) throws -> String {
+    public func watch(_ didGenerateXcodeProj: Bool) throws {
         do {
-            if !arguments.contains("--no-xcode") {
-                try generateXcodeProject()
-            }
-
-            return try editingPath(from: arguments)
-        } catch {
-            throw Error.editingFailed(name)
-        }
-    }
-
-    public func watch(arguments: [String]) throws {
-        do {
-            let path = try editingPath(from: arguments)
+            let path = try editingPath(didGenerateXcodeProj)
             let relativePath = path.replacingOccurrences(of: folder.path, with: "")
-            printer.output("✏️  Opening \(relativePath)")
+            output.conclusion("✏️  Opening \(relativePath)")
 
-            try shellOut(to: "open \"\(path)\"", printer: printer)
+            try shellOut(to: "open \"\(path)\"", output: output)
 
             if path.hasSuffix(".xcodeproj/") {
-                printer.output("\nℹ️  Marathon will keep running, in order to commit any changes you make in Xcode back to the original script file")
-                printer.output("   Press the return key once you're done")
+                output.conclusion("\nℹ️  Marathon will keep running, in order to commit any changes you make in Xcode back to the original script file")
+                output.conclusion("   Press the return key once you're done")
 
                 startCopyLoop()
                 _ = FileHandle.standardInput.availableData
@@ -181,23 +184,32 @@ public final class Script {
 
         return try MarathonFile(file: file)
     }
-
-    // MARK: - Private
-
-    private func editingPath(from arguments: [String]) throws -> String {
-        guard !arguments.contains("--no-xcode") else {
+    
+    func editingPath(_ didGenerateXcodeProj: Bool) throws -> String {
+        guard didGenerateXcodeProj else {
             return try expandSymlink()
         }
-
+        
         return try folder.subfolder(named: name + ".xcodeproj").path
     }
-
-    private func generateXcodeProject() throws {
-        try shellOutToSwiftCommand("package generate-xcodeproj", in: folder, printer: printer)
+    
+    func generateXcodeProject() throws {
+        try shellOutToSwiftCommand("package generate-xcodeproj", in: folder, output: output)
+    }
+    
+    // MARK: - Private
+    
+    private func build(withArguments arguments: [String]) throws {
+        do {
+            let command = "build -C \(folder.path) " + arguments.joined(separator: " ")
+            try shellOutToSwiftCommand(command, in: folder, output: output)
+        } catch {
+            throw formatBuildError(error as! ShellOutError)
+        }
     }
 
     private func expandSymlink() throws -> String {
-        return try folder.moveToAndPerform(command: "readlink OriginalFile", printer: printer)
+        return try folder.moveToAndPerform(command: "readlink OriginalFile", output: output)
     }
 
     private func startCopyLoop() {

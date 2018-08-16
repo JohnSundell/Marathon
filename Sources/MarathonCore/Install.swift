@@ -30,40 +30,67 @@ extension InstallError: PrintableError {
 
 // MARK: - Task
 
-internal class InstallTask: Task, Executable {
+final class InstallTask: Task, Executable {
+    
     private typealias Error = InstallError
 
+    private var shouldForce: Bool {
+        return options.contains(.force) == true
+    }
+    
+    private var printVerbose: Bool {
+        return options.contains(.verbose) == true
+    }
+    
+    private let name: String?
+    private let installPath: String
+    private let options: [Option]
+    
+    init(arguments: [String], rootFolderPath: String, printer: Printer, options: [Option]) {
+        self.options = options
+        let element1 = arguments.element(at: 0)
+        let element2 = arguments.element(at: 1)
+        switch (element1 , element2) {
+        case (let value1?, let value2?):
+            self.name = value1
+            self.installPath = value2
+        default:
+            self.name = element1
+            let path = self.name ?? ""
+            self.installPath = "/usr/local/bin/\(path.lowercased())"
+        }
+        super.init(rootFolderPath: rootFolderPath, printer: printer)
+    }
+    
     func execute() throws {
-        guard let path = arguments.first else {
+        if let name = name {
+            try continueExecution(name)
+        } else {
             throw Error.missingPath
         }
-
-        let script = try scriptManager.script(atPath: path, allowRemote: true)
-        let installPath = makeInstallPath(for: script)
-
-        printer.reportProgress("Compiling script...")
-        #if os(Linux)
-            try script.build(withArguments: ["-c", "release"])
-        #else
-            try script.build(withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
-        #endif
-        printer.reportProgress("Installing binary...")
-        let installed = try script.install(at: installPath, confirmBeforeOverwriting: !arguments.contains("--force"))
-
-        guard installed else {
-            return printer.output("✋  Installation cancelled")
-        }
-
-        printer.output("💻  \(path) installed at \(installPath)")
     }
+    
+    private func continueExecution(_ name: String) throws {
+        let scriptManager = try ScriptManager.assemble(with: rootPath, using: output)
 
-    private func makeInstallPath(for script: Script) -> String {
-        if let argument = arguments.element(at: 1) {
-            if argument != "--force" && argument != "--verbose" {
-                return argument
-            }
+        let script = try scriptManager.script(withName: name, allowRemote: true)
+        
+        output.progress("Compiling script...")
+        
+        #if os(Linux)
+        try script.build(for: .release(environment: .linux))
+        #else
+        try script.build(for: .release(environment: .unspecified))
+        #endif
+        
+        output.progress("Installing binary...")
+        
+        let installed = try script.install(at: installPath, confirmBeforeOverwriting: !shouldForce)
+        
+        guard installed else {
+            return output.conclusion("✋  Installation cancelled")
         }
-
-        return "/usr/local/bin/\(script.name.lowercased())"
+        
+        output.conclusion("💻  \(name) installed at \(installPath)")
     }
 }

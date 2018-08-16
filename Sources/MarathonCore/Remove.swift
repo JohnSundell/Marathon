@@ -32,36 +32,79 @@ extension RemoveError: PrintableError {
 
 // MARK: - Task
 
-internal final class RemoveTask: Task, Executable {
+final class RemoveTask: Task, Executable {
+    
     private typealias Error = RemoveError
-
+  
+    private let identifier: String?
+    private let options: [Option]
+    
+    init(arguments: [String], rootFolderPath: String, printer: Printer, options: [Option]) {
+        self.options = options
+        switch arguments.first {
+        case .some(let identifier):
+            self.identifier = identifier
+        case .none:
+            self.identifier = nil
+        }
+        super.init(rootFolderPath: rootFolderPath, printer: printer)
+    }
+    
     func execute() throws {
-        if arguments.contains("--all-script-data") || arguments.contains("--all-packages") {
+        let scriptManager = try ScriptManager.assemble(with: rootPath, using: output)
+        if let feedback = try removeData(scriptManager) {
+            return output.conclusion(feedback)
+        }
+        if let identifier = identifier {
+            try continueExecution(identifier, scriptManager)
+        } else {
+            throw Error.missingIdentifier
+        }
+    }
+    
+    private func continueExecution(_ identifier: String, _ scriptManager: ScriptManager) throws {
+        if identifier.hasSuffix(".swift") {
+            let feedback = try removeScript(identifier, scriptManager)
+            return output.conclusion(feedback)
+        }
+        
+        let feedback = try removePackage(identifier, scriptManager)
+        output.conclusion(feedback)
+    }
+    
+    private var shouldRemoveAllScriptData: Bool {
+        return options.contains(.allScriptData) == true
+    }
+    
+    private var shouldRemoveAllPackages: Bool {
+        return options.contains(.allPackages) == true
+    }
+    
+    private func removeData(_ scriptManager: ScriptManager) throws -> String? {
+        if shouldRemoveAllScriptData || shouldRemoveAllPackages {
             var deletedObjects: [String] = []
-
-            if arguments.contains("--all-script-data") {
+            
+            if shouldRemoveAllScriptData {
                 try scriptManager.removeAllScriptData()
                 deletedObjects.append("all script data")
             }
-
-            if arguments.contains("--all-packages") {
-                try packageManager.removeAllPackages()
+            
+            if shouldRemoveAllPackages {
+                try scriptManager.removeAllPackages()
                 deletedObjects.append("all packages")
             }
-
-            return printer.output("🗑  Removed \(deletedObjects.joined(separator: " and "))")
+            return "🗑  Removed \(deletedObjects.joined(separator: " and "))"
         }
-
-        guard let identifier = arguments.first else {
-            throw Error.missingIdentifier
-        }
-
-        if identifier.hasSuffix(".swift") {
-            try scriptManager.removeDataForScript(at: identifier)
-            return printer.output("🗑  Removed cache data for script '\(identifier)'")
-        }
-
-        let package = try packageManager.removePackage(named: identifier)
-        printer.output("🗑  Removed package '\(package.name)'")
+        return nil
+    }
+    
+    private func removeScript(_ name: String, _ scriptManager: ScriptManager) throws -> String {
+        try scriptManager.removeDataForScript(at: name)
+        return "🗑  Removed cache data for script '\(name)'"
+    }
+    
+    private func removePackage(_ name: String, _ scriptManager: ScriptManager) throws -> String {
+        let package = try scriptManager.removePackage(with: name)
+        return "🗑  Removed package '\(package.name)'"
     }
 }
