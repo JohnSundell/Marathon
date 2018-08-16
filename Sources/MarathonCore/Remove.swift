@@ -44,11 +44,10 @@ final class RemoveTask: Task, Executable {
         switch arguments.first {
         case .some(let identifier):
             self.identifier = identifier
-            super.init(rootFolderPath: rootFolderPath, printer: printer)
         case .none:
             self.identifier = nil
-            super.init(rootFolderPath: rootFolderPath, printer: printer)
         }
+        super.init(rootFolderPath: rootFolderPath, printer: printer)
     }
     
     func execute() throws {

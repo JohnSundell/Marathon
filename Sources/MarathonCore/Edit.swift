@@ -51,11 +51,10 @@ final class EditTask: Task, Executable {
         switch arguments.first {
         case .some(let name):
             self.name = name
-            super.init(rootFolderPath: rootFolderPath, printer: printer)
         case .none:
             self.name = nil
-            super.init(rootFolderPath: rootFolderPath, printer: printer)
         }
+        super.init(rootFolderPath: rootFolderPath, printer: printer)
     }
     
     func execute() throws {

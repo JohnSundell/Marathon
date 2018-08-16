@@ -49,12 +49,11 @@ final class RunTask: Task, Executable {
         case .some(let name):
             self.name = name
             self.arguments = Array(arguments.dropFirst())
-            super.init(rootFolderPath: rootFolderPath, printer: printer)
         case .none:
             self.name = nil
             self.arguments = arguments
-            super.init(rootFolderPath: rootFolderPath, printer: printer)
         }
+        super.init(rootFolderPath: rootFolderPath, printer: printer)
     }
     
     func execute() throws {

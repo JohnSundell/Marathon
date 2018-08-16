@@ -54,13 +54,12 @@ final class InstallTask: Task, Executable {
         case (let value1?, let value2?):
             self.name = value1
             self.installPath = value2
-            super.init(rootFolderPath: rootFolderPath, printer: printer)
         default:
-            self.name = arguments.first
+            self.name = element1
             let path = self.name ?? ""
             self.installPath = "/usr/local/bin/\(path.lowercased())"
-            super.init(rootFolderPath: rootFolderPath, printer: printer)
         }
+        super.init(rootFolderPath: rootFolderPath, printer: printer)
     }
     
     func execute() throws {
@@ -73,7 +72,7 @@ final class InstallTask: Task, Executable {
     
     private func continueExecution(_ name: String) throws {
         let scriptManager = try ScriptManager.assemble(with: rootPath, using: output)
-        
+
         let script = try scriptManager.script(withName: name, allowRemote: true)
         
         output.progress("Compiling script...")
