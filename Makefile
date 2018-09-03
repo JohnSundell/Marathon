@@ -13,4 +13,4 @@ install_bin:
 	install .build/Release/$(INSTALL_NAME) $(PREFIX)/bin
 
 uninstall:
-	rm -f $(INSTALL_PATH)
+	rm -f $(PREFIX)/bin/$(INSTALL_NAME)
