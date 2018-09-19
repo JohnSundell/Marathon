@@ -4,8 +4,8 @@ INSTALL_NAME = marathon
 install: build install_bin
 
 build:
-	swift package --enable-prefetching update
-	swift build --enable-prefetching -c release -Xswiftc -static-stdlib
+	swift package update
+	swift build -c release -Xswiftc -static-stdlib
 
 install_bin:
 	mkdir -p $(PREFIX)/bin
@@ -13,4 +13,4 @@ install_bin:
 	install .build/Release/$(INSTALL_NAME) $(PREFIX)/bin
 
 uninstall:
-	rm -f $(INSTALL_PATH)
+	rm -f $(PREFIX)/bin/$(INSTALL_NAME)

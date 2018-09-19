@@ -20,7 +20,7 @@ extension RunError: PrintableError {
         switch self {
         case .missingPath:
             return "No script path given"
-        case .failedToRunScript(_):
+        case .failedToRunScript:
             return "Failed to run script"
         }
     }

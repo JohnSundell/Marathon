@@ -29,7 +29,7 @@ extension AddError: PrintableError {
             return ["When using 'add', pass either:\n" +
                    "- The git URL of a remote package to add (for example 'marathon add git@github.com:JohnSundell/Files.git')\n" +
                    "- The path of a local package to add (for example 'marathon add packages/myPackage')"]
-        case .invalidURL(_):
+        case .invalidURL:
             return []
         }
     }

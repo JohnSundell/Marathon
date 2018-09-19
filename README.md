@@ -8,7 +8,7 @@
     <a href="https://travis-ci.org/JohnSundell/Marathon/branches">
         <img src="https://img.shields.io/travis/JohnSundell/Marathon/master.svg" alt="Travis status" />
     </a>
-    <img src="https://img.shields.io/badge/Swift-4.0-orange.svg" />
+    <img src="https://img.shields.io/badge/Swift-4.1-orange.svg" />
     </a>
     <a href="https://swift.org/package-manager">
         <img src="https://img.shields.io/badge/spm-compatible-brightgreen.svg?style=flat" alt="Swift Package Manager" />
@@ -109,17 +109,7 @@ $ echo "https://github.com/JohnSundell/Files.git" > Marathonfile
 
 ### On macOS
 
-Using Homebrew:
-```sh
-brew install marathon-swift
-```
-
-Using [Mint](https://github.com/yonaskolb/mint):
-```sh
-$ mint run JohnSundell/Marathon
-```
-
-Using Make:
+Using Make **(recommended)**:
 ```sh
 $ git clone https://github.com/JohnSundell/Marathon.git
 $ cd Marathon
@@ -132,6 +122,16 @@ $ git clone https://github.com/JohnSundell/Marathon.git
 $ cd Marathon
 $ swift build -c release -Xswiftc -static-stdlib
 $ cp -f .build/release/Marathon /usr/local/bin/marathon
+```
+
+Using [Mint](https://github.com/yonaskolb/mint):
+```sh
+$ mint run JohnSundell/Marathon
+```
+
+Using Homebrew **(not recommended, due to slow update cycle)**:
+```sh
+brew install marathon-swift
 ```
 
 ### On Linux
@@ -150,7 +150,7 @@ To update Marathon, simply repeat any of the above two series of commands, excep
 
 Marathon requires the following to be installed on your system:
 
-- Swift 4.0 or later (bundled with Xcode 9.0 or later)
+- Swift 4.1 or later (bundled with Xcode 9.3 or later)
 - Git
 - Xcode (if you want to edit scripts using it)
 

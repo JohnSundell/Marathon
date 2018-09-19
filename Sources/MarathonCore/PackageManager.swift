@@ -38,7 +38,7 @@ extension PackageManagerError: PrintableError {
             return "Could not save file for package '\(name)'"
         case .failedToReadPackageFile(let name):
             return "Could not read file for package '\(name)'"
-        case .failedToUpdatePackages(_):
+        case .failedToUpdatePackages:
             return "Failed to update packages"
         case .unknownPackageForRemoval(let name):
             return "Cannot remove package '\(name)' - no such package has been added"
@@ -59,7 +59,7 @@ extension PackageManagerError: PrintableError {
             }
 
             return [hint]
-        case .failedToResolveName(_):
+        case .failedToResolveName:
             return ["Make sure that the package you're trying to add is reachable, and has a Package.swift file"]
         case .packageAlreadyAdded(let name):
             return ["Did you mean to update it? If so, run 'marathon update'\n" +
@@ -70,7 +70,7 @@ extension PackageManagerError: PrintableError {
             return ["The file may have become corrupted. Try removing the package using 'marathon remove \(name)' and then add it back again"]
         case .failedToUpdatePackages(let folder):
             return ["Make sure you have write permissions to the folder '\(folder.path)'"]
-        case .unknownPackageForRemoval(_):
+        case .unknownPackageForRemoval:
             return ["Did you mean to remove the cache data for a script? If so, add '.swift' to its path\n" +
                    "To list all added packages run 'marathon list'"]
         case .failedToRemovePackage(_, let folder):
@@ -86,7 +86,7 @@ extension PackageManagerError: PrintableError {
 public final class PackageManager {
     private typealias Error = PackageManagerError
 
-    var addedPackages: [Package] { return makePackageList() }
+    public var addedPackages: [Package] { return makePackageList() }
 
     private let folder: Folder
     private let generatedFolder: Folder
@@ -105,7 +105,7 @@ public final class PackageManager {
 
     // MARK: - API
 
-    @discardableResult func addPackage(at url: URL, throwIfAlreadyAdded: Bool = true) throws -> Package {
+    @discardableResult public func addPackage(at url: URL, throwIfAlreadyAdded: Bool = true) throws -> Package {
         let name = try nameOfPackage(at: url)
 
         if throwIfAlreadyAdded {
@@ -124,7 +124,7 @@ public final class PackageManager {
         return package
     }
 
-    func addPackagesIfNeeded(from packageURLs: [URL]) throws {
+    public func addPackagesIfNeeded(from packageURLs: [URL]) throws {
         let existingPackageURLs = Set(makePackageList().map { package in
             return package.url.absoluteString.lowercased()
         })
@@ -138,7 +138,7 @@ public final class PackageManager {
         }
     }
 
-    @discardableResult func removePackage(named name: String, shouldUpdatePackages: Bool = true) throws -> Package {
+    @discardableResult public func removePackage(named name: String, shouldUpdatePackages: Bool = true) throws -> Package {
         printer.reportProgress("Removing \(name)...")
 
         let packageFile = try perform(folder.file(named: name),
@@ -156,7 +156,7 @@ public final class PackageManager {
         return package
     }
 
-    func removeAllPackages() throws {
+    public func removeAllPackages() throws {
         for package in addedPackages {
             try removePackage(named: package.name)
         }
@@ -164,7 +164,7 @@ public final class PackageManager {
         try updatePackages()
     }
 
-    func makePackageDescription(for script: Script) throws -> String {
+    public func makePackageDescription(for script: Script) throws -> String {
         guard let masterDescription = try? generatedFolder.file(named: "Package.swift").readAsString() else {
             try updatePackages()
             return try makePackageDescription(for: script)
@@ -181,7 +181,7 @@ public final class PackageManager {
         return masterDescription.replacingOccurrences(of: masterPackageName, with: script.name)
     }
 
-    func symlinkPackages(to folder: Folder) throws {
+    public func symlinkPackages(to folder: Folder) throws {
         guard let checkoutsFolder = try? generatedFolder.subfolder(atPath: ".build/checkouts"),
               let repositoriesFolder = try? generatedFolder.subfolder(atPath: ".build/repositories") else {
             try updatePackages()
@@ -217,7 +217,7 @@ public final class PackageManager {
         }
     }
 
-    func updateAllPackagesToLatestMajorVersion() throws {
+    public func updateAllPackagesToLatestMajorVersion() throws {
         for var package in addedPackages {
             let latestMajorVersion = try latestMajorVersionForPackage(at: package.url)
 
@@ -232,7 +232,7 @@ public final class PackageManager {
         try updatePackages()
     }
 
-    func nameOfPackage(in folder: Folder) throws -> String {
+    public func nameOfPackage(in folder: Folder) throws -> String {
         let packageFile = try folder.file(named: "Package.swift")
 
         for line in try packageFile.readAsString().components(separatedBy: .newlines) {
@@ -318,7 +318,7 @@ public final class PackageManager {
         do {
             let toolsVersion = try resolveSwiftToolsVersion()
             try generateMasterPackageDescription(forSwiftToolsVersion: toolsVersion)
-            try shellOutToSwiftCommand("package --enable-prefetching update", in: generatedFolder, printer: printer)
+            try shellOutToSwiftCommand("package update", in: generatedFolder, printer: printer)
             try generatedFolder.createSubfolderIfNeeded(withName: "Packages")
         } catch {
             throw Error.failedToUpdatePackages(folder)
@@ -390,22 +390,26 @@ public final class PackageManager {
             description.append("])],\n")
         }
 
-        description.append("    swiftLanguageVersions: [\(toolsVersion.major)]\n)")
+        if toolsVersion.major >= 4 && toolsVersion.minor >= 2 {
+            description.append("    swiftLanguageVersions: [.version(\"\(toolsVersion.major).\(toolsVersion.minor)\")]\n)")
+        } else {
+            description.append("    swiftLanguageVersions: [\(toolsVersion.major)]\n)")
+        }
 
         try generatedFolder.createFile(named: "Package.swift",
                                        contents: description.data(using: .utf8).require())
     }
 
     private func makePackageList() -> [Package] {
-        return folder.files.flatMap { file in
+        return folder.files.compactMap { file in
             return try? unbox(data: file.read())
         }
     }
 
     private func resolveSwiftToolsVersion() throws -> Version {
-        var versionString = try shellOutToSwiftCommand("--version", printer: printer)
-        versionString = versionString.components(separatedBy: "(").first.require()
-        versionString = versionString.components(separatedBy: "version ").last.require()
+        var versionString = try shellOutToSwiftCommand("package --version", printer: printer)
+        versionString = versionString.components(separatedBy: " (swiftpm").first.require()
+        versionString = versionString.components(separatedBy: "Swift Package Manager - Swift ").last.require()
 
         let versionComponents = versionString.components(separatedBy: ".")
 
@@ -418,7 +422,10 @@ public final class PackageManager {
     }
 
     private func makePackageDescriptionHeader(forSwiftToolsVersion toolsVersion: Version) -> String {
-        let versionString = toolsVersion.string.trimmingCharacters(in: .whitespaces)
-        return "// swift-tools-version:\(versionString)"
+        let swiftVersion = toolsVersion.string.trimmingCharacters(in: .whitespaces)
+        let generationVersion = 1
+
+        return "// swift-tools-version:\(swiftVersion)\n" +
+               "// marathon-generation-version:\(generationVersion)"
     }
 }

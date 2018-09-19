@@ -24,7 +24,7 @@ extension MarathonFileError: PrintableError {
 
     public var hints: [String] {
         switch self {
-        case .failedToRead(_):
+        case .failedToRead:
             return ["Ensure that the file is formatted according to the documentation at https://github.com/johnsundell/marathon"]
         }
     }

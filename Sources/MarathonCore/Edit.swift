@@ -42,7 +42,7 @@ internal final class EditTask: Task, Executable {
 
         let script = try scriptManager.script(atPath: path, allowRemote: false)
         try script.setupForEdit(arguments: arguments)
-        if (!argumentsContainNoOpenFlag) {
+        if !argumentsContainNoOpenFlag {
             try script.watch(arguments: arguments)
         }
     }
