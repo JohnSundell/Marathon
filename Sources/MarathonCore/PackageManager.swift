@@ -105,17 +105,17 @@ public final class PackageManager {
 
     // MARK: - API
 
-    @discardableResult public func addPackage(at url: URL, throwIfAlreadyAdded: Bool = true) throws -> Package {
-        let name = try nameOfPackage(at: url)
+    @discardableResult public func addPackage(at url: URL, named name: String? = nil, throwIfAlreadyAdded: Bool = true) throws -> Package {
+        let dependencyName = try name ?? nameOfPackage(at: url)
 
         if throwIfAlreadyAdded {
-            guard (try? folder.file(named: name)) == nil else {
-                throw Error.packageAlreadyAdded(name)
+            guard (try? folder.file(named: dependencyName)) == nil else {
+                throw Error.packageAlreadyAdded(dependencyName)
             }
         }
 
         let latestVersion = try latestMajorVersionForPackage(at: url)
-        let package = Package(name: name, url: absoluteRepositoryURL(from: url), majorVersion: latestVersion)
+        let package = Package(name: dependencyName, url: absoluteRepositoryURL(from: url), majorVersion: latestVersion)
         try save(package: package)
 
         try updatePackages()
@@ -124,17 +124,18 @@ public final class PackageManager {
         return package
     }
 
-    public func addPackagesIfNeeded(from packageURLs: [URL]) throws {
-        let existingPackageURLs = Set(makePackageList().map { package in
-            return package.url.absoluteString.lowercased()
-        })
+    public func addPackagesIfNeeded(from packageInfos: [(URL, String?)]) throws {
+        let existingPackages = makePackageList()
 
-        for url in packageURLs {
-            guard !existingPackageURLs.contains(url.absoluteString.lowercased()) else {
+        for info in packageInfos {
+            let exists = try existingPackages.contains { (package) throws -> Bool in
+                return package.url.absoluteString.lowercased() == info.0.absoluteString.lowercased()
+            }
+            guard !exists else {
                 continue
             }
 
-            try addPackage(at: url, throwIfAlreadyAdded: false)
+            try addPackage(at: info.0, named: info.1, throwIfAlreadyAdded: false)
         }
     }
 

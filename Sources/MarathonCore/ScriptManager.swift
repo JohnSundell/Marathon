@@ -172,7 +172,8 @@ public final class ScriptManager {
         let script = Script(name: file.nameExcludingExtension, folder: folder, printer: printer)
 
         if let marathonFile = try script.resolveMarathonFile(fileName: config.dependencyFile) {
-            try packageManager.addPackagesIfNeeded(from: marathonFile.packageURLs)
+            let packageInfos: [(URL, String?)] = marathonFile.packageURLs.map { ($0, nil) }
+            try packageManager.addPackagesIfNeeded(from: packageInfos)
             try addDependencyScripts(fromMarathonFile: marathonFile, for: script)
         }
 
@@ -312,7 +313,8 @@ public final class ScriptManager {
 
     private func resolveInlineDependencies(from file: File) throws {
         let lines = try file.readAsString().components(separatedBy: .newlines)
-        var packageURLs = [URL]()
+        
+        var packages = [(URL, String?)]()
 
         for line in lines {
             if line.hasPrefix("import ") {
@@ -322,13 +324,17 @@ public final class ScriptManager {
                     continue
                 }
 
+                let importName = components.first!
+                                           .replacingOccurrences(of: "import ", with: "")
+                                            .replacingOccurrences(of: "//", with: "")
+                                           .trimmingCharacters(in: .whitespaces)
                 let urlString = components.last!.trimmingCharacters(in: .whitespaces)
 
                 guard let url = URL(string: urlString) else {
                     throw Error.invalidInlineDependencyURL(urlString)
                 }
 
-                packageURLs.append(url)
+                packages.append((url, importName))
             } else if let firstCharacter = line.unicodeScalars.first {
                 guard !CharacterSet.alphanumerics.contains(firstCharacter) else {
                     break
@@ -336,7 +342,7 @@ public final class ScriptManager {
             }
         }
 
-        try packageManager.addPackagesIfNeeded(from: packageURLs)
+        try packageManager.addPackagesIfNeeded(from: packages)
     }
 
     private func makeManagedScriptPathList() -> [String] {
