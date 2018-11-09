@@ -69,6 +69,7 @@ public final class Script {
 
     public let name: String
     public let folder: Folder
+    public let information: ScriptInformation
 
     private let printer: Printer
     private var copyLoopDispatchQueue: DispatchQueue?
@@ -76,17 +77,19 @@ public final class Script {
 
     // MARK: - Init
 
-    init(name: String, folder: Folder, printer: Printer) {
+    init(name: String, folder: Folder, printer: Printer, information: ScriptInformation) {
         self.name = name
         self.folder = folder
         self.printer = printer
+        self.information = information
     }
 
     // MARK: - API
 
-    public func build(withArguments arguments: [String] = []) throws {
+    public func build(withMinMacosVersion minMacosVersion: String, withArguments arguments: [String] = []) throws {
         do {
-            let command = "build -C \(folder.path) " + arguments.joined(separator: " ")
+            let deploymentTargetArguments = ["-Xswiftc", "-target", "-Xswiftc", "x86_64-apple-macosx\(minMacosVersion)"]
+            let command = "build -C \(folder.path) " + (deploymentTargetArguments + arguments).joined(separator: " ")
             try shellOutToSwiftCommand(command, in: folder, printer: printer)
         } catch {
             throw formatBuildError(error as! ShellOutError)

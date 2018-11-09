@@ -43,9 +43,9 @@ internal class InstallTask: Task, Executable {
 
         printer.reportProgress("Compiling script...")
         #if os(Linux)
-            try script.build(withArguments: ["-c", "release"])
+            try script.build(withMinMacosVersion: script.information.minMacosVersion, withArguments: ["-c", "release"])
         #else
-            try script.build(withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
+            try script.build(withMinMacosVersion: script.information.minMacosVersion, withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
         #endif
         printer.reportProgress("Installing binary...")
         let installed = try script.install(at: installPath, confirmBeforeOverwriting: !arguments.contains("--force"))

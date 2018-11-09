@@ -17,6 +17,7 @@ public enum ScriptManagerError {
     case failedToRemoveScriptFolder(Folder)
     case failedToDownloadScript(URL, Error)
     case invalidInlineDependencyURL(String)
+    case invalidInlineInformation(String)
     case noSwiftFilesInRepository(URL)
     case multipleSwiftFilesInRepository(URL, [File])
     case remoteScriptNotAllowed
@@ -37,6 +38,8 @@ extension ScriptManagerError: PrintableError {
             return "Failed to download script from '\(url.absoluteString)' (\(error))"
         case .invalidInlineDependencyURL(let urlString):
             return "Could not resolve inline dependency '\(urlString)'"
+        case .invalidInlineInformation(let information):
+            return "Could not resolve inline information: '\(information)'"
         case .noSwiftFilesInRepository(let url):
             return "No Swift files found in repository at '\(url.absoluteString)'"
         case .multipleSwiftFilesInRepository(let url, _):
@@ -59,6 +62,8 @@ extension ScriptManagerError: PrintableError {
             return ["Make sure that the URL is reachable, and that it contains a valid Swift script"]
         case .invalidInlineDependencyURL, .noSwiftFilesInRepository:
             return ["Please verify that the URL is correct and try again"]
+        case .invalidInlineInformation:
+            return ["Please verify that the inline information provided is valid and supported (double check the spelling!)"]
         case .multipleSwiftFilesInRepository(_, let files):
             let fileNames = files.map({ $0.name }).joined(separator: "\n- ")
             return ["Please run one of the following scripts using its direct URL instead:\n- \(fileNames)"]
@@ -169,7 +174,8 @@ public final class ScriptManager {
     private func script(from file: File) throws -> Script {
         let identifier = scriptIdentifier(from: file.path)
         let folder = try createFolderIfNeededForScript(withIdentifier: identifier, file: file)
-        let script = Script(name: file.nameExcludingExtension, folder: folder, printer: printer)
+        let scriptInformation = try resolveScriptInformation(from: file)
+        let script = Script(name: file.nameExcludingExtension, folder: folder, printer: printer, information: scriptInformation)
 
         if let marathonFile = try script.resolveMarathonFile(fileName: config.dependencyFile) {
             try packageManager.addPackagesIfNeeded(from: marathonFile.packageURLs)
@@ -246,9 +252,10 @@ public final class ScriptManager {
 
         if let packageName = try? packageManager.nameOfPackage(in: cloneFolder) {
             let cloneFiles = cloneFolder.makeFileSequence(recursive: true)
-
-            if cloneFiles.contains(where: { $0.name == "main.swift" }) {
-                return Script(name: packageName, folder: cloneFolder, printer: printer)
+            
+            if let mainFile = cloneFiles.first(where: { $0.name == "main.swift" }) {
+                let scriptInformation = try resolveScriptInformation(from: mainFile)
+                return Script(name: packageName, folder: cloneFolder, printer: printer, information: scriptInformation)
             }
         }
 
@@ -337,6 +344,38 @@ public final class ScriptManager {
         }
 
         try packageManager.addPackagesIfNeeded(from: packageURLs)
+    }
+    
+    
+    private func resolveScriptInformation(from file: File) throws -> ScriptInformation {
+        let lines = try file.readAsString().components(separatedBy: .newlines)
+        var information = ScriptInformation(minMacosVersion: "10.11")
+        
+        for line in lines where line.hasPrefix("//") {
+            let components = line.components(separatedBy: config.dependencyPrefix)
+            
+            guard components.count != 3 else {
+                throw Error.invalidInlineInformation(line)
+            }
+            
+            let informationComponents = components[2].components(separatedBy: ":")
+            
+            guard components.count != 2 else {
+                throw Error.invalidInlineInformation(line)
+            }
+            
+            guard let informationKey = ScriptInformationKeys(rawValue: informationComponents[0]) else {
+                throw Error.invalidInlineInformation(line)
+            }
+            
+            let informationValue = informationComponents[1]
+            
+            switch informationKey {
+            case .minMacosVersion: information.minMacosVersion = informationValue
+            }
+        }
+        
+        return information
     }
 
     private func makeManagedScriptPathList() -> [String] {
