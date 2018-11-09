@@ -366,11 +366,11 @@ public final class ScriptManager {
                 throw Error.invalidInlineInformation(line)
             }
             
-            guard let informationKey = ScriptInformationKeys(rawValue: informationComponents[0]) else {
+            guard let informationKey = ScriptInformationKeys(rawValue: informationComponents[0].trimmingCharacters(in: .whitespaces)) else {
                 throw Error.invalidInlineInformation(line)
             }
             
-            let informationValue = informationComponents[1]
+            let informationValue = informationComponents[1].trimmingCharacters(in: .whitespaces)
             
             switch informationKey {
             case .minMacosVersion: information.minMacosVersion = informationValue
