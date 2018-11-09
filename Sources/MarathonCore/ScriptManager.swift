@@ -351,7 +351,7 @@ public final class ScriptManager {
     
     private func resolveScriptInformation(from file: File) throws -> ScriptInformation {
         let lines = try file.readAsString().components(separatedBy: .newlines)
-        var information = ScriptInformation(minMacosVersion: "10.11")
+        var information = ScriptInformation.default
         
         for line in lines where line.hasPrefix("//") && line.contains(config.prefix) {
             let components = line.components(separatedBy: config.prefix)

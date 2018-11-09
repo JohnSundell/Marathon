@@ -10,6 +10,14 @@ public struct ScriptInformation {
     var minMacosVersion: String
 }
 
+extension ScriptInformation {
+    static var `default`: ScriptInformation {
+        return ScriptInformation(
+            minMacosVersion: "10.9"
+        )
+    }
+}
+
 enum ScriptInformationKeys: String {
     case minMacosVersion = "min-macos-version"
 }
