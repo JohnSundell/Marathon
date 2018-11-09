@@ -38,7 +38,7 @@ extension ScriptManagerError: PrintableError {
             return "Failed to download script from '\(url.absoluteString)' (\(error))"
         case .invalidInlineDependencyURL(let urlString):
             return "Could not resolve inline dependency '\(urlString)'"
-        case .invalidInlineInformation(let information):
+        case .invalidInlineInformation(let information): // TODO: print all the possible keys for inline information when updated to swift 4.2
             return "Could not resolve inline information: '\(information)'"
         case .noSwiftFilesInRepository(let url):
             return "No Swift files found in repository at '\(url.absoluteString)'"
@@ -78,12 +78,14 @@ extension ScriptManagerError: PrintableError {
 public final class ScriptManager {
 
     public struct Config {
-        let dependencyPrefix: String
+        let prefix: String
+        let separator: String
         let dependencyFile: String
 
-        public init(prefix: String = "marathon:", file: String = "Marathonfile") {
-            dependencyPrefix = prefix
-            dependencyFile = file
+        public init(prefix: String = "marathon:", separator: String = ":", dependencyFile: String = "Marathonfile") {
+            self.prefix = prefix
+            self.separator = separator
+            self.dependencyFile = dependencyFile
         }
     }
 
@@ -323,7 +325,7 @@ public final class ScriptManager {
 
         for line in lines {
             if line.hasPrefix("import ") {
-                let components = line.components(separatedBy: config.dependencyPrefix)
+                let components = line.components(separatedBy: config.prefix)
 
                 guard components.count > 1 else {
                     continue
@@ -351,16 +353,16 @@ public final class ScriptManager {
         let lines = try file.readAsString().components(separatedBy: .newlines)
         var information = ScriptInformation(minMacosVersion: "10.11")
         
-        for line in lines where line.hasPrefix("//") {
-            let components = line.components(separatedBy: config.dependencyPrefix)
+        for line in lines where line.hasPrefix("//") && line.contains(config.prefix) {
+            let components = line.components(separatedBy: config.prefix)
             
-            guard components.count != 3 else {
+            guard components.count == 2 else {
                 throw Error.invalidInlineInformation(line)
             }
             
-            let informationComponents = components[2].components(separatedBy: ":")
+            let informationComponents = components[1].components(separatedBy: config.separator)
             
-            guard components.count != 2 else {
+            guard components.count == 2 else {
                 throw Error.invalidInlineInformation(line)
             }
             
