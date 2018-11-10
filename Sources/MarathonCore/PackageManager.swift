@@ -124,18 +124,21 @@ public final class PackageManager {
         return package
     }
 
-    public func addPackagesIfNeeded(from dependencies: [Dependency]) throws {
+    public func addPackagesIfNeeded(from dependencies: [Dependency]) throws -> [Dependency] {
         let existingPackages = makePackageList()
 
-        for dependency in dependencies {
-            let exists = try existingPackages.contains { (package) throws -> Bool in
+        return try dependencies.map { dependency throws in
+            let existingPackage = try existingPackages.first { (package) throws -> Bool in
                 return package.url.absoluteString.lowercased() == dependency.url.absoluteString.lowercased()
             }
-            guard !exists else {
-                continue
+            guard existingPackage == nil else {
+                return dependency
             }
 
-            try addPackage(at: dependency.url, throwIfAlreadyAdded: false)
+            let newPackage = try addPackage(at: dependency.url, throwIfAlreadyAdded: false)
+            var dep = dependency
+            dep.url = newPackage.url // make sure that any ~ or trailing slashes are identical by setting a new URL on the dependency
+            return dep
         }
     }
 

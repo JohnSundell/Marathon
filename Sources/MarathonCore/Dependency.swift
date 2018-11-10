@@ -2,7 +2,7 @@ import Foundation
 
 public struct Dependency {
     public let name: String?
-    public let url: URL
+    public var url: URL
 }
 
 extension Dependency: Equatable {

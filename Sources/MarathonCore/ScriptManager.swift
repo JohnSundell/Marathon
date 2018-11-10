@@ -173,9 +173,9 @@ public final class ScriptManager {
         
         if let marathonFile = try script.resolveMarathonFile(fileName: config.dependencyFile) {
             let marathonFileDependencies: [Dependency] = marathonFile.packageURLs.map { Dependency(name: nil, url: $0) }
-            try packageManager.addPackagesIfNeeded(from: marathonFileDependencies)
+            let resolvedDependencies = try packageManager.addPackagesIfNeeded(from: marathonFileDependencies)
             try addDependencyScripts(fromMarathonFile: marathonFile, for: script)
-            script.dependencies += marathonFileDependencies
+            script.dependencies += resolvedDependencies
         }
 
         script.dependencies += try resolveInlineDependencies(from: file)
@@ -343,8 +343,7 @@ public final class ScriptManager {
             }
         }
 
-        try packageManager.addPackagesIfNeeded(from: dependencies)
-        return dependencies
+        return try packageManager.addPackagesIfNeeded(from: dependencies)
     }
 
     private func makeManagedScriptPathList() -> [String] {
