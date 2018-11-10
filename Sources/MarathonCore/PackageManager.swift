@@ -105,17 +105,17 @@ public final class PackageManager {
 
     // MARK: - API
 
-    @discardableResult public func addPackage(at url: URL, named name: String? = nil, throwIfAlreadyAdded: Bool = true) throws -> Package {
-        let dependencyName = try name ?? nameOfPackage(at: url)
+    @discardableResult public func addPackage(at url: URL, throwIfAlreadyAdded: Bool = true) throws -> Package {
+        let name = try nameOfPackage(at: url)
 
         if throwIfAlreadyAdded {
-            guard (try? folder.file(named: dependencyName)) == nil else {
-                throw Error.packageAlreadyAdded(dependencyName)
+            guard (try? folder.file(named: name)) == nil else {
+                throw Error.packageAlreadyAdded(name)
             }
         }
 
-        let latestVersion = try latestMajorVersionForPackage(at: url)
-        let package = Package(name: dependencyName, url: absoluteRepositoryURL(from: url), majorVersion: latestVersion)
+        let latestVersion = try latestVersionForPackage(at: url)
+        let package = Package(name: name, url: absoluteRepositoryURL(from: url), version: latestVersion)
         try save(package: package)
 
         try updatePackages()
@@ -124,18 +124,18 @@ public final class PackageManager {
         return package
     }
 
-    public func addPackagesIfNeeded(from packageInfos: [(URL, String?)]) throws {
+    public func addPackagesIfNeeded(from dependencies: [Dependency]) throws {
         let existingPackages = makePackageList()
 
-        for info in packageInfos {
+        for dependency in dependencies {
             let exists = try existingPackages.contains { (package) throws -> Bool in
-                return package.url.absoluteString.lowercased() == info.0.absoluteString.lowercased()
+                return package.url.absoluteString.lowercased() == dependency.url.absoluteString.lowercased()
             }
             guard !exists else {
                 continue
             }
 
-            try addPackage(at: info.0, named: info.1, throwIfAlreadyAdded: false)
+            try addPackage(at: dependency.url, throwIfAlreadyAdded: false)
         }
     }
 
@@ -179,7 +179,7 @@ public final class PackageManager {
             return try makePackageDescription(for: script)
         }
 
-        return masterDescription.replacingOccurrences(of: masterPackageName, with: script.name)
+        return try generatePackageDescription(for: script, toolsVersion: toolsVersion)
     }
 
     public func symlinkPackages(to folder: Folder) throws {
@@ -220,13 +220,13 @@ public final class PackageManager {
 
     public func updateAllPackagesToLatestMajorVersion() throws {
         for var package in addedPackages {
-            let latestMajorVersion = try latestMajorVersionForPackage(at: package.url)
+            let latestVersion = try latestVersionForPackage(at: package.url)
 
-            guard latestMajorVersion > package.majorVersion else {
+            guard latestVersion > package.version else {
                 continue
             }
 
-            package.majorVersion = latestMajorVersion
+            package.version = latestVersion
             try save(package: package)
         }
 
@@ -258,7 +258,7 @@ public final class PackageManager {
 
     // MARK: - Private
 
-    private func latestMajorVersionForPackage(at url: URL) throws -> Int {
+    private func latestVersionForPackage(at url: URL) throws -> Version {
         printer.reportProgress("Resolving latest major version for \(url.absoluteString)...")
 
         let releases = try perform(Releases.versions(for: url).withoutPreReleases(),
@@ -268,7 +268,7 @@ public final class PackageManager {
             throw Error.failedToResolveLatestVersion(url)
         }
 
-        return latestVersion.major
+        return latestVersion
     }
 
     private func nameOfPackage(at url: URL) throws -> String {
@@ -336,7 +336,7 @@ public final class PackageManager {
                 let package = Package(
                     name: pinnedPackage.name,
                     url: pinnedPackage.url,
-                    majorVersion: pinnedPackage.version.major
+                    version: pinnedPackage.version
                 )
 
                 try save(package: package)
@@ -400,11 +400,68 @@ public final class PackageManager {
         try generatedFolder.createFile(named: "Package.swift",
                                        contents: description.data(using: .utf8).require())
     }
+    
+    private func generatePackageDescription(for script: Script, toolsVersion: Version) throws -> String{
+        let header = makePackageDescriptionHeader(forSwiftToolsVersion: toolsVersion)
+        let packages = makePackageDictionary()
+        
+        var description = "\(header)\n\n" +
+            "import PackageDescription\n\n" +
+            "let package = Package(\n" +
+            "    name: \"\(script.name)\",\n" +
+            "    products: [],\n" +
+        "    dependencies: [\n"
+        
+        let dependencyPackages = try Set(script.dependencies.map { dependency throws -> Package in
+            guard let package = packages[dependency.url] else {
+                throw PackageManagerError.failedToReadPackageFile(dependency.url.absoluteString)
+            }
+            return package
+        })
+        
+        for (index, package) in dependencyPackages.enumerated() {
+            if index > 0 {
+                description += ",\n"
+            }
+            
+            let dependencyString = package.dependencyString(forSwiftToolsVersion: toolsVersion)
+            description.append("        \(dependencyString)")
+        }
+        
+        description.append("\n    ],\n")
+        
+        if toolsVersion.major > 3 {
+            description.append("    targets: [.target(name: \"\(script.name)\", dependencies: [")
+            
+            if !script.dependencies.isEmpty {
+                description.append("\"")
+                let dependencyNames = try script.dependencies.map { try $0.name ?? nameOfPackage(at: $0.url) }
+                description.append(dependencyNames.joined(separator: "\", \""))
+                description.append("\"")
+            }
+            
+            description.append("])],\n")
+        }
+        
+        if toolsVersion.major >= 4 && toolsVersion.minor >= 2 {
+            description.append("    swiftLanguageVersions: [.version(\"\(toolsVersion.major).\(toolsVersion.minor)\")]\n)")
+        } else {
+            description.append("    swiftLanguageVersions: [\(toolsVersion.major)]\n)")
+        }
+        
+        return description
+    }
 
     private func makePackageList() -> [Package] {
         return folder.files.compactMap { file in
             return try? unbox(data: file.read())
         }
+    }
+    
+    private func makePackageDictionary() -> [URL: Package] {
+        var packageDict: [URL: Package] = [:]
+        makePackageList().forEach { packageDict[$0.url] = $0 }
+        return packageDict
     }
 
     private func resolveSwiftToolsVersion() throws -> Version {

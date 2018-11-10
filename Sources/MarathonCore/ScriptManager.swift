@@ -169,15 +169,16 @@ public final class ScriptManager {
     private func script(from file: File) throws -> Script {
         let identifier = scriptIdentifier(from: file.path)
         let folder = try createFolderIfNeededForScript(withIdentifier: identifier, file: file)
-        let script = Script(name: file.nameExcludingExtension, folder: folder, printer: printer)
-
+        let script = Script(name: file.nameExcludingExtension, folder: folder, dependencies: [], printer: printer)
+        
         if let marathonFile = try script.resolveMarathonFile(fileName: config.dependencyFile) {
-            let packageInfos: [(URL, String?)] = marathonFile.packageURLs.map { ($0, nil) }
-            try packageManager.addPackagesIfNeeded(from: packageInfos)
+            let marathonFileDependencies: [Dependency] = marathonFile.packageURLs.map { Dependency(name: nil, url: $0) }
+            try packageManager.addPackagesIfNeeded(from: marathonFileDependencies)
             try addDependencyScripts(fromMarathonFile: marathonFile, for: script)
+            script.dependencies += marathonFileDependencies
         }
 
-        try resolveInlineDependencies(from: file)
+        script.dependencies += try resolveInlineDependencies(from: file)
 
         do {
             let packageFile = try folder.createFile(named: "Package.swift")
@@ -249,7 +250,7 @@ public final class ScriptManager {
             let cloneFiles = cloneFolder.makeFileSequence(recursive: true)
 
             if cloneFiles.contains(where: { $0.name == "main.swift" }) {
-                return Script(name: packageName, folder: cloneFolder, printer: printer)
+                return Script(name: packageName, folder: cloneFolder, dependencies: [], printer: printer)
             }
         }
 
@@ -311,10 +312,10 @@ public final class ScriptManager {
         }
     }
 
-    private func resolveInlineDependencies(from file: File) throws {
+    private func resolveInlineDependencies(from file: File) throws -> [Dependency] {
         let lines = try file.readAsString().components(separatedBy: .newlines)
         
-        var packages = [(URL, String?)]()
+        var dependencies = [Dependency]()
 
         for line in lines {
             if line.hasPrefix("import ") {
@@ -334,7 +335,7 @@ public final class ScriptManager {
                     throw Error.invalidInlineDependencyURL(urlString)
                 }
 
-                packages.append((url, importName))
+                dependencies.append(Dependency(name: importName, url: url))
             } else if let firstCharacter = line.unicodeScalars.first {
                 guard !CharacterSet.alphanumerics.contains(firstCharacter) else {
                     break
@@ -342,7 +343,8 @@ public final class ScriptManager {
             }
         }
 
-        try packageManager.addPackagesIfNeeded(from: packages)
+        try packageManager.addPackagesIfNeeded(from: dependencies)
+        return dependencies
     }
 
     private func makeManagedScriptPathList() -> [String] {
