@@ -69,7 +69,7 @@ public final class Script {
 
     public let name: String
     public let folder: Folder
-    public let information: ScriptInformation
+    public var information: ScriptInformation
 
     private let printer: Printer
     private var copyLoopDispatchQueue: DispatchQueue?
@@ -171,7 +171,7 @@ public final class Script {
         }
     }
 
-    func resolveMarathonFile(fileName: String) throws -> MarathonFile? {
+    func resolveMarathonFile(fileName: String, separator: String) throws -> MarathonFile? {
         let scriptFile = try File(path: expandSymlink())
 
         guard let parentFolder = scriptFile.parent else {
@@ -182,7 +182,7 @@ public final class Script {
             return nil
         }
 
-        return try MarathonFile(file: file)
+        return try MarathonFile(file: file, separator: separator)
     }
 
     // MARK: - Private

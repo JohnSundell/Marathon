@@ -179,9 +179,12 @@ public final class ScriptManager {
         let scriptInformation = try resolveScriptInformation(from: file)
         let script = Script(name: file.nameExcludingExtension, folder: folder, printer: printer, information: scriptInformation)
 
-        if let marathonFile = try script.resolveMarathonFile(fileName: config.dependencyFile) {
+        if let marathonFile = try script.resolveMarathonFile(fileName: config.dependencyFile, separator: config.separator) {
             try packageManager.addPackagesIfNeeded(from: marathonFile.packageURLs)
             try addDependencyScripts(fromMarathonFile: marathonFile, for: script)
+            script.information.merge(marathonFile.scriptInformation) { (_, new) in
+                new // Script information in the marathonFile prevails over the information inlined in the script
+            }
         }
 
         try resolveInlineDependencies(from: file)
@@ -257,6 +260,7 @@ public final class ScriptManager {
             
             if let mainFile = cloneFiles.first(where: { $0.name == "main.swift" }) {
                 let scriptInformation = try resolveScriptInformation(from: mainFile)
+                // Here, the marathonFile is not processed, so the script information from it is not taken into account. This is expected behavior, as when downloading a script the marathonFile is not downloaded
                 return Script(name: packageName, folder: cloneFolder, printer: printer, information: scriptInformation)
             }
         }
@@ -348,10 +352,9 @@ public final class ScriptManager {
         try packageManager.addPackagesIfNeeded(from: packageURLs)
     }
     
-    
     private func resolveScriptInformation(from file: File) throws -> ScriptInformation {
         let lines = try file.readAsString().components(separatedBy: .newlines)
-        var information = ScriptInformation.default
+        var information: ScriptInformation = [:]
         
         for line in lines where line.hasPrefix("//") && line.contains(config.prefix) {
             let components = line.components(separatedBy: config.prefix)
@@ -360,21 +363,8 @@ public final class ScriptManager {
                 throw Error.invalidInlineInformation(line)
             }
             
-            let informationComponents = components[1].components(separatedBy: config.separator)
-            
-            guard components.count == 2 else {
-                throw Error.invalidInlineInformation(line)
-            }
-            
-            guard let informationKey = ScriptInformationKeys(rawValue: informationComponents[0].trimmingCharacters(in: .whitespaces)) else {
-                throw Error.invalidInlineInformation(line)
-            }
-            
-            let informationValue = informationComponents[1].trimmingCharacters(in: .whitespaces)
-            
-            switch informationKey {
-            case .minMacosVersion: information.minMacosVersion = informationValue
-            }
+            let element = try ScriptInformation.resolve(from: components[1], separator: config.separator)
+            information[element.key] = element.value
         }
         
         return information

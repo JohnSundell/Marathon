@@ -37,24 +37,29 @@ internal struct MarathonFile {
 
     private(set) var packageURLs = [URL]()
     private(set) var scriptURLs = [URL]()
+    private(set) var scriptInformation: ScriptInformation = [:]
 
     // MARK: - Init
 
-    init(file: File) throws {
-        let content = try perform(file.readAsString().components(separatedBy: .newlines),
+    init(file: File, separator: String) throws {
+        let lines = try perform(file.readAsString().components(separatedBy: .newlines),
                                   orThrow: Error.failedToRead(file))
 
-        for urlString in content {
-            guard !urlString.isEmpty else {
+        for line in lines {
+            guard !line.isEmpty else {
                 continue
             }
-
-            let url = try absoluteURL(from: urlString, file: file)
-
-            if url.isForScript {
-                scriptURLs.append(url)
+            
+            if let url = try? absoluteURL(from: line, file: file) {
+                if url.isForScript {
+                    scriptURLs.append(url)
+                } else {
+                    packageURLs.append(url)
+                }
+            } else if let informationElement = try? ScriptInformation.resolve(from: line, separator: separator) {
+                scriptInformation[informationElement.key] = informationElement.value
             } else {
-                packageURLs.append(url)
+                throw Error.failedToRead(file)
             }
         }
     }
