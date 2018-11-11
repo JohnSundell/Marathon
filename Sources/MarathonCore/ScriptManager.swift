@@ -17,7 +17,7 @@ public enum ScriptManagerError {
     case failedToRemoveScriptFolder(Folder)
     case failedToDownloadScript(URL, Error)
     case invalidInlineDependencyURL(String)
-    case invalidInlineInformation(String)
+    case invalidInlineInformationFormat(String)
     case noSwiftFilesInRepository(URL)
     case multipleSwiftFilesInRepository(URL, [File])
     case remoteScriptNotAllowed
@@ -38,7 +38,7 @@ extension ScriptManagerError: PrintableError {
             return "Failed to download script from '\(url.absoluteString)' (\(error))"
         case .invalidInlineDependencyURL(let urlString):
             return "Could not resolve inline dependency '\(urlString)'"
-        case .invalidInlineInformation(let information): // TODO: print all the possible keys for inline information when updated to swift 4.2
+        case .invalidInlineInformationFormat(let information):
             return "Could not resolve inline information: '\(information)'"
         case .noSwiftFilesInRepository(let url):
             return "No Swift files found in repository at '\(url.absoluteString)'"
@@ -62,8 +62,8 @@ extension ScriptManagerError: PrintableError {
             return ["Make sure that the URL is reachable, and that it contains a valid Swift script"]
         case .invalidInlineDependencyURL, .noSwiftFilesInRepository:
             return ["Please verify that the URL is correct and try again"]
-        case .invalidInlineInformation:
-            return ["Please verify that the inline information provided is valid and supported (double check the spelling!)"]
+        case .invalidInlineInformationFormat:
+            return ["Please verify that the inline information provided is valid and supported"]
         case .multipleSwiftFilesInRepository(_, let files):
             let fileNames = files.map({ $0.name }).joined(separator: "\n- ")
             return ["Please run one of the following scripts using its direct URL instead:\n- \(fileNames)"]
@@ -360,7 +360,7 @@ public final class ScriptManager {
             let components = line.components(separatedBy: config.prefix)
             
             guard components.count == 2 else {
-                throw Error.invalidInlineInformation(line)
+                throw Error.invalidInlineInformationFormat(line)
             }
             
             let element = try ScriptInformation.resolve(from: components[1], separator: config.separator)
