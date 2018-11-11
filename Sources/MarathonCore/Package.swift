@@ -58,6 +58,10 @@ internal extension Package {
         if toolsVersion.major == 3 {
             return ".Package(url: \"\(url.absoluteString)\", majorVersion: \(majorVersion))"
         }
+        
+        if toolsVersion >= Version(major: 4, minor: 2) && !url.isForRemoteRepository {
+            return ".package(path: \"\(url.absoluteString)\")"
+        }
 
         return ".package(url: \"\(url.absoluteString)\", from: \"\(version.major).\(version.minor).\(version.patch)\")"
     }

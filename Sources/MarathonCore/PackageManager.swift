@@ -169,18 +169,8 @@ public final class PackageManager {
     }
 
     public func makePackageDescription(for script: Script) throws -> String {
-        guard let masterDescription = try? generatedFolder.file(named: "Package.swift").readAsString() else {
-            try updatePackages()
-            return try makePackageDescription(for: script)
-        }
-
         let toolsVersion = try resolveSwiftToolsVersion()
         let expectedHeader = makePackageDescriptionHeader(forSwiftToolsVersion: toolsVersion)
-
-        guard masterDescription.hasPrefix(expectedHeader) else {
-            try generateMasterPackageDescription(forSwiftToolsVersion: toolsVersion)
-            return try makePackageDescription(for: script)
-        }
 
         return try generatePackageDescription(for: script, toolsVersion: toolsVersion)
     }
@@ -319,14 +309,14 @@ public final class PackageManager {
     private func updatePackages() throws {
         printer.reportProgress("Updating packages...")
 
-        do {
-            let toolsVersion = try resolveSwiftToolsVersion()
-            try generateMasterPackageDescription(forSwiftToolsVersion: toolsVersion)
-            try shellOutToSwiftCommand("package update", in: generatedFolder, printer: printer)
-            try generatedFolder.createSubfolderIfNeeded(withName: "Packages")
-        } catch {
-            throw Error.failedToUpdatePackages(folder)
-        }
+//        do {
+//            let toolsVersion = try resolveSwiftToolsVersion()
+//            try generateMasterPackageDescription(forSwiftToolsVersion: toolsVersion)
+//            try shellOutToSwiftCommand("package update", in: generatedFolder, printer: printer)
+//            try generatedFolder.createSubfolderIfNeeded(withName: "Packages")
+//        } catch {
+//            throw Error.failedToUpdatePackages(folder)
+//        }
     }
 
     private func addMissingPackageFiles() {

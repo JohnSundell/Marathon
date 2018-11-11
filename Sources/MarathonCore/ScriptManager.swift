@@ -280,7 +280,7 @@ public final class ScriptManager {
 
     private func createFolderIfNeededForScript(withIdentifier identifier: String, file: File) throws -> Folder {
         let scriptFolder = try cacheFolder.createSubfolderIfNeeded(withName: identifier)
-        try packageManager.symlinkPackages(to: scriptFolder)
+//        try packageManager.symlinkPackages(to: scriptFolder)
 
         if (try? scriptFolder.file(named: "OriginalFile")) == nil {
             try scriptFolder.createSymlink(to: file.path, at: "OriginalFile", printer: printer)
