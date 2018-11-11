@@ -86,9 +86,9 @@ public final class Script {
 
     // MARK: - API
 
-    public func build(withMinMacosVersion minMacosVersion: String, withArguments arguments: [String] = []) throws {
+    public func build(withMinDeploymentTarget minDeploymentTarget: String, withArguments arguments: [String] = []) throws {
         do {
-            let deploymentTargetArguments = ["-Xswiftc", "-target", "-Xswiftc", "x86_64-apple-macosx\(minMacosVersion)"]
+            let deploymentTargetArguments = ["-Xswiftc", "-target", "-Xswiftc", minDeploymentTarget]
             let command = "build -C \(folder.path) " + (deploymentTargetArguments + arguments).joined(separator: " ")
             try shellOutToSwiftCommand(command, in: folder, printer: printer)
         } catch {

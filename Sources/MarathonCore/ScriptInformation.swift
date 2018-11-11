@@ -5,6 +5,7 @@
  */
 
 import Foundation
+import ShellOut
 
 // MARK: - Error
 
@@ -52,7 +53,7 @@ public extension Dictionary where Key == ScriptInformation.Key, Value == ScriptI
         
         let valueString = components[1].trimmingCharacters(in: .whitespaces)
         switch informationKey {
-        case .minMacosVersion: return (key: .minMacosVersion, value: valueString)
+        case .minDeploymentTarget: return (key: .minDeploymentTarget, value: valueString)
         }
     }
     
@@ -62,11 +63,17 @@ public extension Dictionary where Key == ScriptInformation.Key, Value == ScriptI
 }
 
 public enum ScriptInformationKey: String {
-    case minMacosVersion = "min-macos-version"
+    case minDeploymentTarget = "min-deployment-target"
     
     var defaultValue: String {
         switch self {
-        case .minMacosVersion: return "10.9"
+        case .minDeploymentTarget:
+            #if os(Linux)
+            return "x86_64-unknown-linux-gnu" // This should be the default target when runnning in linux
+            #else
+            let systemVersion = try? shellOut(to: "sw_vers -productVersion")
+            return "x86_64-apple-macosx" + (systemVersion ?? "10.9")
+            #endif
         }
     }
 }

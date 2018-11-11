@@ -48,8 +48,8 @@ internal class RunTask: Task, Executable {
         }
 
         let script = try scriptManager.script(atPath: path, allowRemote: true)
-        let minMacosVersion = script.information.getValue(forKey: .minMacosVersion)
-        try script.build(withMinMacosVersion: minMacosVersion)
+        let minDeploymentTarget = script.information.getValue(forKey: .minDeploymentTarget)
+        try script.build(withMinDeploymentTarget: minDeploymentTarget)
 
         do {
             let output = try script.run(in: folder, with: Array(arguments.dropFirst()))

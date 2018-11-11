@@ -41,13 +41,13 @@ internal class InstallTask: Task, Executable {
         let script = try scriptManager.script(atPath: path, allowRemote: true)
         let installPath = makeInstallPath(for: script)
         
-        let minMacosVersion = script.information.getValue(forKey: .minMacosVersion)
+        let minDeploymentTarget = script.information.getValue(forKey: .minDeploymentTarget)
 
         printer.reportProgress("Compiling script...")
         #if os(Linux)
-            try script.build(withMinMacosVersion: minMacosVersion, withArguments: ["-c", "release"])
+            try script.build(withMinDeploymentTarget: minDeploymentTarget, withArguments: ["-c", "release"])
         #else
-            try script.build(withMinMacosVersion: minMacosVersion, withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
+            try script.build(withMinDeploymentTarget: minDeploymentTarget, withArguments: ["-c", "release", "-Xswiftc", "-static-stdlib"])
         #endif
         printer.reportProgress("Installing binary...")
         let installed = try script.install(at: installPath, confirmBeforeOverwriting: !arguments.contains("--force"))
