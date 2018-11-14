@@ -77,7 +77,7 @@ public final class Script {
 
     // MARK: - Init
 
-    init(name: String, folder: Folder, dependencies: [Dependency], printer: Printer) {
+    public init(name: String, folder: Folder, dependencies: [Dependency], printer: Printer) {
         self.name = name
         self.folder = folder
         self.dependencies = dependencies
