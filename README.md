@@ -126,7 +126,7 @@ $ cp -f .build/release/Marathon /usr/local/bin/marathon
 
 Using [Mint](https://github.com/yonaskolb/mint):
 ```sh
-$ mint run JohnSundell/Marathon
+$ mint install JohnSundell/Marathon
 ```
 
 Using Homebrew **(not recommended, due to slow update cycle)**:
