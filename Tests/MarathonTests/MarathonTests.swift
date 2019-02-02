@@ -245,6 +245,16 @@ class MarathonTests: XCTestCase {
         try scriptFile.write(string: script)
         try run(with: ["run", scriptFile.path])
     }
+    
+    func testRunningScriptWithImportSpecification() throws {
+        let script = """
+        import Files // JohnSundell/Files ~> 2.2
+        print(Folder.current.path)
+        """
+        let scriptFile = try folder.createFile(named: "script.swift")
+        try scriptFile.write(string: script)
+        try run(with: ["run", scriptFile.path])
+    }
 
     func testRunningScriptWithBuildFailedErrorThrows() throws {
         let scriptFile = try folder.createFile(named: "script.swift")
@@ -837,6 +847,7 @@ extension MarathonTests {
             ("testRunningScriptWithoutPathThrows", testRunningScriptWithoutPathThrows),
             ("testRunningScript", testRunningScript),
             ("testRunningScriptWithNewDependency", testRunningScriptWithNewDependency),
+            ("testRunningScriptWithImportSpecification", testRunningScriptWithImportSpecification),
             ("testRunningScriptWithBuildFailedErrorThrows", testRunningScriptWithBuildFailedErrorThrows),
             ("testRunningScriptWithBuildFailedErrorWhenNoSuchModuleThrows", testRunningScriptWithBuildFailedErrorWhenNoSuchModuleThrows),
             ("testRunningScriptWithRuntimeErrorThrows", testRunningScriptWithRuntimeErrorThrows),

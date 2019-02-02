@@ -20,7 +20,8 @@ let package = Package(
         .package(url: "https://github.com/JohnSundell/Wrap.git", from: "3.0.0"),
         .package(url: "https://github.com/JohnSundell/ShellOut.git", from: "2.0.0"),
         .package(url: "https://github.com/JohnSundell/Require.git", from: "2.0.0"),
-        .package(url: "https://github.com/JohnSundell/Releases.git", from: "3.0.0")
+        .package(url: "https://github.com/JohnSundell/Releases.git", from: "3.0.0"),
+        .package(url: "https://github.com/alexito4/ImportSpecification", from: "0.4.0")
     ],
     targets: [
         .target(
@@ -29,7 +30,7 @@ let package = Package(
         ),
         .target(
             name: "MarathonCore",
-            dependencies: ["Files", "Unbox", "Wrap", "ShellOut", "Require", "Releases"]
+            dependencies: ["Files", "Unbox", "Wrap", "ShellOut", "Require", "Releases", "ImportSpecification"]
         ),
         .testTarget(
             name: "MarathonTests",

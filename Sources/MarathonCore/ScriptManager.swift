@@ -7,6 +7,7 @@
 import Foundation
 import Files
 import Require
+import ImportSpecification
 
 // MARK: - Error
 
@@ -312,7 +313,8 @@ public final class ScriptManager {
     }
 
     private func resolveInlineDependencies(from file: File) throws {
-        let lines = try file.readAsString().components(separatedBy: .newlines)
+        let script = try file.readAsString()
+        let lines = script.components(separatedBy: .newlines)
         var packageURLs = [URL]()
 
         for line in lines {
@@ -334,6 +336,17 @@ public final class ScriptManager {
                 guard !CharacterSet.alphanumerics.contains(firstCharacter) else {
                     break
                 }
+            }
+        }
+        
+        if packageURLs.isEmpty {
+            // Check if the script is not using the Marathon style of inline dependency,
+            // but it's using ImportSpecification instead.
+            packageURLs = try ImportSpecification.parse(script).map { spec in
+                guard let url = spec.dependencyURL else {
+                    throw Error.invalidInlineDependencyURL(spec.dependencyName)
+                }
+                return url
             }
         }
 
