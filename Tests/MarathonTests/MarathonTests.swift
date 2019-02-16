@@ -7,7 +7,6 @@
 import XCTest
 import MarathonCore
 import Files
-import Unbox
 import Require
 
 //swiftlint:disable type_body_length file_length
@@ -183,7 +182,7 @@ class MarathonTests: XCTestCase {
 
         try run(with: ["add", "TestPackage"])
         let packageData = try folder.subfolder(named: "Packages").file(named: "TestPackage").read()
-        let package = try unbox(data: packageData) as Package
+        let package = try JSONDecoder().decode(Package.self, from: packageData)
         XCTAssertEqual(package.majorVersion, 1)
     }
 
@@ -692,7 +691,7 @@ class MarathonTests: XCTestCase {
 
         // Files' URL should not have been overwritten
         let packageFile = try folder.file(atPath: "Packages/Files")
-        let package: Package = try unbox(data: packageFile.read())
+        let package = try JSONDecoder().decode(Package.self, from: packageFile.read())
         XCTAssertEqual(package.url, URL(string: "https://github.com/JohnSundell/Files.git"))
     }
 
