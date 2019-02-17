@@ -169,14 +169,16 @@ public final class ScriptManager {
     private func script(from file: File) throws -> Script {
         let identifier = scriptIdentifier(from: file.path)
         let folder = try createFolderIfNeededForScript(withIdentifier: identifier, file: file)
-        let script = Script(name: file.nameExcludingExtension, folder: folder, printer: printer)
-
+        let script = Script(name: file.nameExcludingExtension, folder: folder, dependencies: [], printer: printer)
+        
         if let marathonFile = try script.resolveMarathonFile(fileName: config.dependencyFile) {
-            try packageManager.addPackagesIfNeeded(from: marathonFile.packageURLs)
+            let marathonFileDependencies: [Dependency] = marathonFile.packageURLs.map { Dependency(name: nil, url: $0) }
+            let resolvedDependencies = try packageManager.addPackagesIfNeeded(from: marathonFileDependencies)
             try addDependencyScripts(fromMarathonFile: marathonFile, for: script)
+            script.dependencies += resolvedDependencies
         }
 
-        try resolveInlineDependencies(from: file)
+        script.dependencies += try resolveInlineDependencies(from: file)
 
         do {
             let packageFile = try folder.createFile(named: "Package.swift")
@@ -248,7 +250,7 @@ public final class ScriptManager {
             let cloneFiles = cloneFolder.makeFileSequence(recursive: true)
 
             if cloneFiles.contains(where: { $0.name == "main.swift" }) {
-                return Script(name: packageName, folder: cloneFolder, printer: printer)
+                return Script(name: packageName, folder: cloneFolder, dependencies: [], printer: printer)
             }
         }
 
@@ -279,7 +281,7 @@ public final class ScriptManager {
 
     private func createFolderIfNeededForScript(withIdentifier identifier: String, file: File) throws -> Folder {
         let scriptFolder = try cacheFolder.createSubfolderIfNeeded(withName: identifier)
-        try packageManager.symlinkPackages(to: scriptFolder)
+//        try packageManager.symlinkPackages(to: scriptFolder)
 
         if (try? scriptFolder.file(named: "OriginalFile")) == nil {
             try scriptFolder.createSymlink(to: file.path, at: "OriginalFile", printer: printer)
@@ -311,9 +313,10 @@ public final class ScriptManager {
         }
     }
 
-    private func resolveInlineDependencies(from file: File) throws {
+    private func resolveInlineDependencies(from file: File) throws -> [Dependency] {
         let lines = try file.readAsString().components(separatedBy: .newlines)
-        var packageURLs = [URL]()
+        
+        var dependencies = [Dependency]()
 
         for line in lines {
             if line.hasPrefix("import ") {
@@ -323,13 +326,17 @@ public final class ScriptManager {
                     continue
                 }
 
+                let importName = components.first!
+                                           .replacingOccurrences(of: "import ", with: "")
+                                            .replacingOccurrences(of: "//", with: "")
+                                           .trimmingCharacters(in: .whitespaces)
                 let urlString = components.last!.trimmingCharacters(in: .whitespaces)
 
                 guard let url = URL(string: urlString) else {
                     throw Error.invalidInlineDependencyURL(urlString)
                 }
 
-                packageURLs.append(url)
+                dependencies.append(Dependency(name: importName, url: url))
             } else if let firstCharacter = line.unicodeScalars.first {
                 guard !CharacterSet.alphanumerics.contains(firstCharacter) else {
                     break
@@ -337,7 +344,7 @@ public final class ScriptManager {
             }
         }
 
-        try packageManager.addPackagesIfNeeded(from: packageURLs)
+        return try packageManager.addPackagesIfNeeded(from: dependencies)
     }
 
     private func makeManagedScriptPathList() -> [String] {

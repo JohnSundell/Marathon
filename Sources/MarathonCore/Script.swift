@@ -69,6 +69,7 @@ public final class Script {
 
     public let name: String
     public let folder: Folder
+    public var dependencies: [Dependency]
 
     private let printer: Printer
     private var copyLoopDispatchQueue: DispatchQueue?
@@ -76,9 +77,10 @@ public final class Script {
 
     // MARK: - Init
 
-    init(name: String, folder: Folder, printer: Printer) {
+    public init(name: String, folder: Folder, dependencies: [Dependency], printer: Printer) {
         self.name = name
         self.folder = folder
+        self.dependencies = dependencies
         self.printer = printer
     }
 
