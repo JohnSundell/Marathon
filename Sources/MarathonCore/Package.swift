@@ -5,10 +5,9 @@
  */
 
 import Foundation
-import Unbox
 import Releases
 
-public struct Package {
+public struct Package: Codable {
     public let name: String
     public let url: URL
     public var majorVersion: Int
@@ -17,14 +16,6 @@ public struct Package {
 extension Package: Equatable {
     public static func ==(lhs: Package, rhs: Package) -> Bool {
         return lhs.url == rhs.url && lhs.majorVersion == rhs.majorVersion
-    }
-}
-
-extension Package: Unboxable {
-    public init(unboxer: Unboxer) throws {
-        name = try unboxer.unbox(key: "name")
-        url = try unboxer.unbox(key: "url")
-        majorVersion = try unboxer.unbox(key: "majorVersion")
     }
 }
 
@@ -47,22 +38,31 @@ internal extension Package {
 }
 
 internal extension Package {
-    struct Pinned {
+    struct Pinned: Decodable {
+        enum CodingKeys: String, CodingKey {
+            case name = "package"
+            case url = "repositoryURL"
+            case state
+        }
+
+        struct State {
+            let version: Version
+        }
+
         let name: String
         let url: URL
-        let version: Version
+        let state: State
     }
 }
 
-extension Package.Pinned: Unboxable {
-    init(unboxer: Unboxer) throws {
-        name = try unboxer.unbox(key: "package")
-        url = try unboxer.unbox(key: "repositoryURL")
+extension Package.Pinned.State: Decodable {
+    enum CodingKeys: CodingKey {
+        case version
+    }
 
-        if let legacyVersion: Version = unboxer.unbox(key: "version") {
-            version = legacyVersion
-        } else {
-            version = try unboxer.unbox(keyPath: "state.version")
-        }
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let versionString = try container.decode(String.self, forKey: .version)
+        version = try Version(string: versionString)
     }
 }

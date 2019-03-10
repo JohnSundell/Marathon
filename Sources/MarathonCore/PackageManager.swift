@@ -6,8 +6,6 @@
 
 import Foundation
 import Files
-import Wrap
-import Unbox
 import Require
 import Releases
 
@@ -144,7 +142,7 @@ public final class PackageManager {
         let packageFile = try perform(folder.file(named: name),
                                       orThrow: Error.unknownPackageForRemoval(name))
 
-        let package = try perform(unbox(data: packageFile.read()) as Package,
+        let package = try perform(packageFile.read().decoded() as Package,
                                   orThrow: Error.failedToReadPackageFile(name))
 
         try perform(packageFile.delete(), orThrow: Error.failedToRemovePackage(name, folder))
@@ -308,7 +306,7 @@ public final class PackageManager {
     }
 
     private func save(package: Package) throws {
-        try perform(folder.createFile(named: package.name, contents: wrap(package)),
+        try perform(folder.createFile(named: package.name, contents: package.encoded()),
                     orThrow: Error.failedToSavePackageFile(package.name, folder))
     }
 
@@ -335,7 +333,7 @@ public final class PackageManager {
                 let package = Package(
                     name: pinnedPackage.name,
                     url: pinnedPackage.url,
-                    majorVersion: pinnedPackage.version.major
+                    majorVersion: pinnedPackage.state.version.major
                 )
 
                 try save(package: package)
@@ -346,14 +344,17 @@ public final class PackageManager {
     }
 
     private func resolvePinnedPackages() throws -> [Package.Pinned] {
-        // Look for a Package.resolved file (used by the latest Swift toolchains)
-        if let resolvedPackageFile = try? generatedFolder.file(named: "Package.resolved") {
-            return try unbox(data: resolvedPackageFile.read(), atKeyPath: "object.pins")
+        struct ResolvedPackagesState: Decodable {
+            struct Object: Decodable {
+                let pins: [Package.Pinned]
+            }
+
+            let object: Object
         }
 
-        // Fallback to a 3.1 toolchain Packages.pins file
-        let pinsFile = try generatedFolder.file(named: "Package.pins")
-        return try unbox(data: pinsFile.read(), atKeyPath: "pins")
+        let data = try generatedFolder.file(named: "Package.resolved").read()
+        let state = try data.decoded() as ResolvedPackagesState
+        return state.object.pins
     }
 
     private func generateMasterPackageDescription(forSwiftToolsVersion toolsVersion: Version) throws {
@@ -402,7 +403,7 @@ public final class PackageManager {
 
     private func makePackageList() -> [Package] {
         return folder.files.compactMap { file in
-            return try? unbox(data: file.read())
+            return try? file.read().decoded()
         }
     }
 

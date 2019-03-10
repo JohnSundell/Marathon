@@ -1,4 +1,4 @@
-// swift-tools-version:4.1
+// swift-tools-version:4.2
 
 /**
  *  Marathon
@@ -16,11 +16,9 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/JohnSundell/Files.git", from: "2.0.0"),
-        .package(url: "https://github.com/JohnSundell/Unbox.git", from: "3.0.0"),
-        .package(url: "https://github.com/JohnSundell/Wrap.git", from: "3.0.0"),
         .package(url: "https://github.com/JohnSundell/ShellOut.git", from: "2.0.0"),
         .package(url: "https://github.com/JohnSundell/Require.git", from: "2.0.0"),
-        .package(url: "https://github.com/JohnSundell/Releases.git", from: "3.0.0")
+        .package(url: "https://github.com/JohnSundell/Releases.git", from: "4.0.0")
     ],
     targets: [
         .target(
@@ -29,7 +27,7 @@ let package = Package(
         ),
         .target(
             name: "MarathonCore",
-            dependencies: ["Files", "Unbox", "Wrap", "ShellOut", "Require", "Releases"]
+            dependencies: ["Files", "ShellOut", "Require", "Releases"]
         ),
         .testTarget(
             name: "MarathonTests",
