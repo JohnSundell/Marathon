@@ -391,8 +391,14 @@ public final class PackageManager {
             description.append("])],\n")
         }
 
-        if toolsVersion.major >= 4 && toolsVersion.minor >= 2 {
-            description.append("    swiftLanguageVersions: [.version(\"\(toolsVersion.major).\(toolsVersion.minor)\")]\n)")
+        if toolsVersion >= Version(major: 4, minor: 2) {
+            var versionString = String(toolsVersion.major)
+
+            if toolsVersion.minor > 0 {
+                versionString.append(".\(toolsVersion.minor)")
+            }
+
+            description.append("    swiftLanguageVersions: [.version(\"\(versionString)\")]\n)")
         } else {
             description.append("    swiftLanguageVersions: [\(toolsVersion.major)]\n)")
         }
