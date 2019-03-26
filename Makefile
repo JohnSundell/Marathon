@@ -5,7 +5,7 @@ install: build install_bin
 
 build:
 	swift package update
-	swift build -c release -Xswiftc -static-stdlib
+	swift build -c release
 
 install_bin:
 	mkdir -p $(PREFIX)/bin
