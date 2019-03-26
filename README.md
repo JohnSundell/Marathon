@@ -8,7 +8,7 @@
     <a href="https://travis-ci.org/JohnSundell/Marathon/branches">
         <img src="https://img.shields.io/travis/JohnSundell/Marathon/master.svg" alt="Travis status" />
     </a>
-    <img src="https://img.shields.io/badge/Swift-4.1-orange.svg" />
+    <img src="https://img.shields.io/badge/Swift-4.2-orange.svg" />
     </a>
     <a href="https://swift.org/package-manager">
         <img src="https://img.shields.io/badge/spm-compatible-brightgreen.svg?style=flat" alt="Swift Package Manager" />
