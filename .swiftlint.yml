@@ -1,0 +1,17 @@
+disabled_rules:
+  - line_length
+  - force_try
+  - force_cast
+  - operator_whitespace
+
+included:
+  - Sources
+  - Tests
+
+type_body_length:
+  - 400 #warning
+  - 600 #error
+
+file_length:
+  - 800 #warning
+  - 1000 #error

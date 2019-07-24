@@ -2,6 +2,9 @@
 #
 # gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
 
+## macOS
+*.DS_Store
+
 ## Build generated
 build/
 DerivedData/
@@ -37,7 +40,6 @@ playground.xcworkspace
 #
 # Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
 Packages/
-Package.pins
 .build/
 
 # CocoaPods
@@ -66,3 +68,6 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
+
+## AppCode
+.idea/

@@ -21,8 +21,8 @@ public extension CommandError {
         }
     }
 
-    var hint: String? {
-        return "Type 'marathon help' for available commands"
+    var hints: [String] {
+        return ["Type 'marathon help' for available commands"]
     }
 }
 
@@ -33,6 +33,7 @@ internal enum Command: String {
     case edit
     case remove
     case run
+    case install
     case add
     case list
     case update
@@ -43,7 +44,7 @@ extension Command {
     private typealias Error = CommandError
 
     static var all: [Command] {
-        return [.create, .edit, .remove, .run, .add, .list, .update, .help]
+        return [.create, .edit, .remove, .run, .install, .add, .list, .update, .help]
     }
 
     var description: String {
@@ -56,6 +57,8 @@ extension Command {
             return "Remove a package or the cache data for a script at a given path"
         case .run:
             return "Run a script at a given path"
+        case .install:
+            return "Install a script at a given path or URL as a binary"
         case .add:
             return "Add a package from a given URL to be able to use it from your scripts"
         case .list:
@@ -72,11 +75,13 @@ extension Command {
         case .create:
             return "<script-path> [<script-content>] [--no-xcode] [--no-open]"
         case .edit:
-            return "<path-to-script> [--no-xcode] [--no-open]"
+            return "<script-path> [--no-xcode] [--no-open]"
         case .remove:
-            return "<name-of-package-or-path-to-script> [--all-script-data]"
+            return "<name-of-package-or-path-to-script> [--all-script-data] [--all-packages]"
         case .run:
-            return "<path-to-script> [<script-arguments...>]"
+            return "<script-path> [<script-arguments...>]"
+        case .install:
+            return "<script-path-or-url> [<install-path>] [--force]"
         case .add:
             return "<url-or-path-to-package>"
         case .list:
@@ -88,7 +93,7 @@ extension Command {
         }
     }
 
-    var makeTaskClosure: (Folder, [String], ScriptManager, PackageManager) -> Executable {
+    var makeTaskClosure: (Folder, [String], ScriptManager, PackageManager, Printer) -> Executable {
         switch self {
         case .create:
             return CreateTask.init
@@ -100,6 +105,8 @@ extension Command {
             return RemoveTask.init
         case .run:
             return RunTask.init
+        case .install:
+            return InstallTask.init
         case .list:
             return ListTask.init
         case .update:
@@ -107,6 +114,10 @@ extension Command {
         case .help:
             return HelpTask.init
         }
+    }
+
+    var allowsProgressOutput: Bool {
+        return self != .run
     }
 
     init(arguments: [String], index: Int = 1) throws {

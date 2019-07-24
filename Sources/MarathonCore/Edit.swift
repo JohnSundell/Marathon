@@ -20,10 +20,10 @@ extension EditError: PrintableError {
         }
     }
 
-    public var hint: String? {
+    public var hints: [String] {
         switch self {
         case .missingPath:
-            return "Pass the name/path of a script file to edit (for example 'marathon edit myScript')"
+            return ["Pass the name/path of a script file to edit (for example 'marathon edit myScript')"]
         }
     }
 }
@@ -35,13 +35,15 @@ internal final class EditTask: Task, Executable {
 
     // MARK: - Executable
 
-    func execute() throws -> String {
-        guard let path = firstArgumentAsScriptPath else {
+    func execute() throws {
+        guard let path = arguments.first?.asScriptPath() else {
             throw Error.missingPath
         }
 
-        let script = try scriptManager.script(at: path)
-        try script.edit(arguments: arguments, open: !argumentsContainNoOpenFlag)
-        return ""
+        let script = try scriptManager.script(atPath: path, allowRemote: false)
+        try script.setupForEdit(arguments: arguments)
+        if !argumentsContainNoOpenFlag {
+            try script.watch(arguments: arguments)
+        }
     }
 }

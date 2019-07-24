@@ -1,9 +1,16 @@
-INSTALL_PATH = /usr/local/bin/marathon
+PREFIX?=/usr/local
+INSTALL_NAME = marathon
 
-install:
+install: build install_bin
+
+build:
 	swift package update
-	swift build -c release -Xswiftc -static-stdlib
-	cp -f .build/release/Marathon $(INSTALL_PATH)
+	swift build -c release
+
+install_bin:
+	mkdir -p $(PREFIX)/bin
+	mv .build/Release/Marathon .build/Release/$(INSTALL_NAME)
+	install .build/Release/$(INSTALL_NAME) $(PREFIX)/bin
 
 uninstall:
-	rm -f $(INSTALL_PATH)
+	rm -f $(PREFIX)/bin/$(INSTALL_NAME)

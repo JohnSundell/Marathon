@@ -6,12 +6,12 @@
 
 import Foundation
 import Files
+import ShellOut
 
 // MARK: - Error
 
 public enum RunError {
     case missingPath
-    case failedToCompileScript([String])
     case failedToRunScript(String)
 }
 
@@ -20,26 +20,17 @@ extension RunError: PrintableError {
         switch self {
         case .missingPath:
             return "No script path given"
-        case .failedToCompileScript(_):
-            return "Failed to compile script"
-        case .failedToRunScript(_):
+        case .failedToRunScript:
             return "Failed to run script"
         }
     }
 
-    public var hint: String? {
+    public var hints: [String] {
         switch self {
         case .missingPath:
-            return "Pass the path to a script file to run (for example 'marathon run script.swift')"
-        case .failedToCompileScript(let errors):
-            guard !errors.isEmpty else {
-                return nil
-            }
-
-            let separator = "\n- "
-            return "The following error(s) occured:" + separator + errors.joined(separator: separator)
+            return ["Pass the path to a script file to run (for example 'marathon run script.swift')"]
         case .failedToRunScript(let message):
-            return message
+            return [message]
         }
     }
 }
@@ -51,41 +42,19 @@ internal class RunTask: Task, Executable {
 
     // MARK: - Executable
 
-    func execute() throws -> String {
-        guard let path = firstArgumentAsScriptPath else {
+    func execute() throws {
+        guard let path = arguments.first else {
             throw Error.missingPath
         }
 
-        let script = try scriptManager.script(at: path)
+        let script = try scriptManager.script(atPath: path, allowRemote: true)
+        try script.build()
 
         do {
-            try script.build()
+            let output = try script.run(in: folder, with: Array(arguments.dropFirst()))
+            printer.output(output)
         } catch {
-            throw formatCompileError(error as! Process.Error, for: script)
+            throw Error.failedToRunScript((error as! ShellOutError).message)
         }
-
-        do {
-            return try script.run(in: folder, with: Array(arguments.dropFirst()))
-        } catch {
-            throw Error.failedToRunScript((error as! Process.Error).message)
-        }
-    }
-
-    // MARK: - Private
-
-    private func formatCompileError(_ error: Process.Error, for script: Script) -> Error {
-        var messages = [String]()
-
-        for outputComponent in error.output.components(separatedBy: "\n") {
-            let lineComponents = outputComponent.components(separatedBy: script.folder.path + "Sources/main.swift:")
-
-            guard lineComponents.count > 1 else {
-                continue
-            }
-
-            messages.append(lineComponents.last!.replacingOccurrences(of: " error:", with: ""))
-        }
-
-        return Error.failedToCompileScript(messages)
     }
 }

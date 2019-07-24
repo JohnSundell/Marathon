@@ -4,14 +4,14 @@
  *  Licensed under the MIT license. See LICENSE file.
  */
 
+import Foundation
 import MarathonCore
+import Require
 
 do {
-    let outcome = try Marathon.run()
-
-    if !outcome.isEmpty {
-        print(outcome)
-    }
+    try Marathon.run()
 } catch {
-    print("\(error)")
+    let errorData = "\(error)\n".data(using: .utf8).require()
+    FileHandle.standardError.write(errorData)
+    exit(1)
 }

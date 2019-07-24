@@ -7,12 +7,8 @@
 import Foundation
 
 internal extension String {
-    var length: String.IndexDistance {
-        return distance(from: startIndex, to: endIndex)
-    }
-
     var dashesWithMatchingLength: String {
-        return String(repeating: "-", count: length)
+        return String(repeating: "-", count: count)
     }
 
     func withIndentedNewLines(prefix: String) -> String {
@@ -24,5 +20,15 @@ internal extension String {
         }
 
         return indentedString
+    }
+
+    func asScriptPath() -> String {
+        let suffix = ".swift"
+
+        guard hasSuffix(suffix) else {
+            return self + suffix
+        }
+
+        return self
     }
 }

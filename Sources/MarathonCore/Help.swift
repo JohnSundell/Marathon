@@ -11,7 +11,7 @@ import Foundation
 internal final class HelpTask: Task, Executable {
     // MARK: - Executable
 
-    func execute() throws -> String {
+    func execute() throws {
         let command = try Command(arguments: arguments, index: 0)
         let title = makeTitle(for: command)
         let message = makeMessage(for: command)
@@ -24,7 +24,7 @@ internal final class HelpTask: Task, Executable {
             output.append("\n" + command.description + "\n\n")
             output.append("👉  Usage: 'marathon \(command.rawValue)")
 
-            if command.usageText.length > 0 {
+            if !command.usageText.isEmpty {
                 output.append(" \(command.usageText)")
             }
 
@@ -35,7 +35,7 @@ internal final class HelpTask: Task, Executable {
             }
         }
 
-        return output
+        printer.output(output)
     }
 
     // MARK: - Private
@@ -56,9 +56,14 @@ internal final class HelpTask: Task, Executable {
                    "To not open the script at all, pass the '--no-open' flag"
         case .remove:
             return "You can use this command to clean up data for scripts or packages no longer needed. To list them, use 'marathon list'\n" +
-                   "To remove all packages, pass the '--all-script-data' flag"
+                   "To remove all script data, pass the '--all-script-data' flag" +
+                   "To remove all packages, pass the '--all-packages' flag"
         case .run:
             return "The script will be compiled and run, and any output generated will be returned"
+        case .install:
+            return "The script will be compiled, and the resulting binary copied to the install path\n" +
+                   "The default install path is '/usr/local/bin/<lowercased-name-of-script>'\n" +
+                   "Marathon will ask before overwriting any existing binary, unless the '--force' flag is passed"
         case .add:
             return "You can also use a 'Marathonfile' to automatically add packages. See https://github.com/johnsundell/marathon for more information"
         case .list:
@@ -96,7 +101,7 @@ private extension Command {
             return title
         }
 
-        let paddingNeeded = 10 - rawValue.length
+        let paddingNeeded = 10 - rawValue.count
 
         guard paddingNeeded > 0 else {
             return title
@@ -115,6 +120,8 @@ private extension Command {
             return "🗑"
         case .run:
             return "🏃‍♀️"
+        case .install:
+            return "💻"
         case .add:
             return "📦"
         case .list:

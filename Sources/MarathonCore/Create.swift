@@ -24,12 +24,12 @@ extension CreateError: PrintableError {
         }
     }
 
-    public var hint: String? {
+    public var hints: [String] {
         switch self {
         case .missingName:
-            return "Pass the name of a script file to create (for example 'marathon create myScript')"
+            return ["Pass the name of a script file to create (for example 'marathon create myScript')"]
         case .failedToCreateFile:
-            return "Make sure you have write permissions to the current folder"
+            return ["Make sure you have write permissions to the current folder"]
         }
     }
 }
@@ -39,26 +39,50 @@ extension CreateError: PrintableError {
 internal final class CreateTask: Task, Executable {
     private typealias Error = CreateError
 
-    func execute() throws -> String {
-        guard let path = firstArgumentAsScriptPath else {
+    func execute() throws {
+        guard let path = arguments.first?.asScriptPath() else {
             throw Error.missingName
         }
 
-        let script = arguments.element(at: 1) ?? "import Foundation\n\n"
+        guard (try? File(path: path)) == nil else {
+            let editTask = EditTask(
+                folder: folder,
+                arguments: arguments,
+                scriptManager: scriptManager,
+                packageManager: packageManager,
+                printer: printer
+            )
 
-        guard let data = script.data(using: .utf8) else {
+            return try editTask.execute()
+        }
+
+        guard let data = makeScriptContent().data(using: .utf8) else {
             throw Error.failedToCreateFile(path)
         }
 
         let file = try perform(FileSystem().createFile(at: path, contents: data),
                                orThrow: Error.failedToCreateFile(path))
 
-        print("🐣  Created script at \(path)")
+        printer.output("🐣  Created script at \(path)")
 
         if !argumentsContainNoOpenFlag {
-            try scriptManager.script(at: file.path).edit(arguments: arguments, open: true)
+            let script = try scriptManager.script(atPath: file.path, allowRemote: false)
+            try script.setupForEdit(arguments: arguments)
+            try script.watch(arguments: arguments)
+        }
+    }
+
+    private func makeScriptContent() -> String {
+        let defaultContent = "import Foundation\n\n"
+
+        guard let argument = arguments.element(at: 1) else {
+            return defaultContent
         }
 
-        return ""
+        guard !argument.hasPrefix("-") else {
+            return defaultContent
+        }
+
+        return argument
     }
 }

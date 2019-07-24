@@ -1,0 +1,43 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Files",
+        "repositoryURL": "https://github.com/JohnSundell/Files.git",
+        "state": {
+          "branch": null,
+          "revision": "a84615f4558151fab52ac38df697ce2442991f93",
+          "version": "2.3.0"
+        }
+      },
+      {
+        "package": "Releases",
+        "repositoryURL": "https://github.com/JohnSundell/Releases.git",
+        "state": {
+          "branch": null,
+          "revision": "ea62f33a429185b0ed21344c2355862c5bc4fcce",
+          "version": "4.0.0"
+        }
+      },
+      {
+        "package": "Require",
+        "repositoryURL": "https://github.com/JohnSundell/Require.git",
+        "state": {
+          "branch": null,
+          "revision": "7cfbd0d8a2dede0e01f6f0d8ab2c7acef1df112e",
+          "version": "2.0.1"
+        }
+      },
+      {
+        "package": "ShellOut",
+        "repositoryURL": "https://github.com/JohnSundell/ShellOut.git",
+        "state": {
+          "branch": null,
+          "revision": "d3d54ce662dfee7fef619330b71d251b8d4869f9",
+          "version": "2.2.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
