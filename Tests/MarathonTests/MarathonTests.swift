@@ -355,7 +355,7 @@ class MarathonTests: XCTestCase {
         try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
 
         let script = "import Files\n\n" +
-                     "print(Folder.current)"
+                     "print(Folder.current.path)"
 
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: script)
