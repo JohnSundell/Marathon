@@ -394,7 +394,7 @@ public final class PackageManager {
         if toolsVersion >= Version(major: 4, minor: 2) {
             var versionString = String(toolsVersion.major)
 
-            if toolsVersion.minor > 0 {
+            if toolsVersion == Version(major: 4, minor: 2) {
                 versionString.append(".\(toolsVersion.minor)")
             }
 
