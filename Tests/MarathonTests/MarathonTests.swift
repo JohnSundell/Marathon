@@ -226,7 +226,7 @@ class MarathonTests: XCTestCase {
 
     func testRunningScript() throws {
         let script = "import Files\n\n" +
-        "try Folder(path: \(folder.path)).createSubfolder(at: \"addedFromScript\")"
+        "try Folder(path: \"\(folder.path)\").createSubfolder(at: \"addedFromScript\")"
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: script)
 
@@ -250,7 +250,7 @@ class MarathonTests: XCTestCase {
         try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
 
         script += "import Files\n\n" +
-                  "try Folder(path: \(folder.path)).createSubfolder(at: \"addedFromScript\")"
+                  "try Folder(path: \"\(folder.path)\").createSubfolder(at: \"addedFromScript\")"
         try scriptFile.write(string: script)
         try run(with: ["run", scriptFile.path])
     }
