@@ -226,7 +226,7 @@ class MarathonTests: XCTestCase {
 
     func testRunningScript() throws {
         let script = "import Files\n\n" +
-                     "try FileSystem().createFolder(at: \"\(folder.path)addedFromScript\")"
+        "try Folder(path: \"\(folder.path)\").createSubfolder(at: \"addedFromScript\")"
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: script)
 
@@ -250,7 +250,7 @@ class MarathonTests: XCTestCase {
         try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
 
         script += "import Files\n\n" +
-                  "try FileSystem().createFolder(at: filePath)"
+                  "try Folder(path: \"\(folder.path)\").createSubfolder(at: \"addedFromScript\")"
         try scriptFile.write(string: script)
         try run(with: ["run", scriptFile.path])
     }
@@ -355,7 +355,7 @@ class MarathonTests: XCTestCase {
         try run(with: ["add", "https://github.com/JohnSundell/Files.git"])
 
         let script = "import Files\n\n" +
-                     "print(FileSystem().currentFolder.path)"
+                     "print(Folder.current.path)"
 
         let scriptFile = try folder.createFile(named: "script.swift")
         try scriptFile.write(string: script)
@@ -597,7 +597,7 @@ class MarathonTests: XCTestCase {
         let script = "import Foundation\n" +
                      "import Files\n" +
                      "import Wrap\n\n" +
-                     "FileSystem().homeFolder\n" +
+                     "Folder.home\n" +
                      "struct MyStruct {}\n" +
                      "try wrap(MyStruct()) as Data"
 
