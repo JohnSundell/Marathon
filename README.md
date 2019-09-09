@@ -1,3 +1,5 @@
+**⚠️ DEPRECATED**: Marathon is now deprecated in favor of using the Swift Package Manager directly. It's recommended to migrate your scripts as soon as possible, since future Xcode/macOS versions may break compatibility. See [this issue](https://github.com/JohnSundell/Marathon/issues/208) for more info.
+
 <p align="center">
     <img src="Logo.png" width="480" max-width="90%" alt="Marathon" />
 </p>
