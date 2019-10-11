@@ -25,13 +25,13 @@ extension ScriptError: PrintableError {
     public var message: String {
         switch self {
         case .editingFailed(let name):
-            return "Failed to open script '\(name)' for editing"
+            return "Failed to open script '\(name)' for editing / try rerunning with --verbose"
         case .buildFailed:
-            return "Failed to compile script"
+            return "Failed to compile script / try rerunning with --verbose"
         case .installFailed:
-            return "Failed to install script"
+            return "Failed to install script / try rerunning with --verbose"
         case .watchingFailed(let name):
-            return "Failed to start watcher for \(name)"
+            return "Failed to start watcher for \(name) / try rerunning with --verbose"
         }
     }
 
